@@ -1,0 +1,18 @@
+---
+description: shadcn developement, use MCP to during planning and implementation
+globs:
+alwaysApply: false
+---
+
+Usage Rule
+When asked to use shadcn components, use MCP server.
+
+Planning Rule
+When asked to plan using anything related to shadcn:
+Apply components wherever components are applicable
+Use whole blocks where possible (i.e. login page, calender)
+
+Implementation Rule:
+When implementing:
+Call the demo tool first see how it is used
+Then implement
