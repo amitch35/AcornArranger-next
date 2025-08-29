@@ -1,4 +1,5 @@
-brainstorm.md
+chats/
 AcornArranger-legacy/
 .cursor/mcp.json
 node_modules
+.env*.local

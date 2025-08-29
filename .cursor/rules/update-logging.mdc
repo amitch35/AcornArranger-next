@@ -1,0 +1,32 @@
+---
+description: ALWAYS update the Update Log section when making significant changes to the project.
+globs:
+alwaysApply: true
+---
+### Change Logging Rule
+**ALWAYS update the Update Log section when making significant changes to the project.** This includes:
+- Completing milestone tasks (check off items in M0-M9)
+- Completing phase tasks (check off items in Phase 0-10)
+- Making architectural decisions or changes
+- Adding new dependencies or tools
+- Resolving open questions
+- Making environment or configuration changes
+
+**Update Log Format:**
+```
+- v0.X: Brief description of what was accomplished
+- v0.X+1: Next significant change
+```
+
+**Examples of what requires logging:**
+- ✅ Completed milestone: "M0 — Repository & Base App: [x] New Next.js app scaffolded"
+- ✅ Added new dependency: "Added shadcn/ui components"
+- ✅ Configuration change: "Configured local Supabase development environment"
+- ✅ Architecture decision: "Decided to use TanStack Query for server state management"
+
+**Examples of what doesn't require logging:**
+- ❌ Minor code refactoring
+- ❌ Bug fixes (unless they represent significant architectural changes)
+- ❌ Documentation updates to existing sections
+
+This rule ensures the scope.md remains a living document that accurately reflects the current state and progress of the project.

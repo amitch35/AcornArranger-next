@@ -50,7 +50,7 @@ This document defines the scope, tech choices, and an implementation checklist f
 ## Milestones & Acceptance Criteria
 
 ### M0 — Repository & Base App
-- [ ] New Next.js app scaffolded and running locally
+- [x] New Next.js app scaffolded and running locally (in `app/`)
 - [ ] Tailwind and shadcn/ui configured
 - [ ] Base layout (sidebar + header) with placeholder routes
 
@@ -107,7 +107,7 @@ This document defines the scope, tech choices, and an implementation checklist f
 ## Implementation Steps (Checklist)
 
 ### Phase 0 — Initialize Project
-- [ ] Create Next.js app (App Router, TS)
+- [x] Create Next.js app (App Router, TS) in `app/`
 - [ ] Add Tailwind CSS
 - [ ] Initialize shadcn/ui, add core components (button, input, dialog, table)
 - [ ] Commit hooks (lint-staged, prettier) [optional]
@@ -189,5 +189,7 @@ This document defines the scope, tech choices, and an implementation checklist f
 
 ## Update Log
 - v0.1: Initial scope and plan
+- v0.2: Initialized Next.js app in `app/` via with-supabase template (renamed from `web/`)
+- v0.3: Next.js development server successfully running on localhost:3000; M0 milestone partially complete
 
 
