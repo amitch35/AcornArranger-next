@@ -26,6 +26,16 @@ node_modules/
 # OS specific
 .DS_Store
 
-# Task files
-# tasks.json
-# tasks/ 
+# Task Master generated files (should not be tracked)
+.taskmaster/tasks/
+.taskmaster/state.json
+.taskmaster/reports/
+
+# Keep these Task Master files (they contain important config and docs)
+!.taskmaster/config.json
+!.taskmaster/docs/
+!.taskmaster/templates/ 
+
+# Next.js build files
+app/.next/
+app/next-env.d.ts

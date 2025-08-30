@@ -1,0 +1,215 @@
+# AcornArranger Next.js Rebuild - Product Requirements Document
+
+## Overview
+AcornArranger is a housekeeping scheduling tool designed specifically for vacation rental management companies. The application serves as a comprehensive manager dashboard that enables property managers to efficiently schedule housekeeping staff across multiple properties with varying cleaning requirements and time constraints.
+
+**Problem Statement:** Managing housekeeping schedules for vacation rentals is complex due to multiple properties, varying cleaning times, staff availability, and external service integrations. Current manual processes are time-consuming and error-prone.
+
+**Target Users:** Property management company managers, operations coordinators, and administrative staff who oversee housekeeping operations.
+
+**Value Proposition:** Streamlined scheduling workflow that reduces manual effort, minimizes scheduling conflicts, and provides clear visibility into housekeeping operations across all managed properties.
+
+## Core Features
+
+### 1. Authentication & Role-Based Access Control
+- **What it does:** Secure login system with role-based permissions (admin vs staff)
+- **Why it's important:** Ensures only authorized personnel can access sensitive scheduling data
+- **How it works:** Supabase Auth with JWT tokens, middleware protection for routes
+
+### 2. Staff Management
+- **What it does:** Complete CRUD operations for housekeeping staff including roles, availability, and shift information
+- **Why it's important:** Foundation for all scheduling operations - staff must be properly managed before scheduling
+- **How it works:** Staff profiles with role assignments, availability tracking, and shift integration from Homebase
+
+### 3. Property Management
+- **What it does:** Manage vacation rental properties with cleaning requirements, addresses, and scheduling parameters
+- **Why it's important:** Properties define the work that needs to be scheduled and their specific requirements
+- **How it works:** Property profiles with cleaning time estimates, location data, and service requirements
+
+### 4. Appointment Scheduling
+- **What it does:** Create, edit, and manage individual cleaning appointments with staff assignments
+- **Why it's important:** Core scheduling functionality that managers use daily
+- **How it works:** Appointment creation with staff assignment, time slots, and service specifications
+
+### 5. Schedule Plan Generation
+- **What it does:** Automated generation of optimized cleaning schedules using complex algorithms
+- **Why it's important:** Eliminates manual scheduling complexity and ensures optimal resource utilization
+- **How it works:** Database RPC function that processes staff availability, property requirements, and constraints
+
+### 6. External Service Integrations
+- **What it does:** Integrate with Homebase for shift management and ResortCleaning for plan distribution
+- **Why it's important:** Connects the scheduling system with real-world operations and external tools
+- **How it works:** API adapters with development safety guards to prevent accidental production calls
+
+### 7. Error Monitoring & Notifications
+- **What it does:** Real-time error detection and notification system for scheduling issues
+- **Why it's important:** Ensures managers are immediately aware of scheduling conflicts or system issues
+- **How it works:** Supabase Realtime/Broadcast channels for error events and user notifications
+
+## User Experience
+
+### User Personas
+**Primary User - Property Manager:**
+- Manages multiple vacation rental properties
+- Needs to schedule housekeeping staff efficiently
+- Requires clear visibility into scheduling conflicts and unscheduled work
+- Values time-saving automation and error prevention
+
+**Secondary User - Operations Coordinator:**
+- Assists with day-to-day scheduling operations
+- Needs access to staff and property information
+- Helps resolve scheduling conflicts and last-minute changes
+
+### Key User Flows
+1. **Daily Scheduling Workflow:**
+   - Login to dashboard
+   - Review unscheduled appointments
+   - Generate or modify schedule plans
+   - Assign staff to appointments
+   - Send plans to external services
+
+2. **Staff Management Flow:**
+   - Add new housekeeping staff
+   - Assign roles and permissions
+   - Set availability and shift preferences
+   - Monitor staff performance and conflicts
+
+3. **Property Management Flow:**
+   - Add new vacation rental properties
+   - Configure cleaning requirements and time estimates
+   - Set scheduling parameters and constraints
+
+### UI/UX Considerations
+- **Desktop-first design** optimized for property managers working on larger screens
+- **Clear visual hierarchy** to distinguish between different types of information
+- **Efficient data entry** with smart defaults and validation
+- **Real-time feedback** for scheduling conflicts and system status
+- **Development safety indicators** to prevent accidental external API calls
+
+## Technical Architecture
+
+### System Components
+- **Frontend:** Next.js 14 with App Router, TypeScript, React Server Components
+- **Styling:** Tailwind CSS with shadcn/ui component library
+- **State Management:** TanStack Query for server state, optional Zustand for UI state
+- **Forms:** React Hook Form with Zod validation
+- **Database:** Supabase (PostgreSQL) with existing schema and RPC functions
+- **Authentication:** Supabase Auth with asymmetric JWT signing
+- **Real-time:** Supabase Realtime and Broadcast channels
+
+### Data Models
+- **Staff:** User profiles, roles, availability, shift information
+- **Properties:** Vacation rentals, addresses, cleaning requirements, scheduling parameters
+- **Appointments:** Individual cleaning tasks with staff assignments and time slots
+- **Plans:** Complete schedules with multiple appointments and staff assignments
+- **Roles:** Permission levels and access control definitions
+- **Services:** Types of cleaning services and their requirements
+
+### APIs and Integrations
+- **Internal APIs:** Next.js API routes for CRUD operations
+- **Database:** Supabase client for data access and RPC calls
+- **External Services:** Homebase API for shift management, ResortCleaning API for plan distribution
+- **Development Safety:** Feature flags and guards to prevent external calls in development
+
+### Infrastructure Requirements
+- **Hosting:** Nginx on Linode with PM2/systemd process management
+- **Development:** Local Supabase instance via Docker
+- **Environment:** Separate development and production configurations
+- **Security:** Asymmetric JWT signing, environment variable protection
+
+## Development Roadmap
+
+### MVP Requirements (Phase 1-3)
+- **Authentication system** with role-based access control
+- **Core CRUD operations** for staff, properties, and appointments
+- **Basic scheduling interface** with appointment management
+- **Development environment** with local Supabase and safety guards
+
+### Core Functionality (Phase 4-6)
+- **Schedule plan generation** using existing database RPC functions
+- **Advanced appointment management** with filters and pagination
+- **External service integrations** with development safety features
+- **Real-time error monitoring** and notification system
+
+### Enhanced Features (Phase 7-9)
+- **Advanced scheduling algorithms** and optimization
+- **Comprehensive testing** and quality assurance
+- **Performance optimization** and caching strategies
+- **Production deployment** and monitoring
+
+### Future Enhancements
+- **Mobile responsiveness** for field operations
+- **Advanced analytics** and reporting features
+- **Integration with additional** property management systems
+- **AI-powered scheduling** suggestions and optimization
+
+## Logical Dependency Chain
+
+### Foundation Layer (Must be built first)
+1. **Authentication & Authorization** - Required before any other features
+2. **Staff Management** - Foundation for all scheduling operations
+3. **Property Management** - Defines what work needs to be scheduled
+4. **Basic CRUD Operations** - Core data management capabilities
+
+### Scheduling Layer (Build upon foundation)
+1. **Appointment Management** - Individual task scheduling
+2. **Schedule Plan Generation** - Automated scheduling algorithms
+3. **Conflict Detection** - Error handling and validation
+4. **External Integrations** - Real-world service connections
+
+### Enhancement Layer (Polish and optimization)
+1. **Real-time Features** - Live updates and notifications
+2. **Advanced UI/UX** - Improved user experience
+3. **Performance Optimization** - Speed and efficiency improvements
+4. **Testing & Quality** - Reliability and maintainability
+
+### Development Approach
+- **Start with visible, working features** to demonstrate progress
+- **Build incrementally** with each phase providing usable functionality
+- **Maintain development safety** throughout the process
+- **Focus on manager workflow** rather than staff-facing features
+
+## Risks and Mitigations
+
+### Technical Challenges
+- **Risk:** Complex scheduling algorithm integration with existing database
+- **Mitigation:** Keep algorithm in database RPC, focus on UI integration and error handling
+
+- **Risk:** External service integration complexity
+- **Mitigation:** Implement development safety guards and comprehensive testing
+
+- **Risk:** Performance issues with large datasets
+- **Mitigation:** Implement proper pagination, caching, and database optimization
+
+### Development Complexity
+- **Risk:** Scope creep and feature bloat
+- **Mitigation:** Strict adherence to MVP requirements, defer non-essential features
+
+- **Risk:** Integration challenges with existing Supabase project
+- **Mitigation:** Use local development environment, preserve existing schema and RPCs
+
+### Resource Constraints
+- **Risk:** Limited development time and resources
+- **Mitigation:** Prioritize core functionality, use proven technologies and patterns
+
+- **Risk:** External service dependencies
+- **Mitigation:** Implement fallback mechanisms and development stubs
+
+## Appendix
+
+### Research Findings
+- **Existing System Analysis:** Current @calpoly/mustang implementation provides functional reference
+- **Technology Validation:** Next.js + Supabase combination proven for similar applications
+- **User Research:** Property managers prioritize efficiency and error prevention
+
+### Technical Specifications
+- **Database Schema:** Preserve existing Supabase schema and RPC functions
+- **API Design:** RESTful API routes with consistent error handling
+- **Security Requirements:** Role-based access control, JWT authentication, development safety
+- **Performance Targets:** Sub-second response times for common operations
+
+### Integration Requirements
+- **Homebase API:** Shift management and staff availability
+- **ResortCleaning API:** Plan distribution and communication
+- **Development Safety:** Feature flags and environment-based behavior
+- **Error Handling:** Comprehensive error detection and user notification
