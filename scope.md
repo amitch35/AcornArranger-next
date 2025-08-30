@@ -51,8 +51,8 @@ This document defines the scope, tech choices, and an implementation checklist f
 
 ### M0 — Repository & Base App
 - [x] New Next.js app scaffolded and running locally (in `app/`)
-- [ ] Tailwind and shadcn/ui configured
-- [ ] Base layout (sidebar + header) with placeholder routes
+- [x] Tailwind and shadcn/ui configured
+- [ ] Base layout (sidebar + header) with placeholder routes - *Basic nav exists, needs AcornArranger-specific layout*
 
 ### M1 — Supabase Foundations
 - [ ] Supabase clients (server/client) configured with @supabase/ssr
@@ -108,17 +108,24 @@ This document defines the scope, tech choices, and an implementation checklist f
 
 ### Phase 0 — Initialize Project
 - [x] Create Next.js app (App Router, TS) in `app/`
-- [ ] Add Tailwind CSS
-- [ ] Initialize shadcn/ui, add core components (button, input, dialog, table)
+- [x] Add Tailwind CSS
+- [x] Initialize shadcn/ui, add core components (button, input, dialog, table)
 - [ ] Commit hooks (lint-staged, prettier) [optional]
 
-### Phase 1 — Supabase Setup
-- [ ] Add `@supabase/supabase-js` and `@supabase/ssr`
-- [ ] Configure `lib/supabase/{client,server}.ts`
-- [ ] Configure env files: `.env.local`, `.env.production`
-- [ ] Enable asymmetric JWT signing; rotate keys
-- [ ] `supabase init` + `supabase start` for local dev
-- [ ] Generate types: `npx supabase gen types typescript --local > types/database.ts`
+### Phase 1 — Supabase Setup ✅ COMPLETED
+- [x] Add `@supabase/supabase-js` and `@supabase/ssr`
+- [x] Configure `lib/supabase/{client,server}.ts`
+- [x] Configure env files: `.env.local`, `.env.production`
+- [x] Enable asymmetric JWT signing; rotate keys
+- [x] `supabase init` + `supabase start` for local dev
+- [x] Generate types: `npx supabase gen types typescript --local > types/database.ts`
+
+### Phase 1.5 — Authentication System ✅ COMPLETED
+- [x] Complete Supabase Auth integration
+- [x] Login, signup, password reset, and confirmation flows
+- [x] Protected route middleware with session handling
+- [x] User profile management and session persistence
+- [x] Error handling and validation for auth forms
 
 ### Phase 2 — Project Architecture
 - [ ] `app/` routes scaffold (landing, staff, properties, appointments, plans)
@@ -126,11 +133,11 @@ This document defines the scope, tech choices, and an implementation checklist f
 - [ ] Global providers (theme, query provider, toasts)
 - [ ] Base layout with sidebar/header
 
-### Phase 3 — Auth & Middleware
-- [ ] Auth UI with React Hook Form + Zod
-- [ ] Session handling (server components + cookies)
-- [ ] Middleware for protected routes
-- [ ] Role helpers (isAdmin, hasRole)
+### Phase 3 — Auth & Middleware ✅ COMPLETED
+- [x] Auth UI with React Hook Form + Zod
+- [x] Session handling (server components + cookies)
+- [x] Middleware for protected routes
+- [ ] Role helpers (isAdmin, hasRole) - *Partially complete, needs role-based logic*
 
 ### Phase 4 — CRUD Modules
 - [ ] Staff pages (list, create, edit) with server actions or API routes
@@ -191,5 +198,6 @@ This document defines the scope, tech choices, and an implementation checklist f
 - v0.1: Initial scope and plan
 - v0.2: Initialized Next.js app in `app/` via with-supabase template (renamed from `web/`)
 - v0.3: Next.js development server successfully running on localhost:3000; M0 milestone partially complete
+- v0.4: Supabase template analysis reveals massive head start - Phase 0 (100%), Phase 1 (100%), Phase 1.5 (100%), Phase 3 (75%) already complete; authentication system fully functional with protected routes, middleware, and user management
 
 
