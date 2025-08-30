@@ -37,13 +37,41 @@ This document defines the scope, tech choices, and an implementation checklist f
 
 ## Domain Scope (feature parity targets)
 - Authentication & RBAC
-- Staff management
-- Properties management
+- Staff management (read-only, synced from ResortCleaning/Homebase)
+- Properties management (read-only, can edit cleaning times and dependencies)
 - Appointments (filters, pagination, unscheduled checks)
-- Plans (view/build/copy/send)
-- Roles & Services
+- Plans (daily team assignments, view/build/copy/send)
+- Roles & Services (read-only, synced from external systems)
 - Integrations: Homebase (shift check), ResortCleaning (send plan)
 - Error monitoring/notifications (via Supabase Realtime/Broadcast)
+
+---
+
+## Refined UI Architecture
+
+### Layout Structure
+- **Header**: Sidebar toggle, logo/brand, breadcrumbs, profile dropdown
+- **Sidebar**: Collapsible navigation with icons + labels, active page highlighting
+- **Main Content**: Responsive content area with consistent spacing and typography
+
+### Page Structure
+```
+app/
+├── page.tsx (dashboard - overview, quick actions)
+├── appointments/ (list with enhanced filters)
+├── schedule/ (daily plan builder - core feature)
+├── properties/ (read-only list, inline editing for cleaning times)
+├── staff/ (read-only list with shift information)
+└── settings/roles/ (role configuration for algorithm priority)
+```
+
+### Key UI Improvements
+- **Enhanced Filtering**: Status, date ranges, service types, role-based filters
+- **Collapsible Sections**: Build algorithm options hidden by default
+- **Time Picker**: Hour/minute selector for property cleaning times
+- **Property Dependencies**: Visual selector instead of ID typing
+- **Drag & Drop**: Staff/appointment assignment in daily plans
+- **Real-time Indicators**: Error counts, unscheduled appointments, shift conflicts
 
 ---
 
@@ -65,22 +93,24 @@ This document defines the scope, tech choices, and an implementation checklist f
 - [ ] Protected routes with middleware and session handling
 - [ ] Basic role checks (admin vs staff)
 
-### M3 — Core Entities CRUD
-- [ ] Staff CRUD with list/table, create/edit forms
-- [ ] Properties CRUD with list/table, create/edit forms
-- [ ] Roles & Services CRUD
-- [ ] Form validation with Zod and UX feedback (toasts)
+### M3 — Core Entities & UI Foundation
+- [ ] Enhanced list views with modern filtering (status, dates, roles)
+- [ ] Properties management with time picker and dependency selector
+- [ ] Staff views (read-only with shift information)
+- [ ] Role settings interface for algorithm priority configuration
 
-### M4 — Appointments
-- [ ] Appointments list with filters/pagination
-- [ ] “Unscheduled” indicator + check endpoint
-- [ ] Visibility-change check wired to notify when unscheduled > 0
+### M4 — Appointments & Enhanced UX
+- [ ] Appointments list with comprehensive filters and pagination
+- [ ] "Unscheduled" indicator + check endpoint
+- [ ] Real-time status updates and error indicators
+- [ ] Consistent table layouts and bulk actions
 
-### M5 — Plans
-- [ ] Plans list and detail view
-- [ ] Build plan via RPC (progress and error surfacing)
-- [ ] Copy plan action
-- [ ] Send plan action (production only; mocked in dev)
+### M5 — Schedule Builder (Core Feature)
+- [ ] Daily plan management interface
+- [ ] Staff selection with search and filtering
+- [ ] Collapsible build algorithm options
+- [ ] Plan editing with drag & drop assignment
+- [ ] Build, copy, and send functionality
 
 ### M6 — Integrations & Safety
 - [ ] Homebase shift check via adapter with dev stub
@@ -91,10 +121,11 @@ This document defines the scope, tech choices, and an implementation checklist f
 - [ ] Consistent typography, spacing, and color theme
 - [ ] Accessible components (keyboard/focus states)
 - [ ] Empty/error/loading states across views
+- [ ] Responsive design and mobile considerations
 
 ### M8 — Tests & CI
 - [ ] Unit and integration tests for API routes and hooks
-- [ ] E2E smoke tests for critical flows (login → plans → build)
+- [ ] E2E smoke tests for critical flows (login → schedule → build)
 - [ ] CI pipeline (lint, typecheck, test)
 
 ### M9 — Deployment
@@ -127,11 +158,11 @@ This document defines the scope, tech choices, and an implementation checklist f
 - [x] User profile management and session persistence
 - [x] Error handling and validation for auth forms
 
-### Phase 2 — Project Architecture
-- [ ] `app/` routes scaffold (landing, staff, properties, appointments, plans)
+### Phase 2 — Project Architecture & Layout
+- [ ] `app/` routes scaffold (dashboard, appointments, schedule, properties, staff, settings)
 - [ ] `lib/` utilities: api client, auth helpers, dev guards, query client
 - [ ] Global providers (theme, query provider, toasts)
-- [ ] Base layout with sidebar/header
+- [ ] Base layout with modern sidebar/header design
 
 ### Phase 3 — Auth & Middleware ✅ COMPLETED
 - [x] Auth UI with React Hook Form + Zod
@@ -139,24 +170,27 @@ This document defines the scope, tech choices, and an implementation checklist f
 - [x] Middleware for protected routes
 - [ ] Role helpers (isAdmin, hasRole) - *Partially complete, needs role-based logic*
 
-### Phase 4 — CRUD Modules
-- [ ] Staff pages (list, create, edit) with server actions or API routes
-- [ ] Properties pages (list, create, edit)
-- [ ] Roles & Services pages
-- [ ] Shared table, form, and dialog primitives
+### Phase 4 — Enhanced List Views & Filtering
+- [ ] Modern table components with sorting and pagination
+- [ ] Enhanced filtering system (status, dates, roles, services)
+- [ ] Properties management with time picker and dependency selector
+- [ ] Staff views with shift information and role filtering
+- [ ] Role settings interface for algorithm priority
 
-### Phase 5 — Appointments
-- [ ] Appointments list with filters and pagination
+### Phase 5 — Appointments & Real-time Features
+- [ ] Appointments list with comprehensive filters and pagination
 - [ ] Unscheduled check endpoint + client hook
-- [ ] Visibility-change subscription to trigger check
+- [ ] Real-time status updates and error indicators
+- [ ] Bulk actions and export functionality
 
-### Phase 6 — Plans Module
-- [ ] Plans list and detail page
-- [ ] RPC integration for `build_schedule_plan` with progress UX
-- [ ] Error surfacing from RPC (modal/toast + detail)
-- [ ] Copy plan; Send plan (dev mocked, prod live)
+### Phase 6 — Schedule Builder (Core Feature)
+- [ ] Daily plan management interface
+- [ ] Staff selection with search and filtering capabilities
+- [ ] Collapsible build algorithm options section
+- [ ] Plan editing with drag & drop for staff/appointment assignment
+- [ ] Build, copy, and send functionality with progress indicators
 
-### Phase 7 — Integrations
+### Phase 7 — Integrations & Safety
 - [ ] Homebase adapter (configurable base URL, dev stub)
 - [ ] ResortCleaning adapter (configurable base URL, dev stub)
 - [ ] Guard rails: disallow external calls in dev unless explicitly enabled
@@ -164,10 +198,11 @@ This document defines the scope, tech choices, and an implementation checklist f
 ### Phase 8 — Realtime & Notifications
 - [ ] Supabase Realtime/Broadcast channel for error/alert events
 - [ ] UI toasts/log panel for broadcasted errors
+- [ ] Real-time updates for appointment status changes
 
 ### Phase 9 — Testing & Quality
 - [ ] Vitest + Testing Library unit/integration tests
-- [ ] Playwright E2E smoke for critical paths
+- [ ] Playwright E2E smoke for critical paths (login → schedule → build)
 - [ ] Linting/type-check in CI
 
 ### Phase 10 — Deployment
@@ -199,5 +234,19 @@ This document defines the scope, tech choices, and an implementation checklist f
 - v0.2: Initialized Next.js app in `app/` via with-supabase template (renamed from `web/`)
 - v0.3: Next.js development server successfully running on localhost:3000; M0 milestone partially complete
 - v0.4: Supabase template analysis reveals massive head start - Phase 0 (100%), Phase 1 (100%), Phase 1.5 (100%), Phase 3 (75%) already complete; authentication system fully functional with protected routes, middleware, and user management
+- v0.6: Refined UI architecture defined with modern layout, enhanced filtering, collapsible sections, and improved user experience; updated milestones to reflect schedule builder as core feature and read-only entity management
+- v0.7: Task Master tasks refined to reflect read-only entity management (staff/properties), Schedule Builder as core feature with drag & drop, and enhanced filtering system; added Task 13 for foundational table components; removed Service Type filter from properties per user feedback
+- v0.8: UI planning phase completed; comprehensive UI plan documented in ui-plan.md; all planning documents updated to reflect refined architecture and task structure; ready to begin implementation phase
+- v0.9: Page structure and routing architecture documented in page-structure.md; complete planning documentation now available for development reference
+- v0.10: Project documentation reorganized into `docs/` directory for better organization; added comprehensive README.md to explain document purposes and usage
+
+---
+
+## Planning Documents
+
+- **`scope.md`** - This document: Project scope, milestones, and implementation phases
+- **`ui-plan.md`** - Comprehensive UI design and component architecture
+- **`page-structure.md`** - Complete page structure, routing, and navigation architecture
+- **`.taskmaster/docs/acornarranger-rebuild-prd.txt`** - Product Requirements Document for Task Master AI
 
 
