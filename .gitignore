@@ -37,5 +37,5 @@ node_modules/
 !.taskmaster/templates/ 
 
 # Next.js build files
-app/.next/
-app/next-env.d.ts
+AcornArranger/.next/
+AcornArranger/next-env.d.ts

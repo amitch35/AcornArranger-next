@@ -80,7 +80,7 @@ app/
 ## Milestones & Acceptance Criteria
 
 ### M0 — Repository & Base App
-- [x] New Next.js app scaffolded and running locally (in `app/`)
+- [x] New Next.js app scaffolded and running locally (in `AcornArranger/`)
 - [x] Tailwind and shadcn/ui configured
 - [ ] Base layout (sidebar + header) with placeholder routes - *Basic nav exists, needs AcornArranger-specific layout*
 
@@ -104,7 +104,7 @@ app/
 - [ ] **Property editing**: Time picker for cleaning time and dependency selector for double units
 - [ ] **Staff management**: Comprehensive staff list with ID, Name, Role, Status, Can Clean, Can Lead columns
 - [ ] **Staff detail pages**: Full staff information including role capabilities and shift status
-- [ ] Role settings interface for algorithm priority configuration
+- [ ] Role settings interface for algorithm priority
 
 ### M4 — Appointments & Enhanced UX
 - [ ] Appointments list with comprehensive filters and pagination
@@ -149,7 +149,7 @@ app/
 ## Implementation Steps (Checklist)
 
 ### Phase 0 — Initialize Project
-- [x] Create Next.js app (App Router, TS) in `app/`
+- [x] Create Next.js app (App Router, TS) in `AcornArranger/`
 - [x] Add Tailwind CSS
 - [x] Initialize shadcn/ui, add core components (button, input, dialog, table)
 - [ ] Commit hooks (lint-staged, prettier) [optional]
@@ -257,7 +257,7 @@ app/
 
 ## Update Log
 - v0.1: Initial scope and plan
-- v0.2: Initialized Next.js app in `app/` via with-supabase template (renamed from `web/`)
+- v0.2: Initialized Next.js app in `AcornArranger/` via with-supabase template (renamed from `web/`)
 - v0.3: Next.js development server successfully running on localhost:3000; M0 milestone partially complete
 - v0.4: Supabase template analysis reveals massive head start - Phase 0 (100%), Phase 1 (100%), Phase 1.5 (100%), Phase 3 (75%) already complete; authentication system fully functional with protected routes, middleware, and user management
 - v0.6: Refined UI architecture defined with modern layout, enhanced filtering, collapsible sections, and improved user experience; updated milestones to reflect schedule builder as core feature and read-only entity management
@@ -271,6 +271,7 @@ app/
 - v0.14: **Updated Properties Page UI design**; analyzed legacy property-view.ts and properties-view.ts to accurately reflect property structure; updated table columns to match legacy implementation (ID, Name, Cleaning Time, Double Units, Status, Actions); added comprehensive property detail modal with address information; enhanced filters to include city, cleaning time range, and search functionality
 - v0.15: **Updated Staff Page UI design**; analyzed legacy staff-view.ts and staff.ts models to accurately reflect staff structure; updated table columns to match legacy implementation (Staff ID, Name, Role, Status, Can Clean, Can Lead, Actions); added comprehensive staff detail modal with role capabilities and shift information; enhanced filters to include status (Active/Inactive/Unverified), role, can clean, and search functionality
 - v0.16: **Task alignment & DB hardening**; consolidated filtering/table foundation under Task 13 (removed duplicate Task 14); updated tasks to use existing DB columns (rc_appointments.next_arrival_time/turn_around, rc_properties.estimated_cleaning_mins/double_unit, rc_staff.status_id join); added Task 19 for database hardening (RLS policy on role_permissions, secure function search_path, upgrade pg_graphql, enable leaked password protection, add covering indexes); adjusted dependencies across tasks
+- v0.17: **Template cleanup**; removed Next/Supabase template boilerplate (tutorial components, logos, deploy/env warning), simplified home page with auth redirect, cleaned protected layout/page, pruned unused images, and updated docs to reflect `AcornArranger/` top-level folder
 
 ---
 
