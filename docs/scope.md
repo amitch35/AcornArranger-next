@@ -36,10 +36,12 @@ This document defines the scope, tech choices, and an implementation checklist f
 - Dev guards to prevent external calls (Homebase, ResortCleaning)
 
 ## Domain Scope (feature parity targets)
-- Authentication & RBAC
+- **Authentication & Role-Based Access Control**: Two-tier system with `authenticated` (new users) and `authorized_user` (activated users) roles
+- **Non-authorized user experience**: Landing page with activation info, profile settings access only
+- **Authorized user experience**: Full access to all main entities and functionality
 - Staff management (read-only, synced from ResortCleaning/Homebase)
 - Properties management (read-only, can edit cleaning times and dependencies)
-- Appointments (filters, pagination, unscheduled checks)
+- **Appointments**: Comprehensive list with accurate columns (ID, Service Time, Property, Staff, T/A, Next Arrival Time, Service, Status), filters, pagination, unscheduled checks; Next Arrival Time represents guest check-in deadline
 - Plans (daily team assignments, view/build/copy/send)
 - Roles & Services (read-only, synced from external systems)
 - Integrations: Homebase (shift check), ResortCleaning (send plan)
@@ -91,16 +93,24 @@ app/
 ### M2 — Auth & Access Control
 - [ ] Email/password auth working end-to-end
 - [ ] Protected routes with middleware and session handling
-- [ ] Basic role checks (admin vs staff)
+- [ ] **Role-based access control**: `authenticated` vs `authorized_user` roles
+- [ ] **Non-authorized user experience**: Landing page with activation info, profile access only
+- [ ] **Authorized user experience**: Full dashboard and entity access
 
 ### M3 — Core Entities & UI Foundation
 - [ ] Enhanced list views with modern filtering (status, dates, roles)
-- [ ] Properties management with time picker and dependency selector
-- [ ] Staff views (read-only with shift information)
+- [ ] **Properties management**: Comprehensive property list with ID, Name, Cleaning Time, Double Units, Status columns
+- [ ] **Property detail pages**: Full property information including address details and scheduling options
+- [ ] **Property editing**: Time picker for cleaning time and dependency selector for double units
+- [ ] **Staff management**: Comprehensive staff list with ID, Name, Role, Status, Can Clean, Can Lead columns
+- [ ] **Staff detail pages**: Full staff information including role capabilities and shift status
 - [ ] Role settings interface for algorithm priority configuration
 
 ### M4 — Appointments & Enhanced UX
 - [ ] Appointments list with comprehensive filters and pagination
+- [ ] **Accurate appointment columns**: ID, Service Time, Property, Staff, T/A, Next Arrival Time, Service, Status
+- [ ] **T/A column**: Turn-around indicator with icon display
+- [ ] **Time columns**: Service Time (primary) and Next Arrival Time (guest check-in deadline)
 - [ ] "Unscheduled" indicator + check endpoint
 - [ ] Real-time status updates and error indicators
 - [ ] Consistent table layouts and bulk actions
@@ -159,8 +169,9 @@ app/
 - [x] Error handling and validation for auth forms
 
 ### Phase 2 — Project Architecture & Layout
-- [ ] `app/` routes scaffold (dashboard, appointments, schedule, properties, staff, settings)
+- [ ] `app/` routes scaffold (landing, profile, appointments, schedule, properties, staff, settings)
 - [ ] `lib/` utilities: api client, auth helpers, dev guards, query client
+- [ ] **Role-based access control implementation**: JWT claims handling, route protection
 - [ ] Global providers (theme, query provider, toasts)
 - [ ] Base layout with modern sidebar/header design
 
@@ -168,17 +179,31 @@ app/
 - [x] Auth UI with React Hook Form + Zod
 - [x] Session handling (server components + cookies)
 - [x] Middleware for protected routes
-- [ ] Role helpers (isAdmin, hasRole) - *Partially complete, needs role-based logic*
+- [ ] Role helpers (hasRole) - *Partially complete, needs role-based logic*
+
+### Phase 3.5 — Role-Based Access Control
+- [ ] **Role-based route protection**: Protect entity pages from non-authorized users
+- [ ] **Role-based landing page**: Different content for authorized vs non-authorized users
+- [ ] **Profile settings access**: Ensure all authenticated users can access profile
+- [ ] **RLS policy integration**: Verify database-level access control works with app-level protection
 
 ### Phase 4 — Enhanced List Views & Filtering
 - [ ] Modern table components with sorting and pagination
 - [ ] Enhanced filtering system (status, dates, roles, services)
-- [ ] Properties management with time picker and dependency selector
-- [ ] Staff views with shift information and role filtering
+- [ ] **Properties management**: Comprehensive list with accurate columns (ID, Name, Cleaning Time, Double Units, Status, Actions)
+- [ ] **Property filtering**: Status, city, cleaning time range, and search functionality
+- [ ] **Property detail pages**: Full property information display with address details
+- [ ] **Property editing**: Time picker for cleaning time and dependency selector for double units
+- [ ] **Staff management**: Comprehensive list with accurate columns (ID, Name, Role, Status, Can Clean, Can Lead, Actions)
+- [ ] **Staff filtering**: Status (Active/Inactive/Unverified), role, can clean, and search functionality
+- [ ] **Staff detail pages**: Full staff information display with role capabilities and shift status
 - [ ] Role settings interface for algorithm priority
 
 ### Phase 5 — Appointments & Real-time Features
 - [ ] Appointments list with comprehensive filters and pagination
+- [ ] **Accurate appointment table structure**: ID, Service Time, Property, Staff, T/A, Next Arrival Time, Service, Status
+- [ ] **T/A column implementation**: Turn-around indicator with icon display
+- [ ] **Time column accuracy**: Service Time (primary) and Next Arrival Time (guest check-in deadline)
 - [ ] Unscheduled check endpoint + client hook
 - [ ] Real-time status updates and error indicators
 - [ ] Bulk actions and export functionality
@@ -239,6 +264,11 @@ app/
 - v0.8: UI planning phase completed; comprehensive UI plan documented in ui-plan.md; all planning documents updated to reflect refined architecture and task structure; ready to begin implementation phase
 - v0.9: Page structure and routing architecture documented in page-structure.md; complete planning documentation now available for development reference
 - v0.10: Project documentation reorganized into `docs/` directory for better organization; added comprehensive README.md to explain document purposes and usage
+- v0.11: **Appointment structure analysis completed**; updated planning documents to reflect accurate appointment columns (ID, Service Time, Property, Staff, T/A, Next Arrival Time, Service, Status); clarified importance of T/A column and Next Arrival Time for scheduling; corrected page size options and status filter options based on legacy implementation
+- v0.12: **Corrected Next Arrival Time definition**; Next Arrival Time represents when next guests are checking in (appointment completion deadline), not when staff should arrive for next appointment; updated all planning documents to reflect this critical distinction for scheduling accuracy
+- v0.13: **Updated access control architecture**; implemented two-tier role system with `authenticated` (new users awaiting activation) and `authorized_user` (activated users with full access); added profile settings page accessible to all authenticated users; updated access control matrix and navigation structure; added Phase 3.5 for role-based access control implementation
+- v0.14: **Updated Properties Page UI design**; analyzed legacy property-view.ts and properties-view.ts to accurately reflect property structure; updated table columns to match legacy implementation (ID, Name, Cleaning Time, Double Units, Status, Actions); added comprehensive property detail modal with address information; enhanced filters to include city, cleaning time range, and search functionality
+- v0.15: **Updated Staff Page UI design**; analyzed legacy staff-view.ts and staff.ts models to accurately reflect staff structure; updated table columns to match legacy implementation (Staff ID, Name, Role, Status, Can Clean, Can Lead, Actions); added comprehensive staff detail modal with role capabilities and shift information; enhanced filters to include status (Active/Inactive/Unverified), role, can clean, and search functionality
 
 ---
 

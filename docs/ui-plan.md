@@ -30,11 +30,12 @@ AcornArranger is being rebuilt as a modern Next.js application with a focus on d
 
 ## 📱 **Page-by-Page UI Design**
 
-### **1. Dashboard (`/`)**
+### **1. Landing Page (`/`) - Role-Based Content**
 ```
 ┌─────────────────────────────────────────────────────────┐
-│ Overview & Quick Actions                                │
+│ Role-Based Landing Page                                 │
 ├─────────────────────────────────────────────────────────┤
+│ 👥 Authorized Users: Dashboard                          │
 │ 📊 Today's Stats                                        │
 │ • Unscheduled: 12 appointments                          │
 │ • Active Teams: 3                                       │
@@ -42,6 +43,24 @@ AcornArranger is being rebuilt as a modern Next.js application with a focus on d
 ├─────────────────────────────────────────────────────────┤
 │ 🚀 Quick Actions                                        │
 │ [Build Today's Schedule] [View Unscheduled] [Properties]│
+└─────────────────────────────────────────────────────────┘
+```
+
+**Non-Authorized Users Landing Page:**
+```
+┌─────────────────────────────────────────────────────────┐
+│ Welcome to AcornArranger                                │
+├─────────────────────────────────────────────────────────┤
+│ 🏠 Logo & Branding                                      │
+│ 📧 Account Status: Awaiting Activation                  │
+├─────────────────────────────────────────────────────────┤
+│ ℹ️ Information                                           │
+│ • Your account has been created successfully            │
+│ • Contact your administrator to activate your account  │
+│ • You can access profile settings while waiting         │
+├─────────────────────────────────────────────────────────┤
+│ 🔗 Available Actions                                    │
+│ [Profile Settings] [Contact Admin]                      │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -57,15 +76,25 @@ AcornArranger is being rebuilt as a modern Next.js application with a focus on d
 ├─────────────────────────────────────────────────────────┤
 │ 📋 Appointments List                                    │
 │ [Pagination: < 1 2 3 >] [Show: 50 ▼]                  │
-│ • Property | Time | Status | Staff | Actions           │
+│ • Appointment ID | Service Time | Property | Staff | T/A | Next Arrival Time | Service | Status │
 └─────────────────────────────────────────────────────────┘
 ```
 
 **Enhanced Filters:**
 - **Status**: Unconfirmed, Confirmed, Completed, Completed (Invoiced), Cancelled
 - **Services**: All available services from ResortCleaning
-- **Date Range**: From/To with validation
+- **Date Range**: From/To service dates with validation
 - **Show Unscheduled Only**: Quick filter toggle
+
+**Appointment Table Columns:**
+- **Appointment ID**: Unique identifier for tracking
+- **Service Time**: When the cleaning service is performed (primary time reference)
+- **Property**: Property name and location
+- **Staff**: Assigned staff members (shows error icon if none assigned)
+- **T/A**: Turn-around indicator (shows revision icon for turn-around appointments)
+- **Next Arrival Time**: When the next guests are checking in (appointment must be completed by this time)
+- **Service**: Type of cleaning service (Departure Clean, Deep Clean, etc.)
+- **Status**: Current appointment status with color coding
 
 ### **3. Schedule (`/schedule`) - The Core Feature**
 ```
@@ -109,23 +138,54 @@ AcornArranger is being rebuilt as a modern Next.js application with a focus on d
 ├─────────────────────────────────────────────────────────┤
 │ 🔍 Filters                                              │
 │ Status: ☑️ Active ☑️ Inactive                           │
-│ [Clear Filters]                                         │
+│ City: [Combobox with city options]                     │
+│ Cleaning Time: [Range filter: 1-3h, 3-6h, 6h+]        │
+│ [Search input] [Clear Filters]                         │
 ├─────────────────────────────────────────────────────────┤
 │ 📋 Properties List                                      │
 │ [Pagination] [Show: 25 ▼]                              │
-│ • Name | Address | Cleaning Time | Double Units | Status│
+│ • Property ID | Name | Estimated Cleaning Time | Double Unit References | Status | Actions │
 └─────────────────────────────────────────────────────────┘
 ```
 
 **Property Detail Modal:**
 ```
 ┌─────────────────────────────────────────────────────────┐
+│ Property Details: Yosemite Log Cabin                   │
+├─────────────────────────────────────────────────────────┤
+│ 📍 Property Information                                 │
+│ Property ID: 123                                        │
+│ Property Name: Yosemite Log Cabin                       │
+│ Status: Active                                          │
+├─────────────────────────────────────────────────────────┤
+│ 🏠 Address Information                                  │
+│ Address: 123 Main Street                                │
+│ City: Yosemite                                          │
+│ State: CA                                               │
+│ Postal Code: 95389                                      │
+│ Country: USA                                            │
+├─────────────────────────────────────────────────────────┤
+│ ⚙️ Scheduling Options                                   │
+│ Estimated Cleaning Time: [2] hours [30] minutes        │
+│ Double Unit References: [Select Dependencies ▼]        │
+│ • Bear Suite (ID: 124) [🗑️]                           │
+│ • Creature Suite (ID: 125) [🗑️]                       │
+│ [+ Add Property Dependency]                            │
+├─────────────────────────────────────────────────────────┤
+│ [Edit Property] [Close]                                │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Property Edit Modal:**
+```
+┌─────────────────────────────────────────────────────────┐
 │ Edit Property: Yosemite Log Cabin                      │
 ├─────────────────────────────────────────────────────────┤
-│ Cleaning Time: [2] hours [30] minutes                  │
+│ ⚙️ Scheduling Options                                   │
+│ Estimated Cleaning Time: [2] hours [30] minutes        │
 │ Double Units: [Select Dependencies ▼]                  │
-│ • Bear Suite (ID: 123) [🗑️]                           │
-│ • Creature Suite (ID: 124) [🗑️]                       │
+│ • Bear Suite (ID: 124) [🗑️]                           │
+│ • Creature Suite (ID: 125) [🗑️]                       │
 │ [+ Add Property Dependency]                            │
 ├─────────────────────────────────────────────────────────┤
 │ [Save] [Cancel]                                        │
@@ -134,7 +194,17 @@ AcornArranger is being rebuilt as a modern Next.js application with a focus on d
 
 **Enhanced Filters:**
 - **Status**: Active, Inactive
-- **Cleaning Time**: Range filter (e.g., 1-3 hours, 3-6 hours)
+- **City**: Combobox with available city options for location-based filtering
+- **Cleaning Time**: Range filter (e.g., 1-3 hours, 3-6 hours, 6+ hours)
+- **Search**: Text input for property name or address search
+
+**Property Table Columns:**
+- **Property ID**: Unique property ID
+- **Name**: Property name (e.g., "Yosemite Log Cabin")
+- **Estimated Cleaning Time**: Formatted time display (e.g., "2 Hours 30 Minutes")
+- **Double Unit References**: List of linked properties for scheduling dependencies
+- **Status**: Active/Inactive status with color coding
+- **Actions**: Edit button linking to property edit page
 
 ### **5. Staff (`/staff`)**
 ```
@@ -142,22 +212,81 @@ AcornArranger is being rebuilt as a modern Next.js application with a focus on d
 │ Staff                                                   │
 ├─────────────────────────────────────────────────────────┤
 │ 🔍 Filters                                              │
-│ Status: ☑️ Active ☑️ Unverified | Role: [All ▼]        │
-│ Can Clean: ☑️ Yes ☑️ No | [Clear Filters]              │
+│ Status: ☑️ Active ☑️ Inactive ☑️ Unverified            │
+│ Role: [All ▼]                                           │
+│ Can Clean: ☑️ Yes ☑️ No                                 │
+│ Can Lead: ☑️ Yes ☑️ No                                 │
+│ [Search input] [Clear Filters]                          │
 ├─────────────────────────────────────────────────────────┤
 │ 📋 Staff List                                           │
 │ [Pagination] [Show: 25 ▼]                              │
-│ • Name | Role | Status | Can Clean | Shifts | Actions  │
+│ • Staff ID | Name | Role | Status | Can Clean | Can Lead | Actions │
 └─────────────────────────────────────────────────────────┘
 ```
 
 **Enhanced Filters:**
-- **Status**: Active, Inactive, Unverified
+- **Status**: Active, Inactive, Unverified (three distinct statuses)
 - **Role**: Filter by role type (Housekeeper, Supervisor, etc.)
 - **Can Clean**: Boolean filter for cleaning capability
-- **Shift Availability**: Filter by current shift status
+- **Search**: Text input for staff name search
 
-### **6. Role Settings (`/settings/roles`)**
+**Staff Table Columns:**
+- **Staff ID**: Unique user identifier
+- **Name**: Staff member's full name
+- **Role**: Role title (e.g., "Housekeeper", "Supervisor")
+- **Status**: Current status with color coding (Active/Inactive/Unverified)
+- **Actions**: View details button linking to staff detail page
+
+**Staff Detail Modal:**
+```
+┌─────────────────────────────────────────────────────────┐
+│ Staff Details: Liz Becker                               │
+├─────────────────────────────────────────────────────────┤
+│ 👤 Basic Information                                    │
+│ Staff ID: 123                                           │
+│ Name: Liz Becker                                        │
+│ Role: Housekeeper                                       │
+│ Status: Active                                          │
+├─────────────────────────────────────────────────────────┤
+│ 🎯 Role Capabilities                                    │
+│ Can Lead Team: ☑️ Yes                                   │
+│ Can Clean: ☑️ Yes                                       │
+│ Priority: 3                                             │
+├─────────────────────────────────────────────────────────┤
+│ 📅 Current Shift Status                                 │
+│ Shift: Available                                        │
+│ Department: Housekeeping                                │
+│ Location: Main Office                                   │
+│ [View Full Shift Details]                               │
+├─────────────────────────────────────────────────────────┤
+│ [Close]                                                 │
+└─────────────────────────────────────────────────────────┘
+```
+
+### **6. Profile Settings (`/profile`)**
+```
+┌─────────────────────────────────────────────────────────┐
+│ Profile Settings                                        │
+├─────────────────────────────────────────────────────────┤
+│ 👤 User Information                                     │
+│ Email: user@example.com [Edit]                          │
+│ Name: John Doe [Edit]                                   │
+│ Role: authenticated [Awaiting Activation]               │
+├─────────────────────────────────────────────────────────┤
+│ 🔐 Security                                             │
+│ [Change Password] [Update Email]                        │
+├─────────────────────────────────────────────────────────┤
+│ 🎨 Preferences                                          │
+│ Theme: [Light ▼] [Dark] [System]                       │
+│ Language: [English ▼]                                   │
+├─────────────────────────────────────────────────────────┤
+│ ℹ️ Account Status                                        │
+│ Status: Awaiting Administrator Activation               │
+│ Contact: admin@acornarranger.com                        │
+└─────────────────────────────────────────────────────────┘
+```
+
+### **7. Role Settings (`/settings/roles`)**
 ```
 ┌─────────────────────────────────────────────────────────┐
 │ Role Settings                                           │
@@ -221,8 +350,8 @@ AcornArranger is being rebuilt as a modern Next.js application with a focus on d
 ## 📋 **Key Architectural Decisions**
 
 ### **Read-Only Entities:**
-- **Staff**: Synced from ResortCleaning/Homebase, no local editing
-- **Properties**: Synced from ResortCleaning, limited editing for scheduling optimization
+- **Staff**: Synced to database from ResortCleaning/Homebase, no local editing
+- **Properties**: Synced from to database from ResortCleaning, limited editing for scheduling optimization
 - **Services**: Read-only, used as filters only
 
 ### **Core Functionality:**

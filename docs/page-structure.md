@@ -1,7 +1,7 @@
 # AcornArranger Next.js Rebuild - Page Structure & Routing
 
 ## 🎯 **Overview**
-This document defines the complete page structure, routing, and navigation for the AcornArranger Next.js application. It complements the UI_PLAN.md and provides developers with a clear understanding of the application's routing architecture.
+This document defines the complete page structure, routing, and navigation for the AcornArranger Next.js application. It complements the ui-plan.md and provides developers with a clear understanding of the application's routing architecture.
 
 ---
 
@@ -29,15 +29,21 @@ This document defines the complete page structure, routing, and navigation for t
 ```
 Route: app/page.tsx
 Layout: app/protected/layout.tsx
-Access: Authenticated users only
+Access: Authenticated users only (different content based on role)
 ```
 
-**Purpose**: Dashboard overview with quick actions and daily stats
-**Content**:
+**Purpose**: Role-based landing page - Dashboard for authorized users, activation info for new users
+**Content for Authorized Users**:
 - Today's unscheduled appointments count
 - Active teams for the day
 - Available staff count
 - Quick action buttons (Build Schedule, View Unscheduled, Properties)
+
+**Content for Non-Authorized Users**:
+- Welcome message and AcornArranger logo
+- Information about account activation process
+- Contact administrator instructions
+- Access to profile settings only
 
 ---
 
@@ -51,16 +57,15 @@ Access: Authenticated users only
 **Purpose**: View and filter all appointments with enhanced filtering
 **Content**:
 - **Filters Section**:
-  - Date range (From/To)
-  - Status checkboxes (Unconfirmed, Confirmed, Completed, etc.)
+  - Date range (From/To service dates)
+  - Status checkboxes (Unconfirmed, Confirmed, Completed, Completed (Invoiced), Cancelled)
   - Service type checkboxes (Departure Clean, Deep Clean, etc.)
   - Show Unscheduled Only toggle
   - Clear Filters button
 - **Appointments List**:
-  - Sortable columns (Property, Time, Status, Staff, Actions)
+  - Sortable columns (Appointment ID, Service Time, Property, Staff, T/A, Next Arrival Time, Service, Status)
   - Pagination controls
-  - Page size selector (25, 50, 100)
-  - Bulk actions (if applicable)
+  - Page size selector (20, 50, 100, 200)
 
 ---
 
@@ -68,14 +73,13 @@ Access: Authenticated users only
 ```
 Route: app/schedule/page.tsx
 Layout: app/protected/layout.tsx
-Access: Authenticated users only (Admin for editing)
+Access: Authenticated users only
 ```
 
 **Purpose**: Daily team management and schedule building
 **Content**:
 - **Header Section**:
   - Date picker (single day selection)
-  - Action buttons (Generate Plan, Save Draft, Confirm Day)
 - **Staff Selection Panel**:
   - Available staff grid with multi-select
   - Search and filter capabilities
@@ -86,12 +90,13 @@ Access: Authenticated users only (Admin for editing)
   - Cleaning window input
   - Max hours input
   - Target staff count input
-- **Status Indicators**:
+- **Status Indicators and Actions**:
   - Error count badges
   - Unscheduled appointments count
   - Shift conflict warnings
+  - Action buttons (Generate Plan, Duplicate(to new mutable plans), Send)
 - **Daily Plans Board**:
-  - Team columns with drag & drop
+  - Team columns/cards with drag & drop
   - Staff assignments per team
   - Appointment assignments per team
   - Add/remove teams functionality
@@ -110,7 +115,7 @@ Access: Authenticated users only
 - **Filters Section**:
   - Status checkboxes (Active, Inactive)
   - City filter (combobox)
-  - Cleaning time range filter (hour/minute pickers)
+  - Cleaning time range filter
   - Search input
   - Clear Filters button
 - **Properties List**:
@@ -128,14 +133,13 @@ Access: Authenticated users only
 
 **Content**:
 - Property information (read-only)
-- Current scheduling overrides with badges
-- Edit Scheduling button (admin only)
+- Edit Scheduling parameters button
 
 **Property Edit Page**:
 ```
 Route: app/properties/[id]/edit/page.tsx
 Layout: app/protected/layout.tsx
-Access: Admin users only
+Access: Authorized users only
 ```
 
 **Content**:
@@ -158,10 +162,11 @@ Access: Authenticated users only
   - Status checkboxes (Active, Inactive, Unverified)
   - Role filter dropdown
   - Can Clean filter (Yes/No)
+  - Can Lead filter (Yes/No)
   - Search input
   - Clear Filters button
 - **Staff List**:
-  - Columns: Name, Role, Status, Can Clean, Shifts, Actions
+  - Columns: Name, Role, Status, Can Clean, Can Lead, Shifts, Actions
   - Pagination controls
   - Page size selector
   - Row actions (View Details)
@@ -185,7 +190,7 @@ Access: Authenticated users only
 ```
 Route: app/settings/roles/page.tsx
 Layout: app/protected/layout.tsx
-Access: Admin users only
+Access: Authorized users only
 ```
 
 **Purpose**: Configure role settings that affect scheduling algorithm priority
@@ -198,7 +203,21 @@ Access: Admin users only
 
 ---
 
-### **7. Authentication Pages**
+### **7. Profile Settings (`/profile`)**
+```
+Route: app/profile/page.tsx
+Layout: app/protected/layout.tsx
+Access: All authenticated users (both authorized and non-authorized)
+```
+
+**Purpose**: User profile management accessible to all authenticated users
+**Content**:
+- Profile information display and editing
+- Password change functionality
+- Account preferences
+- Theme settings
+
+### **8. Authentication Pages**
 ```
 Route: app/auth/login/page.tsx
 Layout: app/auth/layout.tsx
@@ -237,11 +256,12 @@ Access: Public
 
 ### **Sidebar Navigation (Collapsible)**
 ```
-📋 View Appointments    → /appointments
-📅 Schedule             → /schedule
-🏠 Properties           → /properties
-👥 Staff                → /staff
-⚙️ Role Settings        → /settings/roles
+📋 View Appointments    → /appointments (authorized users only)
+📅 Schedule             → /schedule (authorized users only)
+🏠 Properties           → /properties (authorized users only)
+👥 Staff                → /staff (authorized users only)
+⚙️ Role Settings        → /settings/roles (authorized users only)
+👤 Profile              → /profile (all authenticated users)
 ```
 
 **States**:
@@ -262,16 +282,20 @@ Home > Settings > Roles
 
 ## 🔐 **Access Control Matrix**
 
-| Page | Staff Access | Admin Access | Public Access |
-|------|-------------|--------------|---------------|
-| `/` (Dashboard) | ✅ Read | ✅ Read | ❌ |
-| `/appointments` | ✅ Read | ✅ Read | ❌ |
-| `/schedule` | ✅ Read Only | ✅ Full Access | ❌ |
-| `/properties` | ✅ Read | ✅ Read + Limited Edit | ❌ |
-| `/staff` | ✅ Read | ✅ Read | ❌ |
+| Page | Non-Authorized Users | Authorized Users | Public Access |
+|------|---------------------|------------------|---------------|
+| `/` (Landing) | ✅ Info Only | ✅ Dashboard | ❌ |
+| `/profile` | ✅ Full Access | ✅ Full Access | ❌ |
+| `/appointments` | ❌ | ✅ Read | ❌ |
+| `/schedule` | ❌ | ✅ Full Access | ❌ |
+| `/properties` | ❌ | ✅ Read + Limited Edit | ❌ |
+| `/staff` | ❌ | ✅ Read | ❌ |
 | `/settings/roles` | ❌ | ✅ Full Access | ❌ |
 | `/auth/*` | ❌ | ❌ | ✅ |
 
+**Role Definitions:**
+- **Non-Authorized Users**: Users with `authenticated` role (new accounts awaiting admin activation)
+- **Authorized Users**: Users with `authorized_user` role (activated accounts with full access)
 ---
 
 ## 📁 **File Organization**
@@ -280,7 +304,7 @@ Home > Settings > Roles
 ```
 app/
 ├── layout.tsx                    # Root layout with providers
-├── page.tsx                      # Dashboard landing page
+├── page.tsx                      # Role-based landing page
 ├── auth/
 │   ├── layout.tsx               # Auth layout (no sidebar)
 │   ├── login/page.tsx           # Login page
@@ -289,20 +313,22 @@ app/
 │   └── confirm/page.tsx         # Email confirmation
 ├── protected/
 │   ├── layout.tsx               # Protected layout with sidebar
+│   ├── profile/
+│   │   └── page.tsx            # Profile settings (all authenticated users)
 │   ├── appointments/
-│   │   └── page.tsx            # Appointments list
+│   │   └── page.tsx            # Appointments list (authorized users only)
 │   ├── schedule/
-│   │   └── page.tsx            # Schedule builder
+│   │   └── page.tsx            # Schedule builder (authorized users only)
 │   ├── properties/
-│   │   ├── page.tsx            # Properties list
+│   │   ├── page.tsx            # Properties list (authorized users only)
 │   │   └── [id]/
-│   │       ├── page.tsx        # Property detail
-│   │       └── edit/page.tsx   # Property edit (admin)
+│   │       ├── page.tsx        # Property detail (authorized users only)
+│   │       └── edit/page.tsx   # Property edit (authorized users only)
 │   ├── staff/
-│   │   ├── page.tsx            # Staff list
-│   │   └── [id]/page.tsx       # Staff detail
+│   │   ├── page.tsx            # Staff list (authorized users only)
+│   │   └── [id]/page.tsx       # Staff detail (authorized users only)
 │   └── settings/
-│       └── roles/page.tsx      # Role settings (admin)
+│       └── roles/page.tsx      # Role settings (authorized users only)
 └── globals.css                  # Global styles
 ```
 
@@ -320,7 +346,7 @@ components/
     ├── staff-selector.tsx      # Staff selection grid
     ├── build-options.tsx       # Collapsible build options
     ├── plan-board.tsx          # Drag & drop plan board
-    └── team-column.tsx         # Individual team column
+    └── team-column.tsx         # Individual team column/card
 ```
 
 ---
