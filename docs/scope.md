@@ -128,6 +128,7 @@ app/
 - [ ] Feature flags/guards prevent accidental external calls in dev
 
 ### M7 — UX Polish & Theming
+- [ ] Dark-first design (dark default, light optional via switcher)
 - [ ] Consistent typography, spacing, and color theme
 - [ ] Accessible components (keyboard/focus states)
 - [ ] Empty/error/loading states across views

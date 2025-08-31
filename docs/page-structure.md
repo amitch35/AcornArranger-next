@@ -8,7 +8,7 @@ This document defines the complete page structure, routing, and navigation for t
 ## 🏗️ **App Router Structure**
 
 ### **Root Layout (`app/layout.tsx`)**
-- **Providers**: TanStack Query, Theme, Toasts
+- **Providers**: TanStack Query, Theme (dark default), Toasts
 - **Global Styles**: Tailwind CSS, shadcn/ui components
 - **Base HTML**: Meta tags, fonts, favicon
 
