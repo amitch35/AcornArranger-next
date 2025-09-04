@@ -85,14 +85,14 @@ app/
 - [ ] Base layout (sidebar + header) with placeholder routes - *Basic nav exists, needs AcornArranger-specific layout*
 
 ### M1 — Supabase Foundations
-- [ ] Supabase clients (server/client) configured with @supabase/ssr
-- [ ] Asymmetric JWT signing set and verified
+- [x] Supabase clients (server/client) configured with @supabase/ssr
+- [x] Asymmetric JWT signing set and verified
 - [ ] Local Supabase running with seeded minimal data
 - [ ] Types generated from Supabase schema into `types/database.ts`
 
 ### M2 — Auth & Access Control
 - [ ] Email/password auth working end-to-end
-- [ ] Protected routes with middleware and session handling
+- [x] Protected routes with middleware and session handling
 - [ ] **Role-based access control**: `authenticated` vs `authorized_user` roles
 - [ ] **Non-authorized user experience**: Landing page with activation info, profile access only
 - [ ] **Authorized user experience**: Full dashboard and entity access
@@ -253,7 +253,6 @@ app/
 - [ ] Any schema changes desired before we lock APIs?
 - [ ] Minimal desktop screen size target?
 - [ ] Which features of the old UI are must-keep vs can-change?
-- [ ] Do we need import/export utilities (CSV) for any entity?
 
 ## Update Log
 - v0.1: Initial scope and plan
@@ -281,5 +280,4 @@ app/
 - **`ui-plan.md`** - Comprehensive UI design and component architecture
 - **`page-structure.md`** - Complete page structure, routing, and navigation architecture
 - **`.taskmaster/docs/acornarranger-rebuild-prd.txt`** - Product Requirements Document for Task Master AI
-
 
