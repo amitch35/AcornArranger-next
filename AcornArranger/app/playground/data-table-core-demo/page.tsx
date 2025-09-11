@@ -5,6 +5,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/datagrid/DataTable";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { TablePagination } from "@/components/datagrid/TablePagination";
 
 type Person = {
   id: number;
@@ -13,59 +14,66 @@ type Person = {
   age: number;
 };
 
-const demoData: Person[] = [
-  { id: 1, name: "Alice", email: "alice@example.com", age: 31 },
-  { id: 2, name: "Bob", email: "bob@example.com", age: 27 },
-  { id: 3, name: "Carol", email: "carol@example.com", age: 36 },
-  { id: 4, name: "Dave", email: "dave@example.com", age: 29 },
-];
+const demoData: Person[] = Array.from({ length: 75 }, (_, i) => {
+  const id = i + 1;
+  return {
+    id,
+    name: `User ${id}`,
+    email: `user${id}@example.com`,
+    age: 20 + ((i * 7) % 40),
+  } satisfies Person;
+});
 
 const columns: ColumnDef<Person>[] = [
   {
     accessorKey: "id",
     header: ({ column }) => (
-      <button
-        className="text-left font-medium"
+      <Button
+        variant="ghost"
+        className="h-auto p-0 text-left font-medium"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
         ID
-      </button>
+      </Button>
     ),
     cell: ({ row }) => <span>{row.original.id}</span>,
   },
   {
     accessorKey: "name",
     header: ({ column }) => (
-      <button
-        className="text-left font-medium"
+      <Button
+        variant="ghost"
+        className="h-auto p-0 text-left font-medium"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
         Name
-      </button>
+      </Button>
     ),
     cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
   },
   {
     accessorKey: "email",
     header: ({ column }) => (
-      <button
-        className="text-left font-medium"
+      <Button
+        variant="ghost"
+        className="h-auto p-0 text-left font-medium"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
         Email
-      </button>
+      </Button>
     ),
     cell: ({ row }) => <span className="text-muted-foreground">{row.original.email}</span>,
   },
   {
     accessorKey: "age",
     header: ({ column }) => (
-      <button
-        className="text-left font-medium"
+      <Button
+        variant="ghost"
+        className="h-auto p-0 text-left font-medium"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
         Age
-      </button>
+      </Button>
     ),
     cell: ({ row }) => <span>{row.original.age}</span>,
   },
@@ -76,6 +84,35 @@ export default function DataTableCoreDemoPage() {
   const [error, setError] = React.useState<string | null>(null);
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(10);
+  const [sort, setSort] = React.useState<Array<{ id: string; desc: boolean }>>([]);
+
+  const sorted = React.useMemo(() => {
+    if (error) return [] as Person[];
+    if (!sort.length) return demoData;
+    const copy = [...demoData];
+    copy.sort((a, b) => {
+      for (const s of sort) {
+        const key = s.id as keyof Person;
+        const av = a[key] as unknown as string | number;
+        const bv = b[key] as unknown as string | number;
+        let cmp = 0;
+        if (typeof av === "number" && typeof bv === "number") {
+          cmp = av - bv;
+        } else {
+          cmp = String(av).localeCompare(String(bv));
+        }
+        if (cmp !== 0) return s.desc ? -cmp : cmp;
+      }
+      return 0;
+    });
+    return copy;
+  }, [sort, error]);
+
+  const paged = React.useMemo(() => {
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    return sorted.slice(start, end);
+  }, [page, pageSize, sorted]);
 
   return (
     <div className="p-6 space-y-4">
@@ -102,7 +139,7 @@ export default function DataTableCoreDemoPage() {
       )}
       <DataTable<Person, unknown>
         columns={columns}
-        data={error ? [] : demoData}
+        data={paged}
         total={demoData.length}
         page={page}
         pageSize={pageSize}
@@ -111,9 +148,20 @@ export default function DataTableCoreDemoPage() {
         onChange={(change) => {
           if (typeof change.page === "number") setPage(change.page);
           if (typeof change.pageSize === "number") setPageSize(change.pageSize);
+          if (change.sort) {
+            setSort(change.sort);
+            setPage(1);
+          }
         }}
       />
-      <p className="text-sm text-muted-foreground">Sorting is toggled by clicking column headers. Pagination controls will be added in Task 13.2.</p>
+      <TablePagination
+        page={page}
+        pageSize={pageSize}
+        total={demoData.length}
+        onPageChange={setPage}
+        onPageSizeChange={setPageSize}
+      />
+      <p className="text-sm text-muted-foreground">Sorting is toggled by clicking column headers. Pagination controls are added.</p>
     </div>
   );
 }
