@@ -271,6 +271,7 @@ app/
 - v0.15: **Updated Staff Page UI design**; analyzed legacy staff-view.ts and staff.ts models to accurately reflect staff structure; updated table columns to match legacy implementation (Staff ID, Name, Role, Status, Can Clean, Can Lead, Actions); added comprehensive staff detail modal with role capabilities and shift information; enhanced filters to include status (Active/Inactive/Unverified), role, can clean, and search functionality
 - v0.16: **Task alignment & DB hardening**; consolidated filtering/table foundation under Task 13 (removed duplicate Task 14); updated tasks to use existing DB columns (rc_appointments.next_arrival_time/turn_around, rc_properties.estimated_cleaning_mins/double_unit, rc_staff.status_id join); added Task 19 for database hardening (RLS policy on role_permissions, secure function search_path, upgrade pg_graphql, enable leaked password protection, add covering indexes); adjusted dependencies across tasks
 - v0.17: **Template cleanup**; removed Next/Supabase template boilerplate (tutorial components, logos, deploy/env warning), simplified home page with auth redirect, cleaned protected layout/page, pruned unused images, and updated docs to reflect `AcornArranger/` top-level folder
+ - v0.18: **Shadcn rule improved**; standardized shadcn/ui usage with MCP server required for shadcn planning/implementation; added planning checklist, implementation flow, DO/DON'T examples, blocks guidance, and file references in `.cursor/rules/shad-cn.mdc`
 
 ---
 

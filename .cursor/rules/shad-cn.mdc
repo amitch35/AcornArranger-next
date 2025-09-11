@@ -1,18 +1,125 @@
 ---
-description: shadcn developement, use MCP to during planning and implementation
-globs:
-alwaysApply: false
+description: Standardize shadcn/ui usage and require the shadcn MCP server for planning and implementation of shadcn-based UI
+globs: AcornArranger/app/**/*, AcornArranger/components/**/*
+alwaysApply: true
 ---
 
-Usage Rule
-When asked to build anything UI related, use shadcn components whenever possible. In doing so, use MCP server.
+- **Intent (What this enforces)**
+  - Prefer shadcn/ui components and blocks for UI work
+  - Use the shadcn MCP server for any planning or implementation that involves shadcn (default, not only when explicitly asked)
+  - Keep implementations consistent with our existing `components/ui` primitives
 
-Planning Rule
-When asked to plan using anything related to shadcn:
-Apply components wherever components are applicable
-Use whole blocks where possible (i.e. login page, calender)
+- **Where this applies**
+  - Next.js routes, layouts, and pages under [app](mdc:AcornArranger/app)
+  - Shared UI under [components/ui](mdc:AcornArranger/components/ui) (e.g., [button.tsx](mdc:AcornArranger/components/ui/button.tsx), [table.tsx](mdc:AcornArranger/components/ui/table.tsx), [select.tsx](mdc:AcornArranger/components/ui/select.tsx))
+  - Higher-level composites using these primitives (e.g., [DataTable.tsx](mdc:AcornArranger/components/datagrid/DataTable.tsx))
 
-Implementation Rule:
-When implementing:
-Call the demo tool first see how it is used
-Then implement
+- **Default Behavior (Required)**
+  - Use the shadcn MCP tools for shadcn-related work:
+    - List components/blocks before choosing
+    - Pull demos to confirm usage
+    - Pull component source as needed
+  - Tools: `mcp_shadcn-ui_list_components`, `mcp_shadcn-ui_get_component_demo`, `mcp_shadcn-ui_get_component`, `mcp_shadcn-ui_get_block`, `mcp_shadcn-ui_get_component_metadata`
+
+- **Planning Checklist**
+  - Map UI requirements to shadcn primitives first (Button, Card, Table, Select, etc.)
+  - Prefer full shadcn blocks when they match a screen/page/use case (e.g., login, calendar)
+  - Verify if an equivalent primitive already exists locally under `components/ui` to avoid duplicates
+  - Review the demo for intended component/block usage via the MCP demo tool
+
+- **Implementation Flow (Required)**
+  1. Use the demo tool for the component/block to confirm API and composition
+  2. If needed, fetch component source and reconcile with local primitives
+  3. Implement using imports from `components/ui` and compose per demos/blocks
+  4. Keep variants, sizes, and accessibility patterns consistent with shadcn examples
+
+- **DO Examples (preferred usage)**
+  ```tsx
+  // Button usage — align with [button.tsx](mdc:AcornArranger/components/ui/button.tsx)
+  import { Button } from "@/components/ui/button";
+
+  export function SaveAction() {
+    return (
+      <Button variant="default" size="sm" type="submit">
+        Save
+      </Button>
+    );
+  }
+  ```
+
+  ```tsx
+  // Select usage — align with [select.tsx](mdc:AcornArranger/components/ui/select.tsx)
+  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+  export function RoleSelect() {
+    return (
+      <Select defaultValue="admin">
+        <SelectTrigger aria-label="Role">
+          <SelectValue placeholder="Select role" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="housekeeper">Housekeeper</SelectItem>
+          <SelectItem value="lead-housekeeper">Lead Housekeeper</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+  }
+  ```
+
+  ```tsx
+  // Table composition — align with [table.tsx](mdc:AcornArranger/components/ui/table.tsx)
+  import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
+  export function SimpleTable() {
+    return (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>Email</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow>
+            <TableCell>Alice</TableCell>
+            <TableCell>alice@example.com</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    );
+  }
+  ```
+
+- **DON'T Examples (avoid)**
+  ```tsx
+  // ❌ Re-implementing primitives with raw HTML + ad hoc classes
+  export function CustomButton() {
+    return <button className="px-3 py-1 rounded bg-primary text-white">Save</button>;
+  }
+  ```
+
+  ```tsx
+  // ❌ Copy/pasting code from shadcn docs without using the MCP demo to verify API
+  // and without reconciling with existing primitives in components/ui
+  ```
+
+- **Blocks Guidance**
+  - When a full-page template exists (e.g., login), prefer a shadcn block via the MCP block tool
+  - Adapt block structure to our routing and providers, but preserve semantics and a11y
+
+- **Local Components First**
+  - Reuse and extend primitives in `components/ui` before adding new ones
+  - Examples to reference:
+    - [button.tsx](mdc:AcornArranger/components/ui/button.tsx)
+    - [table.tsx](mdc:AcornArranger/components/ui/table.tsx)
+    - [select.tsx](mdc:AcornArranger/components/ui/select.tsx)
+
+- **Exceptions (when shadcn may be skipped)**
+  - A required interaction is not covered by shadcn and no reasonable composition exists
+  - A third-party widget with mandated UI is required
+  - If deviating, document the decision and rationale in [scope.md](mdc:docs/scope.md) under the Update Log
+
+- **Maintenance**
+  - Keep shadcn primitives up to date and consistent across usage
+  - Prefer composition over forking; only add new primitives when reuse is impossible
+  - Update this rule with new patterns or commonly used composites
