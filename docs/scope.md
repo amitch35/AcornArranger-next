@@ -88,7 +88,7 @@ app/
 - [x] Supabase clients (server/client) configured with @supabase/ssr
 - [x] Asymmetric JWT signing set and verified
 - [ ] Local Supabase running with seeded minimal data
-- [ ] Types generated from Supabase schema into `types/database.ts`
+- [x] Types generated from Supabase schema into `supabase/types.ts`
 
 ### M2 — Auth & Access Control
 - [ ] Email/password auth working end-to-end
