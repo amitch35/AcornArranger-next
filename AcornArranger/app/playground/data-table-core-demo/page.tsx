@@ -7,14 +7,17 @@ import { DataTable } from "@/components/datagrid/DataTable";
 import { TableToolbar } from "@/components/datagrid/TableToolbar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { TablePagination } from "@/components/datagrid/TablePagination";
+import { AgeFilterBarDemo, type AgeFilterBarValue } from "@/components/filters/AgeFilterBarDemo";
 
 type Person = {
   id: number;
   name: string;
   email: string;
   age: number;
+  role: "Admin" | "Manager" | "Staff" | "Guest";
 };
 
+const roles = ["Admin", "Manager", "Staff", "Guest"] as const;
 const demoData: Person[] = Array.from({ length: 75 }, (_, i) => {
   const id = i + 1;
   return {
@@ -22,6 +25,7 @@ const demoData: Person[] = Array.from({ length: 75 }, (_, i) => {
     name: `User ${id}`,
     email: `user${id}@example.com`,
     age: 20 + ((i * 7) % 40),
+    role: roles[i % roles.length],
   } satisfies Person;
 });
 
@@ -78,6 +82,19 @@ const columns: ColumnDef<Person>[] = [
     ),
     cell: ({ row }) => <span>{row.original.age}</span>,
   },
+  {
+    accessorKey: "role",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        className="h-auto p-0 text-left font-medium"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Role
+      </Button>
+    ),
+    cell: ({ row }) => <span className="text-muted-foreground">{row.original.role}</span>,
+  },
 ];
 
 export default function DataTableCoreDemoPage() {
@@ -87,18 +104,34 @@ export default function DataTableCoreDemoPage() {
   const [pageSize, setPageSize] = React.useState(10);
   const [sort, setSort] = React.useState<Array<{ id: string; desc: boolean }>>([]);
   const [search, setSearch] = React.useState("");
+  const [filters, setFilters] = React.useState<AgeFilterBarValue>({ ageBuckets: [], roles: [] });
 
   const sorted = React.useMemo(() => {
     if (error) return [] as Person[];
     const q = search.trim().toLowerCase();
-    const base = q
-      ? demoData.filter((p) =>
-          [String(p.id), p.name, p.email, String(p.age)]
-            .join(" ")
-            .toLowerCase()
-            .includes(q),
-        )
-      : demoData;
+    let base = demoData;
+    if (q) {
+      base = base.filter((p) =>
+        [String(p.id), p.name, p.email, String(p.age)].join(" ").toLowerCase().includes(q),
+      );
+    }
+    if (filters.ageBuckets.length) {
+      base = base.filter((p) => {
+        const age = p.age;
+        return filters.ageBuckets.some((b) =>
+          (b === "<25" && age < 25) ||
+          (b === "25-34" && age >= 25 && age <= 34) ||
+          (b === "35-44" && age >= 35 && age <= 44) ||
+          (b === "45+" && age >= 45),
+        );
+      });
+    }
+    if (filters.roles && filters.roles.length) {
+      base = base.filter((p) => filters.roles!.includes(p.role));
+    }
+    if (typeof filters.minAge === "number") {
+      base = base.filter((p) => p.age >= filters.minAge!);
+    }
     if (!sort.length) return base;
     const copy = [...base];
     copy.sort((a, b) => {
@@ -117,7 +150,7 @@ export default function DataTableCoreDemoPage() {
       return 0;
     });
     return copy;
-  }, [sort, error, search]);
+  }, [sort, error, search, filters]);
 
   const paged = React.useMemo(() => {
     const start = (page - 1) * pageSize;
@@ -148,6 +181,12 @@ export default function DataTableCoreDemoPage() {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
+      <AgeFilterBarDemo
+        value={filters}
+        onChange={(f) => setFilters(f)}
+        onApply={() => setPage(1)}
+        onReset={() => { setFilters({ ageBuckets: [], roles: [] }); setPage(1); }}
+      />
       <DataTable<Person, unknown>
         columns={columns}
         data={paged}
@@ -171,7 +210,7 @@ export default function DataTableCoreDemoPage() {
       <TablePagination
         page={page}
         pageSize={pageSize}
-        total={demoData.length}
+        total={sorted.length}
         onPageChange={setPage}
         onPageSizeChange={setPageSize}
       />

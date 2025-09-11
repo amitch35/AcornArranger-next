@@ -1,7 +1,7 @@
 ---
 description: Standardize shadcn/ui usage and require the shadcn MCP server for planning and implementation of shadcn-based UI
-globs: AcornArranger/app/**/*, AcornArranger/components/**/*
-alwaysApply: true
+globs:
+alwaysApply: false
 ---
 
 - **Intent (What this enforces)**

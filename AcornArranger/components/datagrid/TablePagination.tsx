@@ -57,21 +57,21 @@ export function TablePagination({ page, pageSize, total, onPageChange, onPageSiz
       <Pagination>
         <PaginationContent>
           <PaginationItem>
-            <PaginationPrevious aria-disabled={!canPrev} onClick={(e) => (canPrev ? onPageChange(page - 1) : e.preventDefault())} href="#" />
+            <PaginationPrevious aria-disabled={!canPrev} onClick={(e) => { e.preventDefault(); if (canPrev) onPageChange(page - 1); }} href="#" />
           </PaginationItem>
           {pages.map((p, idx) => (
             <PaginationItem key={idx} className="hidden sm:list-item">
               {p === "ellipsis" ? (
                 <PaginationEllipsis />
               ) : (
-                <PaginationLink href="#" isActive={p === page} onClick={(e) => (p === page ? e.preventDefault() : onPageChange(p))}>
+                <PaginationLink href="#" isActive={p === page} onClick={(e) => { e.preventDefault(); if (p !== page) onPageChange(p); }}>
                   {p}
                 </PaginationLink>
               )}
             </PaginationItem>
           ))}
           <PaginationItem>
-            <PaginationNext aria-disabled={!canNext} onClick={(e) => (canNext ? onPageChange(page + 1) : e.preventDefault())} href="#" />
+            <PaginationNext aria-disabled={!canNext} onClick={(e) => { e.preventDefault(); if (canNext) onPageChange(page + 1); }} href="#" />
           </PaginationItem>
         </PaginationContent>
       </Pagination>

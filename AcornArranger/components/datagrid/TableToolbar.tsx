@@ -23,11 +23,16 @@ type TableToolbarProps<TData> = {
 
 export function TableToolbar<TData>({ table, onSearch, creating, onCreate }: TableToolbarProps<TData>) {
   const [query, setQuery] = React.useState("");
+  const onSearchRef = React.useRef(onSearch);
 
   React.useEffect(() => {
-    const id = setTimeout(() => onSearch?.(query), 300);
+    onSearchRef.current = onSearch;
+  }, [onSearch]);
+
+  React.useEffect(() => {
+    const id = setTimeout(() => onSearchRef.current?.(query), 300);
     return () => clearTimeout(id);
-  }, [query, onSearch]);
+  }, [query]);
 
   return (
     <div className="flex w-full items-center gap-2">
