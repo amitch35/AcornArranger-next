@@ -11,6 +11,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import type { Table as TanStackTable } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -32,6 +33,7 @@ export type DataTableProps<TData, TValue> = {
   onChange?: (change: DataTableChange) => void;
   initialSorting?: SortingState;
   initialVisibility?: VisibilityState;
+  renderToolbar?: (table: TanStackTable<TData>) => React.ReactNode;
 };
 
 export function DataTable<TData, TValue>({
@@ -45,6 +47,7 @@ export function DataTable<TData, TValue>({
   onChange,
   initialSorting,
   initialVisibility,
+  renderToolbar,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>(initialSorting ?? []);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(initialVisibility ?? {});
@@ -67,6 +70,11 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="w-full overflow-hidden rounded-md border">
+      {renderToolbar ? (
+        <div className="flex items-center justify-between gap-2 border-b p-3">
+          {renderToolbar(table)}
+        </div>
+      ) : null}
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (

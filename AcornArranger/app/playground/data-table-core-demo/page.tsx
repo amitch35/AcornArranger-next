@@ -4,6 +4,7 @@ import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/datagrid/DataTable";
+import { TableToolbar } from "@/components/datagrid/TableToolbar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { TablePagination } from "@/components/datagrid/TablePagination";
 
@@ -85,11 +86,21 @@ export default function DataTableCoreDemoPage() {
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(10);
   const [sort, setSort] = React.useState<Array<{ id: string; desc: boolean }>>([]);
+  const [search, setSearch] = React.useState("");
 
   const sorted = React.useMemo(() => {
     if (error) return [] as Person[];
-    if (!sort.length) return demoData;
-    const copy = [...demoData];
+    const q = search.trim().toLowerCase();
+    const base = q
+      ? demoData.filter((p) =>
+          [String(p.id), p.name, p.email, String(p.age)]
+            .join(" ")
+            .toLowerCase()
+            .includes(q),
+        )
+      : demoData;
+    if (!sort.length) return base;
+    const copy = [...base];
     copy.sort((a, b) => {
       for (const s of sort) {
         const key = s.id as keyof Person;
@@ -106,7 +117,7 @@ export default function DataTableCoreDemoPage() {
       return 0;
     });
     return copy;
-  }, [sort, error]);
+  }, [sort, error, search]);
 
   const paged = React.useMemo(() => {
     const start = (page - 1) * pageSize;
@@ -140,11 +151,14 @@ export default function DataTableCoreDemoPage() {
       <DataTable<Person, unknown>
         columns={columns}
         data={paged}
-        total={demoData.length}
+        total={sorted.length}
         page={page}
         pageSize={pageSize}
         loading={loading}
         error={error}
+        renderToolbar={(table) => (
+          <TableToolbar table={table} onSearch={(q) => { setPage(1); setSearch(q); }} />
+        )}
         onChange={(change) => {
           if (typeof change.page === "number") setPage(change.page);
           if (typeof change.pageSize === "number") setPageSize(change.pageSize);
@@ -161,7 +175,7 @@ export default function DataTableCoreDemoPage() {
         onPageChange={setPage}
         onPageSizeChange={setPageSize}
       />
-      <p className="text-sm text-muted-foreground">Sorting is toggled by clicking column headers. Pagination controls are added.</p>
+      <p className="text-sm text-muted-foreground">Sorting is toggled by clicking column headers. Pagination controls are added. Search is debounced. Columns can be toggled.</p>
     </div>
   );
 }
