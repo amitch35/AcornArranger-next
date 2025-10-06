@@ -4,7 +4,7 @@ globs:
 alwaysApply: true
 ---
 ### Change Logging Rule
-**ALWAYS update the Update Log section when making significant changes to the project.** This includes:
+**ALWAYS update the Update Log section of scope.md when making significant changes to the project.** This includes:
 - Completing milestone tasks (check off items in M0-M9)
 - Completing phase tasks (check off items in Phase 0-10)
 - Making architectural decisions or changes

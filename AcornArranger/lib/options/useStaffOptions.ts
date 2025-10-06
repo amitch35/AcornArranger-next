@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 
 export interface StaffOptionsParams {
   q?: string;
@@ -29,12 +29,20 @@ export function useStaffOptions(params: StaffOptionsParams = { statusIds: [1], c
   return useQuery<{ options: OptionItem[]; total: number }>({
     queryKey: ["staff-options", p],
     queryFn: async () => {
-      const res = await fetch(`/api/options/staff${qs}`, { cache: "no-store" });
-      if (!res.ok) throw new Error("Failed to load staff options");
-      return res.json();
+      try {
+        const res = await fetch(`/api/options/staff${qs}`, { cache: "no-store" });
+        if (!res.ok) throw new Error("Failed to load staff options");
+        return res.json();
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("useStaffOptions error:", err);
+        throw err;
+      }
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
+    placeholderData: keepPreviousData,
+    retry: 1,
   });
 }
 

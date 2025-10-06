@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 
 type Entity = "appointments" | "properties" | "staff";
 
@@ -19,12 +19,20 @@ export function useStatusOptions(entity: Entity) {
   return useQuery<{ options: OptionItem[] }>({
     queryKey: ["status-options", entity],
     queryFn: async () => {
-      const res = await fetch(getEndpoint(entity), { cache: "no-store" });
-      if (!res.ok) throw new Error("Failed to load status options");
-      return res.json();
+      try {
+        const res = await fetch(getEndpoint(entity), { cache: "no-store" });
+        if (!res.ok) throw new Error("Failed to load status options");
+        return res.json();
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("useStatusOptions error:", err);
+        throw err;
+      }
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: Infinity,
     gcTime: 30 * 60 * 1000,
+    placeholderData: keepPreviousData,
+    retry: 1,
   });
 }
 
