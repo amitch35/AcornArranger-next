@@ -94,6 +94,29 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
 
 > Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
 
+## useDataQuery Hook (brief usage)
+
+The `useDataQuery` hook fetches paginated, filtered data using canonical URL query params.
+
+```tsx
+import { useDataQuery } from "./lib/hooks/useDataQuery";
+import { Schemas } from "./lib/filters/URLQueryCodec";
+
+export function ExampleList() {
+  const q = useDataQuery<{ id: number }[], typeof Schemas.property>({
+    endpoint: "/api/properties",
+    filtersSchema: Schemas.property,
+    storageKey: "properties:list",
+  });
+
+  // Wire to DataTable and FilterBar
+  // q.filters, q.setFilters, q.setPage, q.setPageSize, q.setSort
+  // q.status/fetchStatus + derived flags: q.showSkeleton, q.disableControls
+
+  return null;
+}
+```
+
 ## Feedback and issues
 
 Please file feedback and issues over on the [Supabase GitHub org](https://github.com/supabase/supabase/issues/new/choose).
