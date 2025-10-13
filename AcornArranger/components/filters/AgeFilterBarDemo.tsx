@@ -67,6 +67,7 @@ export function AgeFilterBarDemo({ value, onChange, onApply, onReset }: AgeFilte
       groups={groups}
       value={state}
       onChange={handleChange}
+      extraHasActive={typeof value.minAge === "number"}
       onApply={() => {
         const parsed = stagedMinAge.trim() === "" ? undefined : Number(stagedMinAge);
         const valid = typeof parsed === "number" && !Number.isNaN(parsed) ? parsed : undefined;

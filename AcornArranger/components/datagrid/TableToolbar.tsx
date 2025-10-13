@@ -46,7 +46,7 @@ export function TableToolbar<TData>({ table, onSearch, creating, onCreate }: Tab
       <div className="ml-auto flex items-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline">Columns</Button>
+            <Button variant="outline" aria-label="Toggle columns">Columns</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>

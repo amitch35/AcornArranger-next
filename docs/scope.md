@@ -272,6 +272,7 @@ app/
 - v0.16: **Task alignment & DB hardening**; consolidated filtering/table foundation under Task 13 (removed duplicate Task 14); updated tasks to use existing DB columns (rc_appointments.next_arrival_time/turn_around, rc_properties.estimated_cleaning_mins/double_unit, rc_staff.status_id join); added Task 19 for database hardening (RLS policy on role_permissions, secure function search_path, upgrade pg_graphql, enable leaked password protection, add covering indexes); adjusted dependencies across tasks
 - v0.17: **Template cleanup**; removed Next/Supabase template boilerplate (tutorial components, logos, deploy/env warning), simplified home page with auth redirect, cleaned protected layout/page, pruned unused images, and updated docs to reflect `AcornArranger/` top-level folder
  - v0.18: **Shadcn rule improved**; standardized shadcn/ui usage with MCP server required for shadcn planning/implementation; added planning checklist, implementation flow, DO/DON'T examples, blocks guidance, and file references in `.cursor/rules/shad-cn.mdc`
+ - v0.19: Accessibility and keyboard support completed across `components/datagrid` and `components/filters`; added a11y tests (Vitest + Testing Library + jest-axe); normalized ARIA and labeling (aria-sort, aria-busy + live region, listbox/option, labeled pagination/select, skeleton aria-hidden); Task 13.8 done.
 
 ---
 

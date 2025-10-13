@@ -69,12 +69,15 @@ export function DataTable<TData, TValue>({
   });
 
   return (
-    <div className="w-full overflow-hidden rounded-md border">
+    <div className="w-full overflow-hidden rounded-md border" aria-busy={!!loading}>
       {renderToolbar ? (
         <div className="flex items-center justify-between gap-2 border-b p-3">
           {renderToolbar(table)}
         </div>
       ) : null}
+      <div aria-live="polite" className="sr-only">
+        {loading ? "Loading table" : `${table.getRowModel().rows.length} rows`}
+      </div>
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -95,7 +98,7 @@ export function DataTable<TData, TValue>({
               <TableRow key={`sk-${idx}`}>
                 {columns.map((_, cIdx) => (
                   <TableCell key={`skc-${idx}-${cIdx}`}>
-                    <Skeleton className="h-5 w-full" />
+                    <Skeleton className="h-5 w-full" aria-hidden />
                   </TableCell>
                 ))}
               </TableRow>
@@ -110,7 +113,7 @@ export function DataTable<TData, TValue>({
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
+              <TableCell role="status" colSpan={columns.length} className="h-24 text-center">
                 {error ? error : "No results"}
               </TableCell>
             </TableRow>

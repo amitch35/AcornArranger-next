@@ -40,9 +40,9 @@ export function TablePagination({ page, pageSize, total, onPageChange, onPageSiz
   return (
     <div className="flex w-full items-center justify-between gap-3 p-3">
       <div className="flex items-center gap-2">
-        <Label htmlFor="rows-per-page">Rows per page</Label>
+        <Label id="rows-per-page-label" htmlFor="rows-per-page">Rows per page</Label>
         <Select value={String(pageSize)} onValueChange={(v) => onPageSizeChange(Number(v))}>
-          <SelectTrigger id="rows-per-page" aria-labelledby="rows-per-page">
+          <SelectTrigger id="rows-per-page" aria-labelledby="rows-per-page-label">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -57,21 +57,21 @@ export function TablePagination({ page, pageSize, total, onPageChange, onPageSiz
       <Pagination>
         <PaginationContent>
           <PaginationItem>
-            <PaginationPrevious aria-disabled={!canPrev} onClick={(e) => { e.preventDefault(); if (canPrev) onPageChange(page - 1); }} href="#" />
+            <PaginationPrevious aria-label="Previous page" aria-disabled={!canPrev} onClick={(e) => { e.preventDefault(); if (canPrev) onPageChange(page - 1); }} href="#" />
           </PaginationItem>
           {pages.map((p, idx) => (
             <PaginationItem key={idx} className="hidden sm:list-item">
               {p === "ellipsis" ? (
                 <PaginationEllipsis />
               ) : (
-                <PaginationLink href="#" isActive={p === page} onClick={(e) => { e.preventDefault(); if (p !== page) onPageChange(p); }}>
+                <PaginationLink href="#" isActive={p === page} aria-label={`Go to page ${p}`} onClick={(e) => { e.preventDefault(); if (p !== page) onPageChange(p); }}>
                   {p}
                 </PaginationLink>
               )}
             </PaginationItem>
           ))}
           <PaginationItem>
-            <PaginationNext aria-disabled={!canNext} onClick={(e) => { e.preventDefault(); if (canNext) onPageChange(page + 1); }} href="#" />
+            <PaginationNext aria-label="Next page" aria-disabled={!canNext} onClick={(e) => { e.preventDefault(); if (canNext) onPageChange(page + 1); }} href="#" />
           </PaginationItem>
         </PaginationContent>
       </Pagination>

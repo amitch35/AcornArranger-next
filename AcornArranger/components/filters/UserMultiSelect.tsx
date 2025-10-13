@@ -118,7 +118,7 @@ export function UserMultiSelect({
           <PopoverContent id={`${buttonId}-content`} className="w-[360px] p-0" align="start">
             <Command>
               <CommandInput placeholder={placeholder} value={searchValue} onValueChange={setSearchValue} />
-              <CommandList>
+              <CommandList role="listbox">
                 <CommandEmpty>No users found.</CommandEmpty>
                 <CommandGroup>
                   {options.map((opt) => {

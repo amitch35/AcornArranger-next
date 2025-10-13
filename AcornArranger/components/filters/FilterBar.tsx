@@ -27,9 +27,10 @@ type FilterBarProps = {
   onReset?: () => void;
   advancedContent?: React.ReactNode;
   title?: string;
+  extraHasActive?: boolean;
 };
 
-export function FilterBar({ groups, value, onChange, onApply, onReset, advancedContent, title = "Filters" }: FilterBarProps) {
+export function FilterBar({ groups, value, onChange, onApply, onReset, advancedContent, title = "Filters", extraHasActive = false }: FilterBarProps) {
   const [openGroupId, setOpenGroupId] = React.useState<string | null>(null);
   const [advanced, setAdvanced] = React.useState(false);
 
@@ -52,7 +53,7 @@ export function FilterBar({ groups, value, onChange, onApply, onReset, advancedC
     onReset?.();
   };
 
-  const hasActive = groups.some((g) => (value[g.id] ?? []).length > 0);
+  const hasActive = groups.some((g) => (value[g.id] ?? []).length > 0) || !!extraHasActive;
 
   return (
     <div className="flex w-full flex-col gap-2 rounded-md border p-3">
@@ -64,15 +65,21 @@ export function FilterBar({ groups, value, onChange, onApply, onReset, advancedC
           return (
             <Popover key={group.id} open={open} onOpenChange={(o) => setOpenGroupId(o ? group.id : null)}>
               <PopoverTrigger asChild>
-                <Button variant="outline" aria-expanded={open} className="gap-2">
+                <Button
+                  variant="outline"
+                  aria-expanded={open}
+                  aria-haspopup="listbox"
+                  aria-controls={`${group.id}-content`}
+                  className="gap-2"
+                >
                   {group.label}
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent align="start" className="p-0">
+              <PopoverContent id={`${group.id}-content`} align="start" className="p-0">
                 <Command>
                   <CommandInput placeholder={group.searchPlaceholder ?? `Search ${group.label.toLowerCase()}...`} />
-                  <CommandList>
+                  <CommandList role="listbox">
                     <CommandEmpty>No options found.</CommandEmpty>
                     <CommandGroup>
                       {group.options.map((opt) => (
@@ -81,6 +88,7 @@ export function FilterBar({ groups, value, onChange, onApply, onReset, advancedC
                           value={opt.id}
                           onSelect={() => toggleOption(group.id, opt.id)}
                           aria-selected={(value[group.id] ?? []).includes(opt.id)}
+                          role="option"
                         >
                           {opt.label}
                         </CommandItem>

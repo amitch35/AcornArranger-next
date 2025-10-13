@@ -98,7 +98,7 @@ export function ServicesMultiSelect({
           <PopoverContent id={`${buttonId}-content`} className="w-[320px] p-0" align="start">
             <Command>
               <CommandInput placeholder={placeholder} />
-              <CommandList>
+              <CommandList role="listbox">
                 <CommandEmpty>No services found.</CommandEmpty>
                 <CommandGroup>
                   {options.map((opt) => {

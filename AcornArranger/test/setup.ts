@@ -7,4 +7,8 @@ import '@testing-library/jest-dom';
 // msw server setup (opt-in per test)
 // Tests can import server from lib/hooks/test-utils/msw and call server.use(...)
 
+// jest-axe a11y matchers
+import { toHaveNoViolations } from 'jest-axe';
+expect.extend({ toHaveNoViolations });
+
 

@@ -5,19 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarIcon, ChevronDown } from "lucide-react";
 import Calendar from "@/components/ui/calendar";
-
-export type DateRange = { from?: Date; to?: Date } | undefined;
+import type { DateRange } from "react-day-picker";
 
 type DateRangePickerProps = {
   label?: string;
-  value: DateRange;
-  onChange: (next: DateRange) => void;
+  value: DateRange | undefined;
+  onChange: (next: DateRange | undefined) => void;
   disabled?: boolean;
   id?: string;
   className?: string;
 };
 
-function formatRange(value: DateRange): string {
+function formatRange(value: DateRange | undefined): string {
   if (!value?.from && !value?.to) return "Select dates";
   const f = value?.from ? value.from.toLocaleDateString() : "?";
   const t = value?.to ? value.to.toLocaleDateString() : "?";
@@ -83,9 +82,10 @@ export function DateRangePicker({ label = "Date Range", value, onChange, disable
             <ChevronDown className="h-4 w-4" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent id={`${buttonId}-content`} className="w-auto p-2" align="start">
+        <PopoverContent id={`${buttonId}-content`} className="w-auto p-2" align="start" aria-labelledby={`${buttonId}-heading`}>
           <div className="flex gap-3">
             <div className="flex flex-col gap-1">
+              <span id={`${buttonId}-heading`} className="sr-only">{label}</span>
               <Button variant="secondary" onClick={() => setPreset("today")}>Today</Button>
               <Button variant="secondary" onClick={() => setPreset("yesterday")}>Yesterday</Button>
               <Button variant="secondary" onClick={() => setPreset("tomorrow")}>Tomorrow</Button>
@@ -99,8 +99,9 @@ export function DateRangePicker({ label = "Date Range", value, onChange, disable
               mode="range"
               numberOfMonths={2}
               selected={value}
-              onSelect={onChange}
+              onSelect={(range) => onChange(range)}
               defaultMonth={value?.from ?? new Date()}
+              aria-label={`${label} calendar`}
             />
           </div>
         </PopoverContent>

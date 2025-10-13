@@ -5,7 +5,7 @@ function Separator({ className, orientation = "horizontal", decorative = true, .
   return (
     <div
       role={decorative ? "none" : "separator"}
-      aria-orientation={orientation}
+      {...(!decorative ? { "aria-orientation": orientation } : {})}
       className={cn(
         "shrink-0 bg-border",
         orientation === "horizontal" ? "h-px w-full" : "h-full w-px",
