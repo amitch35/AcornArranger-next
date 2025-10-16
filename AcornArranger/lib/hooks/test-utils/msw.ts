@@ -8,6 +8,11 @@ export const handlers = {
     http.get(path, async () => {
       return HttpResponse.json({ data, total }, { status: 200 });
     }),
+  successListWithQuery: (path: string, resolver: (req: Request) => { data: unknown; total: number }) =>
+    http.get(path, async ({ request }) => {
+      const { data, total } = resolver(request);
+      return HttpResponse.json({ data, total }, { status: 200 });
+    }),
   delayed: (path: string, ms = 200) =>
     http.get(path, async () => {
       await delay(ms);

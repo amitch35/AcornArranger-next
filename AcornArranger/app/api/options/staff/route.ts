@@ -15,12 +15,13 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const q = searchParams.get("q");
-    const limit = Number(searchParams.get("limit") || 50);
+    const sort = searchParams.get("sort");
+    const pageSize = Number(searchParams.get("pageSize") || 50);
     const page = Number(searchParams.get("page") || 1);
-    const offset = Math.max(0, (page - 1) * Math.max(1, limit));
-    const statusIds = parseNumberArray(searchParams.get("filter_status_ids"));
-    const canClean = searchParams.get("filter_can_clean");
-    const excludePlanId = searchParams.get("exclude_plan_id");
+    const offset = Math.max(0, (page - 1) * Math.max(1, pageSize));
+    const statusIds = parseNumberArray(searchParams.get("statusIds"));
+    const canClean = searchParams.get("canClean");
+    const excludePlanId = searchParams.get("excludePlanId");
 
     const supabase = await createClient();
 
@@ -60,10 +61,19 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const { data, error, status, count } = await query
-      .order("status_id", { ascending: true })
-      .order("name", { ascending: true })
-      .range(offset, offset + Math.max(1, limit) - 1);
+    const { parseSortParam } = await import("@/lib/api/sort");
+    const rules = parseSortParam(sort, {
+      id: "user_id",
+      name: "name",
+      firstName: "first_name",
+      lastName: "last_name",
+      status: "status_id",
+    });
+    const ordered = rules.length
+      ? rules.reduce((q, r) => q.order(r.column, { ascending: r.ascending }), query)
+      : query.order("status_id", { ascending: true }).order("name", { ascending: true });
+
+    const { data, error, status, count } = await ordered.range(offset, offset + Math.max(1, pageSize) - 1);
 
     if (error) return NextResponse.json({ error: error.message }, { status });
     const rows = (data ?? []) as unknown as Array<{ user_id: number | string | null; name: string | null }>;

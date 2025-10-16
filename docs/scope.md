@@ -273,6 +273,7 @@ app/
 - v0.17: **Template cleanup**; removed Next/Supabase template boilerplate (tutorial components, logos, deploy/env warning), simplified home page with auth redirect, cleaned protected layout/page, pruned unused images, and updated docs to reflect `AcornArranger/` top-level folder
  - v0.18: **Shadcn rule improved**; standardized shadcn/ui usage with MCP server required for shadcn planning/implementation; added planning checklist, implementation flow, DO/DON'T examples, blocks guidance, and file references in `.cursor/rules/shad-cn.mdc`
  - v0.19: Accessibility and keyboard support completed across `components/datagrid` and `components/filters`; added a11y tests (Vitest + Testing Library + jest-axe); normalized ARIA and labeling (aria-sort, aria-busy + live region, listbox/option, labeled pagination/select, skeleton aria-hidden); Task 13.8 done.
+ - v0.20: **Task 13 (Unified Filtering & Data Table) COMPLETED**; implemented dynamic sort parsing (`lib/api/sort.ts` with `parseSortParam` utility), standardized all API query parameters to camelCase (`pageSize`, `statusIds`, etc.), created entity adapters (Appointments, Properties, Staff) mapping UI state to API params, added comprehensive test suite (sort parsing, adapter query building, MSW integration), wired MSW handlers into test setup for automated testing, created playground demos for all adapters; all 11 subtasks complete with full shadcn/ui compliance and accessibility support.
 
 ---
 

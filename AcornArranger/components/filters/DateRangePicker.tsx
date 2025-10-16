@@ -4,8 +4,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarIcon, ChevronDown } from "lucide-react";
-import Calendar from "@/components/ui/calendar";
-import type { DateRange } from "react-day-picker";
+import Calendar, { DateRange } from "@/components/ui/calendar";
 
 type DateRangePickerProps = {
   label?: string;

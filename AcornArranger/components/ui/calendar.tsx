@@ -13,12 +13,13 @@ export function Calendar({ className, ...props }: CalendarProps) {
   return (
     <DayPicker
       className={cn("p-2", className)}
-      captionLayout="buttons"
+      captionLayout="label"
       {...props}
     />
   );
 }
 
+export type { DateRange } from "react-day-picker";
 export default Calendar;
 
 
