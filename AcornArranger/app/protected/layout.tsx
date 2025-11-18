@@ -1,32 +1,40 @@
-import { AuthButton } from "@/components/auth-button";
-import { ThemeSwitcher } from "@/components/theme-switcher";
-import Link from "next/link";
-import { hasEnvVars } from "@/lib/utils";
+import { ProtectedLayout } from "@/components/layout/ProtectedLayout";
 
-export default function ProtectedLayout({
+/**
+ * Layout wrapper for all protected (authenticated) pages
+ * 
+ * This layout is applied to all routes under /protected/*
+ * It provides the foundational grid structure that will be enhanced
+ * with Header and Sidebar components in subsequent tasks.
+ */
+export default function ProtectedLayoutWrapper({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <main className="min-h-screen flex flex-col items-center">
-      <div className="flex-1 w-full flex flex-col gap-20 items-center">
-        <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
-          <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
-            <div className="flex gap-5 items-center font-semibold">
-              <Link href={"/"}>AcornArranger</Link>
-            </div>
-            {hasEnvVars ? <AuthButton /> : null}
-          </div>
-        </nav>
-        <div className="flex-1 flex flex-col gap-20 max-w-5xl p-5">
-          {children}
+    <ProtectedLayout
+      // Header and Sidebar will be added in tasks 16.2 and 16.3
+      header={
+        <div className="h-full flex items-center px-6 border-b">
+          <span className="font-semibold">AcornArranger</span>
+          <span className="ml-4 text-sm text-muted-foreground">
+            (Header placeholder - Task 16.2)
+          </span>
         </div>
-
-        <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
-          <ThemeSwitcher />
-        </footer>
-      </div>
-    </main>
+      }
+      sidebar={
+        <div className="p-6">
+          <p className="text-sm text-muted-foreground">
+            Sidebar placeholder
+          </p>
+          <p className="text-xs text-muted-foreground mt-2">
+            (Task 16.3)
+          </p>
+        </div>
+      }
+    >
+      {children}
+    </ProtectedLayout>
   );
 }

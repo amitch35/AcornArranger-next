@@ -29,6 +29,14 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
+
+    /* Layout-specific CSS variables */
+    --header-height: 4rem;
+    --sidebar-width: 16rem;
+    --sidebar-width-collapsed: 4rem;
+    --content-max-width: 1400px;
+    --layout-padding: 1.5rem;
+    --layout-gap: 1.5rem;
   }
   .dark {
     --background: 0 0% 3.9%;
@@ -64,5 +72,91 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Protected Layout Styles */
+@layer components {
+  .protected-layout {
+    @apply min-h-screen flex flex-col;
+  }
+
+  /* Header - sticky at top */
+  .protected-layout__header {
+    @apply sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60;
+    height: var(--header-height);
+  }
+
+  /* Body - contains sidebar and main content */
+  .protected-layout__body {
+    @apply flex-1 flex;
+  }
+
+  /* Sidebar - collapsible on desktop, overlay on mobile */
+  .protected-layout__sidebar {
+    @apply hidden lg:block border-r bg-background;
+    width: var(--sidebar-width);
+    transition: width 200ms ease-in-out;
+  }
+
+  .protected-layout__sidebar--collapsed {
+    width: var(--sidebar-width-collapsed);
+  }
+
+  /* Respect prefers-reduced-motion */
+  @media (prefers-reduced-motion: reduce) {
+    .protected-layout__sidebar {
+      transition: none;
+    }
+  }
+
+  /* Main content area */
+  .protected-layout__main {
+    @apply flex-1 flex flex-col overflow-auto;
+    padding: var(--layout-padding);
+    gap: var(--layout-gap);
+  }
+
+  /* Page header with title and actions */
+  .protected-layout__page-header {
+    @apply flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4;
+  }
+
+  .protected-layout__page-title {
+    @apply flex-1;
+  }
+
+  .protected-layout__page-actions {
+    @apply flex items-center gap-2;
+  }
+
+  .protected-layout__page-actions--secondary {
+    @apply flex items-center gap-2;
+  }
+
+  .protected-layout__page-actions--primary {
+    @apply flex items-center gap-2;
+  }
+
+  /* Filters section */
+  .protected-layout__filters {
+    @apply w-full;
+  }
+
+  /* Main content body */
+  .protected-layout__content {
+    @apply flex-1;
+  }
+
+  /* Mobile sidebar overlay (for future implementation) */
+  @media (max-width: 1023px) {
+    .protected-layout__sidebar {
+      @apply fixed inset-y-0 left-0 z-50 hidden;
+      width: var(--sidebar-width);
+    }
+
+    .protected-layout__sidebar--open {
+      @apply block;
+    }
   }
 }

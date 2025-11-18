@@ -4,7 +4,7 @@ import { fileURLToPath, URL } from "node:url";
 export default defineConfig({
   test: {
     environment: "happy-dom",
-    include: ["lib/**/*.test.{ts,tsx}"],
+    include: ["lib/**/*.test.{ts,tsx}", "components/**/*.test.{ts,tsx}"],
     globals: true,
     setupFiles: ["./test/setup.ts"],
   },
