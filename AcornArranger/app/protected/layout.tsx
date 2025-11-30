@@ -1,5 +1,6 @@
 import { ProtectedLayout } from "@/components/layout/ProtectedLayout";
 import { Header } from "@/components/layout/Header";
+import { Sidebar } from "@/components/layout/Sidebar";
 
 /**
  * Layout wrapper for all protected (authenticated) pages
@@ -15,16 +16,7 @@ export default function ProtectedLayoutWrapper({
   return (
     <ProtectedLayout
       header={<Header />}
-      sidebar={
-        <div className="p-6">
-          <p className="text-sm text-muted-foreground">
-            Sidebar placeholder
-          </p>
-          <p className="text-xs text-muted-foreground mt-2">
-            (Task 16.3)
-          </p>
-        </div>
-      }
+      sidebar={<Sidebar />}
     >
       {children}
     </ProtectedLayout>

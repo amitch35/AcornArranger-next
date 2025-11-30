@@ -1,14 +1,66 @@
+import { 
+  LayoutDashboard, 
+  Calendar, 
+  Home, 
+  Users, 
+  CalendarRange,
+  Settings,
+  type LucideIcon
+} from "lucide-react";
+
 /**
  * Layout configuration for navigation and breadcrumbs
  * 
- * This is a basic implementation that will be expanded in Task 16.4.
- * For now, provides minimal breadcrumb support for common routes.
+ * This provides navigation items and breadcrumb support.
+ * Will be expanded in Task 16.4 with async resolvers and visibility predicates.
  */
 
 export interface BreadcrumbSegment {
   label: string;
   href: string;
 }
+
+export interface NavigationItem {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+}
+
+/**
+ * Main navigation items for the sidebar
+ */
+export const navigationConfig: NavigationItem[] = [
+  {
+    label: "Dashboard",
+    href: "/protected",
+    icon: LayoutDashboard,
+  },
+  {
+    label: "Appointments",
+    href: "/protected/appointments",
+    icon: Calendar,
+  },
+  {
+    label: "Properties",
+    href: "/protected/properties",
+    icon: Home,
+  },
+  {
+    label: "Staff",
+    href: "/protected/staff",
+    icon: Users,
+  },
+  {
+    label: "Schedule",
+    href: "/protected/schedule",
+    icon: CalendarRange,
+  },
+  {
+    label: "Settings",
+    href: "/protected/settings",
+    icon: Settings,
+  },
+];
 
 /**
  * Basic breadcrumb mapping for common routes
