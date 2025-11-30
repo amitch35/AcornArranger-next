@@ -2,6 +2,7 @@
 
 import React from "react";
 import { cn } from "@/lib/utils";
+import { useSidebarState } from "./hooks/useSidebarState";
 
 /**
  * Props for individual content slots within the protected layout
@@ -31,6 +32,14 @@ interface ProtectedLayoutContextValue {
   sidebarCollapsed: boolean;
   /** Toggle sidebar collapsed state */
   toggleSidebar: () => void;
+  /** Mobile sidebar open state */
+  mobileSidebarOpen: boolean;
+  /** Set mobile sidebar open state */
+  setMobileSidebarOpen: (open: boolean) => void;
+  /** Sidebar element ID for aria-controls */
+  sidebarId: string;
+  /** Whether user prefers reduced motion */
+  prefersReducedMotion: boolean;
 }
 
 const ProtectedLayoutContext = React.createContext<
@@ -77,18 +86,24 @@ export function ProtectedLayout({
   secondaryActions,
   filters,
 }: ProtectedLayoutSlots) {
-  const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
-
-  const toggleSidebar = React.useCallback(() => {
-    setSidebarCollapsed((prev) => !prev);
-  }, []);
+  // Sidebar state with SSR-safe persistence
+  const { collapsed: sidebarCollapsed, toggle: toggleSidebar, prefersReducedMotion } = useSidebarState();
+  
+  // Mobile sidebar state (not persisted)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = React.useState(false);
+  
+  const SIDEBAR_ID = "app-sidebar";
 
   const contextValue = React.useMemo(
     () => ({
       sidebarCollapsed,
       toggleSidebar,
+      mobileSidebarOpen,
+      setMobileSidebarOpen,
+      sidebarId: SIDEBAR_ID,
+      prefersReducedMotion,
     }),
-    [sidebarCollapsed, toggleSidebar]
+    [sidebarCollapsed, toggleSidebar, mobileSidebarOpen, prefersReducedMotion]
   );
 
   return (
