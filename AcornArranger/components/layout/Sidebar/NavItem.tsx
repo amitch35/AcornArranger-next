@@ -47,10 +47,13 @@ export function NavItem({
         "flex items-center gap-3 px-3 py-2 mx-2 rounded-md transition-colors",
         "hover:bg-accent hover:text-accent-foreground",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        // Ensure minimum touch target size (44x44px) for mobile accessibility
+        "min-h-[44px]",
         active && "bg-accent text-accent-foreground font-medium",
         collapsed && "justify-center"
       )}
       aria-current={active ? "page" : undefined}
+      aria-label={collapsed ? label : undefined} // Provide label when text is hidden
     >
       <Icon className={cn("h-5 w-5 shrink-0")} aria-hidden="true" />
       {!collapsed && <span className="truncate">{label}</span>}

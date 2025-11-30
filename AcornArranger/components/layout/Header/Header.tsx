@@ -6,6 +6,7 @@ import { SidebarToggle } from "./SidebarToggle";
 import { Logo } from "./Logo";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { ProfileMenu } from "./ProfileMenu";
+import { useKeyboardShortcuts, commonShortcuts } from "../hooks/useKeyboardShortcuts";
 
 /**
  * Header component for the protected layout
@@ -19,6 +20,15 @@ import { ProfileMenu } from "./ProfileMenu";
  */
 export function Header() {
   const { sidebarCollapsed, toggleSidebar } = useProtectedLayout();
+
+  // Register keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      ...commonShortcuts.TOGGLE_SIDEBAR,
+      handler: () => toggleSidebar(),
+      description: "Toggle sidebar (⌘+B / Ctrl+B)",
+    },
+  ]);
 
   return (
     <div className="h-full flex items-center px-4 lg:px-6 gap-4">

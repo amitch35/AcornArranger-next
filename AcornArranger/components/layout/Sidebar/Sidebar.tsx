@@ -8,6 +8,8 @@ import { NavItem } from "./NavItem";
 import { navigationConfig, getVisibleNavItems, isPathActive, type UserContext } from "../layoutConfig";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useFocusTrap } from "../hooks/useFocusTrap";
+import { useAnnouncer } from "../hooks/useAnnouncer";
 
 /**
  * Sidebar component - Collapsible navigation for protected pages
@@ -21,8 +23,9 @@ import { Button } from "@/components/ui/button";
  */
 export function Sidebar() {
   const pathname = usePathname();
-  const { sidebarCollapsed } = useProtectedLayout();
-  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const { sidebarCollapsed, mobileSidebarOpen, setMobileSidebarOpen } = useProtectedLayout();
+  const focusTrapRef = useFocusTrap(mobileSidebarOpen);
+  const announce = useAnnouncer();
 
   // TODO: Get real user context from auth when available
   // For now, assume all users are authenticated
@@ -42,28 +45,41 @@ export function Sidebar() {
 
   // Close mobile sidebar when route changes
   React.useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
+    if (mobileSidebarOpen) {
+      setMobileSidebarOpen(false);
+    }
+  }, [pathname, mobileSidebarOpen, setMobileSidebarOpen]);
 
   // Close mobile sidebar on Escape key
   React.useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && mobileOpen) {
-        setMobileOpen(false);
+      if (e.key === "Escape" && mobileSidebarOpen) {
+        setMobileSidebarOpen(false);
+        announce("Menu closed");
       }
     };
 
-    if (mobileOpen) {
+    if (mobileSidebarOpen) {
       document.addEventListener("keydown", handleEscape);
       // Prevent body scroll when mobile menu is open
       document.body.style.overflow = "hidden";
+      announce("Menu opened");
     }
 
     return () => {
       document.removeEventListener("keydown", handleEscape);
       document.body.style.overflow = "";
     };
-  }, [mobileOpen]);
+  }, [mobileSidebarOpen, setMobileSidebarOpen, announce]);
+
+  // Announce sidebar collapse state changes on desktop
+  React.useEffect(() => {
+    // Only announce on desktop (avoid duplicate mobile announcements)
+    const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
+    if (isDesktop) {
+      announce(sidebarCollapsed ? "Sidebar collapsed" : "Sidebar expanded");
+    }
+  }, [sidebarCollapsed, announce]);
 
   const sidebarContent = (
     <nav
@@ -77,7 +93,10 @@ export function Sidebar() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => setMobileOpen(false)}
+          onClick={() => {
+            setMobileSidebarOpen(false);
+            announce("Menu closed");
+          }}
           aria-label="Close menu"
         >
           <X className="h-5 w-5" />
@@ -113,17 +132,21 @@ export function Sidebar() {
       </aside>
 
       {/* Mobile sidebar overlay */}
-      {mobileOpen && (
+      {mobileSidebarOpen && (
         <>
           {/* Backdrop */}
           <div
             className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden"
-            onClick={() => setMobileOpen(false)}
+            onClick={() => {
+              setMobileSidebarOpen(false);
+              announce("Menu closed");
+            }}
             aria-hidden="true"
           />
           
-          {/* Sidebar */}
+          {/* Sidebar with focus trap */}
           <aside
+            ref={focusTrapRef}
             className="fixed inset-y-0 left-0 w-64 bg-background border-r z-50 lg:hidden"
             role="dialog"
             aria-modal="true"
