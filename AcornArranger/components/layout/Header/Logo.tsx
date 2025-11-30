@@ -12,7 +12,7 @@ import Image from "next/image";
 export function Logo() {
   return (
     <Link
-      href="/protected"
+      href="/dashboard"
       className="flex items-center gap-2 font-semibold text-foreground hover:text-foreground/80 transition-colors shrink-0"
       aria-label="Go to dashboard"
     >

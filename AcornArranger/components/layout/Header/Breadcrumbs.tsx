@@ -4,6 +4,7 @@ import React from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useBreadcrumbs } from "../hooks/useBreadcrumbs";
 
 /**

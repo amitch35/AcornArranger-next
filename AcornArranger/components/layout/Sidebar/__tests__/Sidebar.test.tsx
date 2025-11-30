@@ -6,7 +6,7 @@ import { ProtectedLayout } from "../../ProtectedLayout";
 
 // Mock Next.js router
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/protected",
+  usePathname: () => "/dashboard",
 }));
 
 describe("Sidebar", () => {
@@ -43,9 +43,9 @@ describe("Sidebar", () => {
     it("has correct href attributes", () => {
       renderSidebar();
 
-      expect(screen.getByRole("link", { name: /dashboard/i })).toHaveAttribute("href", "/protected");
-      expect(screen.getByRole("link", { name: /appointments/i })).toHaveAttribute("href", "/protected/appointments");
-      expect(screen.getByRole("link", { name: /properties/i })).toHaveAttribute("href", "/protected/properties");
+      expect(screen.getByRole("link", { name: /dashboard/i })).toHaveAttribute("href", "/dashboard");
+      expect(screen.getByRole("link", { name: /appointments/i })).toHaveAttribute("href", "/appointments");
+      expect(screen.getByRole("link", { name: /properties/i })).toHaveAttribute("href", "/properties");
     });
   });
 

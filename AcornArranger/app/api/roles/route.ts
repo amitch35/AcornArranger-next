@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { withAuth } from "@/lib/apiGuard";
 
-export async function GET(req: NextRequest) {
+export const GET = withAuth(async (req: NextRequest) => {
   try {
     const { searchParams } = new URL(req.url);
     const q = searchParams.get("q");
@@ -40,7 +41,7 @@ export async function GET(req: NextRequest) {
   } catch (err: any) {
     return NextResponse.json({ error: err?.message ?? "Unknown error" }, { status: 500 });
   }
-}
+});
 
 
 

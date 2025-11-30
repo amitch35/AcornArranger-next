@@ -4,29 +4,29 @@ import { useBreadcrumbs } from "../useBreadcrumbs";
 
 describe("useBreadcrumbs", () => {
   describe("Root and Simple Paths", () => {
-    it("returns only Dashboard for /protected", () => {
-      const { result } = renderHook(() => useBreadcrumbs("/protected"));
+    it("returns only Dashboard for /dashboard", () => {
+      const { result } = renderHook(() => useBreadcrumbs("/dashboard"));
 
       expect(result.current).toEqual([
-        { label: "Dashboard", href: "/protected" },
+        { label: "Dashboard", href: "/dashboard" },
       ]);
     });
 
-    it("generates breadcrumbs for /protected/appointments", () => {
-      const { result } = renderHook(() => useBreadcrumbs("/protected/appointments"));
+    it("generates breadcrumbs for /appointments", () => {
+      const { result } = renderHook(() => useBreadcrumbs("/appointments"));
 
       expect(result.current).toEqual([
-        { label: "Dashboard", href: "/protected" },
-        { label: "Appointments", href: "/protected/appointments" },
+        { label: "Dashboard", href: "/dashboard" },
+        { label: "Appointments", href: "/appointments" },
       ]);
     });
 
-    it("generates breadcrumbs for /protected/properties", () => {
-      const { result } = renderHook(() => useBreadcrumbs("/protected/properties"));
+    it("generates breadcrumbs for /properties", () => {
+      const { result } = renderHook(() => useBreadcrumbs("/properties"));
 
       expect(result.current).toEqual([
-        { label: "Dashboard", href: "/protected" },
-        { label: "Properties", href: "/protected/properties" },
+        { label: "Dashboard", href: "/dashboard" },
+        { label: "Properties", href: "/properties" },
       ]);
     });
   });
@@ -34,28 +34,28 @@ describe("useBreadcrumbs", () => {
   describe("Deep Paths with Async Resolvers", () => {
     it("generates breadcrumbs with loading state for dynamic routes", () => {
       const { result } = renderHook(() =>
-        useBreadcrumbs("/protected/appointments/123")
+        useBreadcrumbs("/appointments/123")
       );
 
       // Dynamic segments should show loading initially
       expect(result.current).toEqual([
-        { label: "Dashboard", href: "/protected" },
-        { label: "Appointments", href: "/protected/appointments" },
-        { label: "Loading...", href: "/protected/appointments/123", isLoading: true },
+        { label: "Dashboard", href: "/dashboard" },
+        { label: "Appointments", href: "/appointments" },
+        { label: "Loading...", href: "/appointments/123", isLoading: true },
       ]);
     });
 
     it("generates breadcrumbs with loading state and static segments", () => {
       const { result } = renderHook(() =>
-        useBreadcrumbs("/protected/properties/456/edit")
+        useBreadcrumbs("/properties/456/edit")
       );
 
       // Dynamic ID segment shows loading, static "edit" shows immediately
       expect(result.current).toEqual([
-        { label: "Dashboard", href: "/protected" },
-        { label: "Properties", href: "/protected/properties" },
-        { label: "Loading...", href: "/protected/properties/456", isLoading: true },
-        { label: "Edit", href: "/protected/properties/456/edit" },
+        { label: "Dashboard", href: "/dashboard" },
+        { label: "Properties", href: "/properties" },
+        { label: "Loading...", href: "/properties/456", isLoading: true },
+        { label: "Edit", href: "/properties/456/edit" },
       ]);
     });
   });
@@ -63,12 +63,12 @@ describe("useBreadcrumbs", () => {
   describe("Title Casing", () => {
     it("converts hyphenated segments to title case", () => {
       const { result } = renderHook(() =>
-        useBreadcrumbs("/protected/user-settings")
+        useBreadcrumbs("/user-settings")
       );
 
       expect(result.current).toEqual([
-        { label: "Dashboard", href: "/protected" },
-        { label: "User Settings", href: "/protected/user-settings" },
+        { label: "Dashboard", href: "/dashboard" },
+        { label: "User Settings", href: "/user-settings" },
       ]);
     });
   });
@@ -76,12 +76,12 @@ describe("useBreadcrumbs", () => {
   describe("Edge Cases", () => {
     it("handles trailing slashes", () => {
       const { result } = renderHook(() =>
-        useBreadcrumbs("/protected/appointments/")
+        useBreadcrumbs("/appointments/")
       );
 
       expect(result.current).toEqual([
-        { label: "Dashboard", href: "/protected" },
-        { label: "Appointments", href: "/protected/appointments" },
+        { label: "Dashboard", href: "/dashboard" },
+        { label: "Appointments", href: "/appointments" },
       ]);
     });
 
@@ -89,7 +89,7 @@ describe("useBreadcrumbs", () => {
       const { result } = renderHook(() => useBreadcrumbs("/appointments"));
 
       expect(result.current).toEqual([
-        { label: "Dashboard", href: "/protected" },
+        { label: "Dashboard", href: "/dashboard" },
         { label: "Appointments", href: "/appointments" },
       ]);
     });
@@ -99,11 +99,11 @@ describe("useBreadcrumbs", () => {
     it("returns same reference for same pathname", () => {
       const { result, rerender } = renderHook(
         ({ pathname }) => useBreadcrumbs(pathname),
-        { initialProps: { pathname: "/protected/appointments" } }
+        { initialProps: { pathname: "/appointments" } }
       );
 
       const firstResult = result.current;
-      rerender({ pathname: "/protected/appointments" });
+      rerender({ pathname: "/appointments" });
       const secondResult = result.current;
 
       expect(firstResult).toBe(secondResult);
@@ -112,11 +112,11 @@ describe("useBreadcrumbs", () => {
     it("returns different reference for different pathname", () => {
       const { result, rerender } = renderHook(
         ({ pathname }) => useBreadcrumbs(pathname),
-        { initialProps: { pathname: "/protected/appointments" } }
+        { initialProps: { pathname: "/appointments" } }
       );
 
       const firstResult = result.current;
-      rerender({ pathname: "/protected/properties" });
+      rerender({ pathname: "/properties" });
       const secondResult = result.current;
 
       expect(firstResult).not.toBe(secondResult);

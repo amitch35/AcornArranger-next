@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 export function LoginForm({
@@ -25,6 +25,7 @@ export function LoginForm({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,8 +39,33 @@ export function LoginForm({
         password,
       });
       if (error) throw error;
-      // Update this route to redirect to an authenticated route. The user already has an active session.
-      router.push("/protected");
+      
+      // Get user role from JWT claims for role-based redirect
+      const { data: claimsData } = await supabase.auth.getClaims();
+      const userRole = (claimsData?.claims as any)?.user_role;
+      const redirectParam = searchParams.get("redirect");
+
+      // Basic safety: only allow same-origin, path-only redirects
+      const isSafeRedirect = (path: string | null) =>
+        !!path && path.startsWith("/") && !path.startsWith("//");
+
+      let target: string;
+
+      if (isSafeRedirect(redirectParam)) {
+        // If the user was sent here from a protected page (e.g. /profile),
+        // respect that redirect after successful login.
+        target = redirectParam as string;
+      } else if (userRole === "authorized_user") {
+        // Default for fully authorized users
+        target = "/dashboard";
+      } else {
+        // Default for authenticated-but-pending users
+        target = "/welcome";
+      }
+
+      router.push(target);
+      
+      router.refresh(); // Refresh to update server components
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {

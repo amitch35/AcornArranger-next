@@ -22,15 +22,15 @@ import {
  * 
  * @example
  * // Static route:
- * useBreadcrumbs("/protected/appointments")
+ * useBreadcrumbs("/appointments")
  * // returns: [
- * //   { label: "Dashboard", href: "/protected" },
- * //   { label: "Appointments", href: "/protected/appointments" }
+ * //   { label: "Dashboard", href: "/dashboard" },
+ * //   { label: "Appointments", href: "/appointments" }
  * // ]
  * 
  * @example
  * // Dynamic route with resolver:
- * useBreadcrumbs("/protected/properties/123")
+ * useBreadcrumbs("/properties/123")
  * // Initially returns: [..., { label: "Loading...", href: "...", isLoading: true }]
  * // After fetch: [..., { label: "Ocean View Villa", href: "...", isLoading: false }]
  */
@@ -49,9 +49,9 @@ export function useBreadcrumbs(
     // Remove trailing slash and split into segments
     const segments = pathname.replace(/\/$/, "").split("/").filter(Boolean);
 
-    // Always start with protected/dashboard
+    // Always start with dashboard
     const crumbs: BreadcrumbSegment[] = [
-      { label: "Dashboard", href: "/protected" },
+      { label: "Dashboard", href: "/dashboard" },
     ];
 
     // Build up breadcrumbs from segments
@@ -60,8 +60,8 @@ export function useBreadcrumbs(
       const segment = segments[i];
       currentPath += `/${segment}`;
 
-      // Skip the "protected" segment itself since we already have Dashboard
-      if (segment === "protected") {
+      // Skip the "dashboard" segment itself since we already have the root crumb
+      if (segment === "dashboard") {
         continue;
       }
 
@@ -99,7 +99,7 @@ export function useBreadcrumbs(
       const segment = segments[i];
       currentPath += `/${segment}`;
 
-      if (segment === "protected") continue;
+      if (segment === "dashboard") continue;
 
       const resolver = findBreadcrumbResolver(currentPath);
       

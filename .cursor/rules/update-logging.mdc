@@ -1,7 +1,6 @@
 ---
-description: ALWAYS update the Update Log section when making significant changes to the project.
-globs:
-alwaysApply: true
+description: ALWAYS update the Update Log section when completing significant changes to the project.
+alwaysApply: false
 ---
 ### Change Logging Rule
 **ALWAYS update the Update Log section of scope.md when making significant changes to the project.** This includes:

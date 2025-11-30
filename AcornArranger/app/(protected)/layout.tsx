@@ -4,8 +4,8 @@ import { Sidebar } from "@/components/layout/Sidebar";
 
 /**
  * Layout wrapper for all protected (authenticated) pages
- * 
- * This layout is applied to all routes under /protected/*
+ *
+ * This layout is applied to all routes in the (protected) group, e.g. /dashboard, /profile.
  * It provides the foundational grid structure with Header and Sidebar components.
  */
 export default function ProtectedLayoutWrapper({
@@ -14,11 +14,10 @@ export default function ProtectedLayoutWrapper({
   children: React.ReactNode;
 }) {
   return (
-    <ProtectedLayout
-      header={<Header />}
-      sidebar={<Sidebar />}
-    >
+    <ProtectedLayout header={<Header />} sidebar={<Sidebar />}>
       {children}
     </ProtectedLayout>
   );
 }
+
+

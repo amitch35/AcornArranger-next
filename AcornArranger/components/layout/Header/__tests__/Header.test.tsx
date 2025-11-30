@@ -6,7 +6,7 @@ import { ProtectedLayout } from "../../ProtectedLayout";
 
 // Mock Next.js router
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/protected",
+  usePathname: () => "/dashboard",
   useRouter: () => ({
     push: vi.fn(),
   }),
@@ -57,7 +57,7 @@ describe("Header", () => {
       renderHeader();
 
       const logo = screen.getByLabelText("Go to dashboard");
-      expect(logo).toHaveAttribute("href", "/protected");
+      expect(logo).toHaveAttribute("href", "/dashboard");
     });
   });
 

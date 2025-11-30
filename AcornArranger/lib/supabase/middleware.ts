@@ -3,6 +3,29 @@ import { NextResponse, type NextRequest } from "next/server";
 import { hasEnvVars } from "../utils";
 import type { Database } from "./types";
 
+/**
+ * Application role hierarchy (must match lib/auth.ts)
+ */
+const ROLE_ORDER = ['authenticated', 'authorized_user'] as const;
+type Role = typeof ROLE_ORDER[number];
+
+/**
+ * Route protection rules: define which paths require which minimum role.
+ * These are for UX routing - actual data access is secured by RLS policies.
+ */
+const ROUTE_RULES = [
+  { prefix: '/dashboard', minRole: 'authorized_user' as Role },
+  { prefix: '/api/secure', minRole: 'authorized_user' as Role },
+  { prefix: '/profile', minRole: 'authenticated' as Role },
+] as const;
+
+/**
+ * Check if a role meets the minimum requirement
+ */
+function hasAtLeastRole(current: Role | null, required: Role): boolean {
+  if (!current) return false;
+  return ROLE_ORDER.indexOf(current) >= ROLE_ORDER.indexOf(required);
+}
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -49,16 +72,49 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
 
+  const url = request.nextUrl;
+  const pathname = url.pathname;
+
+  // Find matching route rule for this path
+  const routeRule = ROUTE_RULES.find(rule => pathname.startsWith(rule.prefix));
+
+  // If this path requires authentication/authorization, check it
+  if (routeRule) {
+    // No user at all - redirect to login
+    if (!user) {
+      const loginUrl = url.clone();
+      loginUrl.pathname = "/auth/login";
+      loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    // Extract role from JWT claims
+    const userRoleClaim = (user as any)?.user_role as string | undefined;
+    const role: Role = 
+      userRoleClaim && ROLE_ORDER.includes(userRoleClaim as Role)
+        ? (userRoleClaim as Role)
+        : 'authenticated';
+
+    // Check if role meets minimum requirement (UX routing only)
+    if (!hasAtLeastRole(role, routeRule.minRole)) {
+      const welcomeUrl = url.clone();
+      welcomeUrl.pathname = "/welcome";
+      return NextResponse.redirect(welcomeUrl);
+    }
+  }
+
+  // Basic authentication check for other protected routes
   if (
-    request.nextUrl.pathname !== "/" &&
+    pathname !== "/" &&
     !user &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/auth")
+    !pathname.startsWith("/login") &&
+    !pathname.startsWith("/auth") &&
+    !pathname.startsWith("/welcome")
   ) {
     // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone();
-    url.pathname = "/auth/login";
-    return NextResponse.redirect(url);
+    const loginUrl = url.clone();
+    loginUrl.pathname = "/auth/login";
+    return NextResponse.redirect(loginUrl);
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.

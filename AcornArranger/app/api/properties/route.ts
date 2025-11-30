@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { withAuth } from "@/lib/apiGuard";
 
 function parseNumberArray(param: string | string[] | null): number[] | undefined {
   if (!param) return undefined;
@@ -10,7 +11,7 @@ function parseNumberArray(param: string | string[] | null): number[] | undefined
   return nums.length ? nums : undefined;
 }
 
-export async function GET(req: NextRequest) {
+export const GET = withAuth(async (req: NextRequest) => {
   try {
     const { searchParams } = new URL(req.url);
     const q = searchParams.get("q");
@@ -61,7 +62,7 @@ export async function GET(req: NextRequest) {
   } catch (err: any) {
     return NextResponse.json({ error: err?.message ?? "Unknown error" }, { status: 500 });
   }
-}
+});
 
 
 

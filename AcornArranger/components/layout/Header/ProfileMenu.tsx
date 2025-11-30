@@ -67,6 +67,10 @@ export function ProfileMenu() {
     return "U";
   }, [user]);
 
+  const handleProfileClick = () => {
+    router.push("/profile");
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -95,18 +99,11 @@ export function ProfileMenu() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onClick={() => router.push("/protected/settings")}
+          onClick={handleProfileClick}
           className="cursor-pointer"
         >
           <User className="mr-2 h-4 w-4" />
-          <span>Account</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => router.push("/protected/settings")}
-          className="cursor-pointer"
-        >
-          <Settings className="mr-2 h-4 w-4" />
-          <span>Settings</span>
+          <span>Profile Settings</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem

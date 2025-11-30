@@ -82,42 +82,41 @@ export interface BreadcrumbResolver {
 export const navigationConfig: NavigationItem[] = [
   {
     label: "Dashboard",
-    href: "/protected",
+    href: "/dashboard",
     icon: LayoutDashboard,
     group: "main",
   },
   {
     label: "Appointments",
-    href: "/protected/appointments",
+    href: "/appointments",
     icon: Calendar,
     group: "main",
-    // Example visibility predicate (all authenticated users can see)
     visible: (user) => user.isAuthenticated,
   },
   {
     label: "Properties",
-    href: "/protected/properties",
+    href: "/properties",
     icon: Home,
     group: "main",
     visible: (user) => user.isAuthenticated,
   },
   {
     label: "Staff",
-    href: "/protected/staff",
+    href: "/staff",
     icon: Users,
     group: "main",
     visible: (user) => user.isAuthenticated,
   },
   {
     label: "Schedule",
-    href: "/protected/schedule",
+    href: "/schedule",
     icon: CalendarRange,
     group: "main",
     visible: (user) => user.isAuthenticated,
   },
   {
     label: "Settings",
-    href: "/protected/settings",
+    href: "/settings",
     icon: Settings,
     group: "settings",
     visible: (user) => user.isAuthenticated,
@@ -147,12 +146,12 @@ export function getVisibleNavItems(
  * Static breadcrumb mapping for common routes
  */
 export const breadcrumbMap: Record<string, string> = {
-  "/protected": "Dashboard",
-  "/protected/appointments": "Appointments",
-  "/protected/properties": "Properties",
-  "/protected/staff": "Staff",
-  "/protected/schedule": "Schedule",
-  "/protected/settings": "Settings",
+  "/dashboard": "Dashboard",
+  "/appointments": "Appointments",
+  "/properties": "Properties",
+  "/staff": "Staff",
+  "/schedule": "Schedule",
+  "/settings": "Settings",
 };
 
 /**
@@ -166,9 +165,9 @@ export const breadcrumbMap: Record<string, string> = {
  * 3. Optional: provide loadingLabel fallback
  */
 export const breadcrumbResolvers: BreadcrumbResolver[] = [
-  // Example: Resolve property names for /protected/properties/:id
+  // Example: Resolve property names for /properties/:id
   {
-    pattern: /^\/protected\/properties\/([^\/]+)$/,
+    pattern: /^\/properties\/([^\/]+)$/,
     resolve: async (params) => {
       // In a real implementation, fetch from API:
       // const response = await fetch(`/api/properties/${params.id}`);
@@ -181,18 +180,18 @@ export const breadcrumbResolvers: BreadcrumbResolver[] = [
     loadingLabel: "Loading...",
   },
   
-  // Example: Resolve staff names for /protected/staff/:id
+  // Example: Resolve staff names for /staff/:id
   {
-    pattern: /^\/protected\/staff\/([^\/]+)$/,
+    pattern: /^\/staff\/([^\/]+)$/,
     resolve: async (params) => {
       return `Staff ${params.id}`;
     },
     loadingLabel: "Loading...",
   },
   
-  // Example: Resolve appointment details for /protected/appointments/:id
+  // Example: Resolve appointment details for /appointments/:id
   {
-    pattern: /^\/protected\/appointments\/([^\/]+)$/,
+    pattern: /^\/appointments\/([^\/]+)$/,
     resolve: async (params) => {
       return `Appointment ${params.id}`;
     },
@@ -243,7 +242,7 @@ export function isPathActive(currentPath: string, itemHref: string): boolean {
   if (normalizedCurrent === normalizedItem) return true;
   
   // Prefix match (but not for root)
-  if (normalizedItem !== "/protected" && normalizedCurrent.startsWith(normalizedItem + "/")) {
+  if (normalizedItem !== "/dashboard" && normalizedCurrent.startsWith(normalizedItem + "/")) {
     return true;
   }
   

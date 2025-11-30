@@ -13,36 +13,36 @@ import { Home } from "lucide-react";
 describe("layoutConfig utilities", () => {
   describe("isPathActive", () => {
     it("matches exact paths", () => {
-      expect(isPathActive("/protected", "/protected")).toBe(true);
-      expect(isPathActive("/protected/appointments", "/protected/appointments")).toBe(true);
+      expect(isPathActive("/dashboard", "/dashboard")).toBe(true);
+      expect(isPathActive("/appointments", "/appointments")).toBe(true);
     });
 
     it("matches prefix paths (except root)", () => {
-      expect(isPathActive("/protected/appointments/123", "/protected/appointments")).toBe(true);
-      expect(isPathActive("/protected/properties/456/edit", "/protected/properties")).toBe(true);
+      expect(isPathActive("/appointments/123", "/appointments")).toBe(true);
+      expect(isPathActive("/properties/456/edit", "/properties")).toBe(true);
     });
 
     it("does not match unrelated paths", () => {
-      expect(isPathActive("/protected/appointments", "/protected/properties")).toBe(false);
-      expect(isPathActive("/protected/staff", "/protected/schedule")).toBe(false);
+      expect(isPathActive("/appointments", "/properties")).toBe(false);
+      expect(isPathActive("/staff", "/schedule")).toBe(false);
     });
 
     it("does not match root with prefix", () => {
       // Root should only match exactly, not as prefix
-      expect(isPathActive("/protected/appointments", "/protected")).toBe(false);
+      expect(isPathActive("/appointments", "/dashboard")).toBe(false);
     });
 
     it("normalizes trailing slashes for matching", () => {
       // Trailing slashes are normalized, so these should match
-      expect(isPathActive("/protected/appointments/", "/protected/appointments")).toBe(true);
-      expect(isPathActive("/protected/appointments", "/protected/appointments/")).toBe(true);
+      expect(isPathActive("/appointments/", "/appointments")).toBe(true);
+      expect(isPathActive("/appointments", "/appointments/")).toBe(true);
     });
   });
 
   describe("extractParams", () => {
     it("extracts single parameter", () => {
-      const pattern = /^\/protected\/properties\/([^\/]+)$/;
-      const params = extractParams("/protected/properties/123", pattern);
+      const pattern = /^\/properties\/([^\/]+)$/;
+      const params = extractParams("/properties/123", pattern);
 
       expect(params).toEqual({
         "0": "123",
@@ -51,8 +51,8 @@ describe("layoutConfig utilities", () => {
     });
 
     it("extracts multiple parameters", () => {
-      const pattern = /^\/protected\/appointments\/([^\/]+)\/edit$/;
-      const params = extractParams("/protected/appointments/456/edit", pattern);
+      const pattern = /^\/appointments\/([^\/]+)\/edit$/;
+      const params = extractParams("/appointments/456/edit", pattern);
 
       expect(params).toEqual({
         "0": "456",
@@ -61,15 +61,15 @@ describe("layoutConfig utilities", () => {
     });
 
     it("returns empty object for non-matching path", () => {
-      const pattern = /^\/protected\/properties\/([^\/]+)$/;
-      const params = extractParams("/protected/appointments/123", pattern);
+      const pattern = /^\/properties\/([^\/]+)$/;
+      const params = extractParams("/appointments/123", pattern);
 
       expect(params).toEqual({});
     });
 
     it("handles named capture groups", () => {
-      const pattern = /^\/protected\/(?<entity>[^\/]+)\/(?<id>[^\/]+)$/;
-      const params = extractParams("/protected/properties/789", pattern);
+      const pattern = /^\/(?<entity>[^\/]+)\/(?<id>[^\/]+)$/;
+      const params = extractParams("/properties/789", pattern);
 
       expect(params.entity).toBe("properties");
       expect(params.id).toBe("789");
@@ -78,7 +78,7 @@ describe("layoutConfig utilities", () => {
 
   describe("findBreadcrumbResolver", () => {
     it("finds resolver for matching path", () => {
-      const resolver = findBreadcrumbResolver("/protected/properties/123");
+      const resolver = findBreadcrumbResolver("/properties/123");
       expect(resolver).toBeDefined();
       expect(resolver?.pattern).toBeDefined();
     });
@@ -89,12 +89,12 @@ describe("layoutConfig utilities", () => {
     });
 
     it("finds resolver for staff paths", () => {
-      const resolver = findBreadcrumbResolver("/protected/staff/456");
+      const resolver = findBreadcrumbResolver("/staff/456");
       expect(resolver).toBeDefined();
     });
 
     it("finds resolver for appointment paths", () => {
-      const resolver = findBreadcrumbResolver("/protected/appointments/789");
+      const resolver = findBreadcrumbResolver("/appointments/789");
       expect(resolver).toBeDefined();
     });
   });
