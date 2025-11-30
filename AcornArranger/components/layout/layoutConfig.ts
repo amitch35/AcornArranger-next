@@ -11,60 +11,140 @@ import {
 /**
  * Layout configuration for navigation and breadcrumbs
  * 
- * This provides navigation items and breadcrumb support.
- * Will be expanded in Task 16.4 with async resolvers and visibility predicates.
+ * Provides centralized config for:
+ * - Navigation items with icons and visibility rules
+ * - Breadcrumb generation with async title resolvers
+ * - Type-safe and easily extensible
  */
+
+// ============================================================================
+// Types
+// ============================================================================
 
 export interface BreadcrumbSegment {
   label: string;
   href: string;
-}
-
-export interface NavigationItem {
-  label: string;
-  href: string;
-  icon: LucideIcon;
+  isLoading?: boolean;
 }
 
 /**
+ * User context for visibility predicates
+ * Extended as auth/role system evolves
+ */
+export interface UserContext {
+  email?: string;
+  roles?: string[];
+  isAuthenticated: boolean;
+}
+
+/**
+ * Navigation item configuration
+ */
+export interface NavigationItem {
+  /** Display label */
+  label: string;
+  /** Navigation href */
+  href: string;
+  /** Icon component from lucide-react */
+  icon: LucideIcon;
+  /** Optional visibility predicate (user) => boolean */
+  visible?: (user: UserContext) => boolean;
+  /** Optional group name for organizing nav items */
+  group?: string;
+  /** Optional nested child items */
+  children?: NavigationItem[];
+}
+
+/**
+ * Breadcrumb resolver for dynamic route segments
+ */
+export interface BreadcrumbResolver {
+  /** Route pattern to match (e.g., "/protected/properties/:id") */
+  pattern: RegExp;
+  /** Async function to resolve the title */
+  resolve: (params: Record<string, string>) => Promise<string>;
+  /** Optional loading fallback */
+  loadingLabel?: string;
+}
+
+// ============================================================================
+// Navigation Configuration
+// ============================================================================
+
+/**
  * Main navigation items for the sidebar
+ * 
+ * To add a new item:
+ * 1. Add entry to this array
+ * 2. Add corresponding breadcrumb mapping below
+ * 3. Optional: Add visibility predicate if role-restricted
  */
 export const navigationConfig: NavigationItem[] = [
   {
     label: "Dashboard",
     href: "/protected",
     icon: LayoutDashboard,
+    group: "main",
   },
   {
     label: "Appointments",
     href: "/protected/appointments",
     icon: Calendar,
+    group: "main",
+    // Example visibility predicate (all authenticated users can see)
+    visible: (user) => user.isAuthenticated,
   },
   {
     label: "Properties",
     href: "/protected/properties",
     icon: Home,
+    group: "main",
+    visible: (user) => user.isAuthenticated,
   },
   {
     label: "Staff",
     href: "/protected/staff",
     icon: Users,
+    group: "main",
+    visible: (user) => user.isAuthenticated,
   },
   {
     label: "Schedule",
     href: "/protected/schedule",
     icon: CalendarRange,
+    group: "main",
+    visible: (user) => user.isAuthenticated,
   },
   {
     label: "Settings",
     href: "/protected/settings",
     icon: Settings,
+    group: "settings",
+    visible: (user) => user.isAuthenticated,
   },
 ];
 
 /**
- * Basic breadcrumb mapping for common routes
- * Will be expanded to support dynamic routes and async resolvers in Task 16.4
+ * Filter navigation items by visibility predicate
+ */
+export function getVisibleNavItems(
+  items: NavigationItem[],
+  user: UserContext
+): NavigationItem[] {
+  return items.filter((item) => {
+    // If no visibility predicate, item is always visible
+    if (!item.visible) return true;
+    // Otherwise check predicate
+    return item.visible(user);
+  });
+}
+
+// ============================================================================
+// Breadcrumb Configuration
+// ============================================================================
+
+/**
+ * Static breadcrumb mapping for common routes
  */
 export const breadcrumbMap: Record<string, string> = {
   "/protected": "Dashboard",
@@ -74,6 +154,60 @@ export const breadcrumbMap: Record<string, string> = {
   "/protected/schedule": "Schedule",
   "/protected/settings": "Settings",
 };
+
+/**
+ * Async breadcrumb resolvers for dynamic routes
+ * 
+ * These fetch titles for dynamic segments (e.g., property names, staff names)
+ * 
+ * To add a resolver:
+ * 1. Add pattern that matches your route
+ * 2. Implement resolve function to fetch title
+ * 3. Optional: provide loadingLabel fallback
+ */
+export const breadcrumbResolvers: BreadcrumbResolver[] = [
+  // Example: Resolve property names for /protected/properties/:id
+  {
+    pattern: /^\/protected\/properties\/([^\/]+)$/,
+    resolve: async (params) => {
+      // In a real implementation, fetch from API:
+      // const response = await fetch(`/api/properties/${params.id}`);
+      // const data = await response.json();
+      // return data.property_name;
+      
+      // For now, return a formatted ID
+      return `Property ${params.id}`;
+    },
+    loadingLabel: "Loading...",
+  },
+  
+  // Example: Resolve staff names for /protected/staff/:id
+  {
+    pattern: /^\/protected\/staff\/([^\/]+)$/,
+    resolve: async (params) => {
+      return `Staff ${params.id}`;
+    },
+    loadingLabel: "Loading...",
+  },
+  
+  // Example: Resolve appointment details for /protected/appointments/:id
+  {
+    pattern: /^\/protected\/appointments\/([^\/]+)$/,
+    resolve: async (params) => {
+      return `Appointment ${params.id}`;
+    },
+    loadingLabel: "Loading...",
+  },
+];
+
+/**
+ * Find resolver for a given path
+ */
+export function findBreadcrumbResolver(
+  path: string
+): BreadcrumbResolver | undefined {
+  return breadcrumbResolvers.find((resolver) => resolver.pattern.test(path));
+}
 
 /**
  * Get breadcrumb label for a path segment
@@ -92,3 +226,58 @@ export function getSegmentLabel(segment: string, fullPath: string): string {
     .join(" ");
 }
 
+// ============================================================================
+// Utilities
+// ============================================================================
+
+/**
+ * Check if a path matches a navigation item (exact or prefix match)
+ * Normalizes trailing slashes before comparison
+ */
+export function isPathActive(currentPath: string, itemHref: string): boolean {
+  // Normalize trailing slashes
+  const normalizedCurrent = currentPath.replace(/\/$/, "");
+  const normalizedItem = itemHref.replace(/\/$/, "");
+  
+  // Exact match
+  if (normalizedCurrent === normalizedItem) return true;
+  
+  // Prefix match (but not for root)
+  if (normalizedItem !== "/protected" && normalizedCurrent.startsWith(normalizedItem + "/")) {
+    return true;
+  }
+  
+  return false;
+}
+
+/**
+ * Extract params from a path using a pattern
+ * 
+ * @example
+ * extractParams("/protected/properties/123", /^\/protected\/properties\/([^\/]+)$/)
+ * // returns: { "0": "123", id: "123" }
+ */
+export function extractParams(
+  path: string,
+  pattern: RegExp
+): Record<string, string> {
+  const match = path.match(pattern);
+  if (!match) return {};
+
+  const params: Record<string, string> = {};
+  
+  // Add numbered captures
+  match.slice(1).forEach((value, index) => {
+    params[index.toString()] = value;
+  });
+
+  // Add named captures if available (these take precedence)
+  if (match.groups) {
+    Object.assign(params, match.groups);
+  } else if (match[1]) {
+    // Common ID capture (first group is typically ID) - only if no named groups
+    params.id = match[1];
+  }
+
+  return params;
+}

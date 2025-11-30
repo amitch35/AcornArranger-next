@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useProtectedLayout } from "../ProtectedLayout";
 import { NavItem } from "./NavItem";
-import { navigationConfig } from "../layoutConfig";
+import { navigationConfig, getVisibleNavItems, isPathActive, type UserContext } from "../layoutConfig";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -23,6 +23,22 @@ export function Sidebar() {
   const pathname = usePathname();
   const { sidebarCollapsed } = useProtectedLayout();
   const [mobileOpen, setMobileOpen] = React.useState(false);
+
+  // TODO: Get real user context from auth when available
+  // For now, assume all users are authenticated
+  const userContext: UserContext = React.useMemo(
+    () => ({
+      isAuthenticated: true,
+      // Add roles here when auth system provides them
+    }),
+    []
+  );
+
+  // Filter navigation items by visibility
+  const visibleNavItems = React.useMemo(
+    () => getVisibleNavItems(navigationConfig, userContext),
+    [userContext]
+  );
 
   // Close mobile sidebar when route changes
   React.useEffect(() => {
@@ -70,14 +86,14 @@ export function Sidebar() {
 
       {/* Navigation items */}
       <div className="flex-1 overflow-y-auto py-4">
-        {navigationConfig.map((item) => (
+        {visibleNavItems.map((item) => (
           <NavItem
             key={item.href}
             href={item.href}
             icon={item.icon}
             label={item.label}
             collapsed={sidebarCollapsed}
-            active={pathname === item.href || pathname.startsWith(item.href + "/")}
+            active={isPathActive(pathname, item.href)}
           />
         ))}
       </div>

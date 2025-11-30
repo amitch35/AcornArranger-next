@@ -31,28 +31,30 @@ describe("useBreadcrumbs", () => {
     });
   });
 
-  describe("Deep Paths", () => {
-    it("generates breadcrumbs for /protected/appointments/123", () => {
+  describe("Deep Paths with Async Resolvers", () => {
+    it("generates breadcrumbs with loading state for dynamic routes", () => {
       const { result } = renderHook(() =>
         useBreadcrumbs("/protected/appointments/123")
       );
 
+      // Dynamic segments should show loading initially
       expect(result.current).toEqual([
         { label: "Dashboard", href: "/protected" },
         { label: "Appointments", href: "/protected/appointments" },
-        { label: "123", href: "/protected/appointments/123" },
+        { label: "Loading...", href: "/protected/appointments/123", isLoading: true },
       ]);
     });
 
-    it("generates breadcrumbs for /protected/properties/456/edit", () => {
+    it("generates breadcrumbs with loading state and static segments", () => {
       const { result } = renderHook(() =>
         useBreadcrumbs("/protected/properties/456/edit")
       );
 
+      // Dynamic ID segment shows loading, static "edit" shows immediately
       expect(result.current).toEqual([
         { label: "Dashboard", href: "/protected" },
         { label: "Properties", href: "/protected/properties" },
-        { label: "456", href: "/protected/properties/456" },
+        { label: "Loading...", href: "/protected/properties/456", isLoading: true },
         { label: "Edit", href: "/protected/properties/456/edit" },
       ]);
     });

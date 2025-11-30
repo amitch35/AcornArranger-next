@@ -35,15 +35,23 @@ export function Breadcrumbs() {
               )}
               {isLast ? (
                 <span
-                  className="font-medium text-foreground truncate"
+                  className={cn(
+                    "font-medium truncate",
+                    crumb.isLoading ? "text-muted-foreground animate-pulse" : "text-foreground"
+                  )}
                   aria-current="page"
+                  aria-busy={crumb.isLoading}
                 >
                   {crumb.label}
                 </span>
               ) : (
                 <Link
                   href={crumb.href}
-                  className="text-muted-foreground hover:text-foreground transition-colors truncate"
+                  className={cn(
+                    "text-muted-foreground hover:text-foreground transition-colors truncate",
+                    crumb.isLoading && "animate-pulse"
+                  )}
+                  aria-busy={crumb.isLoading}
                 >
                   {crumb.label}
                 </Link>
