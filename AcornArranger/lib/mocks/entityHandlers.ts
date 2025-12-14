@@ -25,10 +25,23 @@ const demoProperties = Array.from({ length: 52 }, (_, i) => ({
 }));
 
 const demoStaff = Array.from({ length: 28 }, (_, i) => ({
-  id: i + 1,
+  user_id: i + 1,
   name: `Staff ${i + 1}`,
-  role: ["Admin", "Manager", "Staff"][i % 3],
-  status: i % 2 === 0 ? "Active" : "Inactive",
+  first_name: `First${i + 1}`,
+  last_name: `Last${i + 1}`,
+  hb_user_id: i % 5 === 0 ? 1000 + i : null,
+  role: {
+    id: (i % 3) + 1,
+    title: ["Housekeeper", "Lead Housekeeper", "Manager"][i % 3],
+    description: null,
+    priority: [3, 2, 4][i % 3],
+    can_clean: i % 3 === 0 || i % 3 === 1,
+    can_lead_team: i % 3 === 1 || i % 3 === 2,
+  },
+  status: {
+    status_id: (i % 3) + 1,
+    status: ["Active", "Inactive", "Unverified"][i % 3],
+  },
 }));
 
 function paginate<T>(data: T[], page: number, pageSize: number) {

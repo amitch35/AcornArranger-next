@@ -21,11 +21,14 @@ export async function GET(req: NextRequest) {
     const offset = Math.max(0, (page - 1) * Math.max(1, pageSize));
     const statusIds = parseNumberArray(searchParams.get("statusIds"));
     const canClean = searchParams.get("canClean");
+    const canLeadTeam = searchParams.get("canLeadTeam");
     const excludePlanId = searchParams.get("excludePlanId");
 
     const supabase = await createClient();
 
-    const roleSelect = `roles${canClean === "true" ? "!inner" : ""}(id,title,can_clean)`;
+    // Use inner join if we need to filter by role capabilities
+    const needsRoleFilter = canClean === "true" || canLeadTeam === "true";
+    const roleSelect = `roles${needsRoleFilter ? "!inner" : ""}(id,title,can_clean,can_lead_team)`;
     let query = supabase
       .from("rc_staff")
       .select(
@@ -43,6 +46,10 @@ export async function GET(req: NextRequest) {
 
     if (canClean === "true") {
       query = query.eq("roles.can_clean", true);
+    }
+
+    if (canLeadTeam === "true") {
+      query = query.eq("roles.can_lead_team", true);
     }
 
     if (excludePlanId) {
