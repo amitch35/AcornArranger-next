@@ -45,6 +45,9 @@ export const StaffFiltersSchema = BaseFilterSchema.extend({
   serviceIds: IdArraySchema,
   staffIds: IdArraySchema,
   propertyIds: IdArraySchema,
+  roleIds: IdArraySchema,
+  canClean: z.boolean().optional(),
+  canLeadTeam: z.boolean().optional(),
 });
 
 export type AppointmentFilters = z.infer<typeof AppointmentFiltersSchema>;
