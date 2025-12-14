@@ -85,7 +85,7 @@ export function createMockSupabaseClient(options: {
 
     const createErrorQuery = () => {
       const query: any = {
-        eq: vi.fn(() => ({ maybeSingle: mockMaybeSingle })),
+        eq: vi.fn(() => query), // Return self for chaining, consistent with success path
         in: vi.fn(() => query),
         ilike: vi.fn(() => query),
         order: vi.fn(() => query),
