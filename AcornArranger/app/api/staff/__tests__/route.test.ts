@@ -116,6 +116,16 @@ describe("/api/staff", () => {
 
       expect(response.status).toBe(200);
       expect(Array.isArray(data.items)).toBe(true);
+
+      // Regression: ensure we filter by the rc_staff FK column (role), not embedded roles.id
+      const latestQuery = (mockSupabase as any)?._mocks?.getLatestQuery?.();
+      expect(latestQuery).toBeTruthy();
+      expect(latestQuery.in).toHaveBeenCalledWith("role", [1, 2]);
+
+      // And ensure our embedded role select aliases roles.role_id -> role.id
+      const selectArg = (mockSupabase as any)?._mocks?.select?.mock?.calls?.[0]?.[0];
+      expect(typeof selectArg).toBe("string");
+      expect(selectArg).toContain("role_id:id");
     });
 
     it("should filter by canClean", async () => {

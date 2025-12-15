@@ -37,7 +37,10 @@ export const GET = withAuth(async (req: NextRequest) => {
 
     // Use inner join if filtering by role capabilities
     const needsRoleFilter = canClean === "true" || canLeadTeam === "true" || (roleIds && roleIds.length > 0);
-    const roleSelect = `roles${needsRoleFilter ? "!inner" : ""}(id,title,description,priority,can_clean,can_lead_team)`;
+    // NOTE: rc_staff uses `role` as the FK column (per generated types + legacy code),
+    // but roles primary key is exposed as `role_id`. We alias it to `id` in the embedded
+    // object for API consistency with our Zod schemas.
+    const roleSelect = `roles${needsRoleFilter ? "!inner" : ""}(role_id:id,title,description,priority,can_clean,can_lead_team)`;
     
     // Full staff select with all fields and joins
     const select = `
@@ -64,6 +67,8 @@ export const GET = withAuth(async (req: NextRequest) => {
     }
 
     if (roleIds && roleIds.length) {
+      // Filter by the FK column on rc_staff itself (this is *not* roles.role_id).
+      // If the schema ever changes to `role_id`, PostgREST will return an error (not silently ignore).
       query = query.in("role", roleIds);
     }
 

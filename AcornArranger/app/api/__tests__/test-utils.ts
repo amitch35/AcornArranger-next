@@ -24,17 +24,26 @@ export function createMockSupabaseQuery(mockData: any[] = [], mockCount: number 
     status: mockData[0] ? 200 : 404,
   });
 
+  // Keep track of the most recently created chainable query,
+  // so tests can assert which filters were applied.
+  let latestQuery: any | null = null;
+
   // Create a chainable query object that can be called multiple times
   const createChainableQuery = () => {
-    const query: any = {
-      eq: vi.fn(() => query), // Return self for chaining
-      in: vi.fn(() => query),
-      ilike: vi.fn(() => query),
-      order: vi.fn(() => query),
-      range: mockRange,
-      maybeSingle: mockMaybeSingle,
-      single: mockMaybeSingle,
-    };
+    const query: any = {};
+
+    // Chainable methods
+    query.eq = vi.fn(() => query); // Return self for chaining
+    query.in = vi.fn(() => query);
+    query.ilike = vi.fn(() => query);
+    query.order = vi.fn(() => query);
+
+    // Terminal methods
+    query.range = mockRange;
+    query.maybeSingle = mockMaybeSingle;
+    query.single = mockMaybeSingle;
+
+    latestQuery = query;
     return query;
   };
 
@@ -54,6 +63,7 @@ export function createMockSupabaseQuery(mockData: any[] = [], mockCount: number 
       select: mockSelect,
       range: mockRange,
       maybeSingle: mockMaybeSingle,
+      getLatestQuery: () => latestQuery,
     },
   };
 }
