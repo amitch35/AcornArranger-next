@@ -88,35 +88,35 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     label: "Appointments",
-    href: "/appointments",
+    href: "/dashboard/appointments",
     icon: Calendar,
     group: "main",
     visible: (user) => user.isAuthenticated,
   },
   {
     label: "Properties",
-    href: "/properties",
+    href: "/dashboard/properties",
     icon: Home,
     group: "main",
     visible: (user) => user.isAuthenticated,
   },
   {
     label: "Staff",
-    href: "/staff",
+    href: "/dashboard/staff",
     icon: Users,
     group: "main",
     visible: (user) => user.isAuthenticated,
   },
   {
     label: "Schedule",
-    href: "/schedule",
+    href: "/dashboard/schedule",
     icon: CalendarRange,
     group: "main",
     visible: (user) => user.isAuthenticated,
   },
   {
     label: "Settings",
-    href: "/settings",
+    href: "/dashboard/settings",
     icon: Settings,
     group: "settings",
     visible: (user) => user.isAuthenticated,
@@ -147,11 +147,11 @@ export function getVisibleNavItems(
  */
 export const breadcrumbMap: Record<string, string> = {
   "/dashboard": "Dashboard",
-  "/appointments": "Appointments",
-  "/properties": "Properties",
-  "/staff": "Staff",
-  "/schedule": "Schedule",
-  "/settings": "Settings",
+  "/dashboard/appointments": "Appointments",
+  "/dashboard/properties": "Properties",
+  "/dashboard/staff": "Staff",
+  "/dashboard/schedule": "Schedule",
+  "/dashboard/settings": "Settings",
 };
 
 /**
@@ -165,9 +165,9 @@ export const breadcrumbMap: Record<string, string> = {
  * 3. Optional: provide loadingLabel fallback
  */
 export const breadcrumbResolvers: BreadcrumbResolver[] = [
-  // Example: Resolve property names for /properties/:id
+  // Example: Resolve property names for /dashboard/properties/:id
   {
-    pattern: /^\/properties\/([^\/]+)$/,
+    pattern: /^\/dashboard\/properties\/([^\/]+)$/,
     resolve: async (params) => {
       // In a real implementation, fetch from API:
       // const response = await fetch(`/api/properties/${params.id}`);
@@ -180,18 +180,18 @@ export const breadcrumbResolvers: BreadcrumbResolver[] = [
     loadingLabel: "Loading...",
   },
   
-  // Example: Resolve staff names for /staff/:id
+  // Example: Resolve staff names for /dashboard/staff/:id
   {
-    pattern: /^\/staff\/([^\/]+)$/,
+    pattern: /^\/dashboard\/staff\/([^\/]+)$/,
     resolve: async (params) => {
       return `Staff ${params.id}`;
     },
     loadingLabel: "Loading...",
   },
   
-  // Example: Resolve appointment details for /appointments/:id
+  // Example: Resolve appointment details for /dashboard/appointments/:id
   {
-    pattern: /^\/appointments\/([^\/]+)$/,
+    pattern: /^\/dashboard\/appointments\/([^\/]+)$/,
     resolve: async (params) => {
       return `Appointment ${params.id}`;
     },

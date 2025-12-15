@@ -2,7 +2,6 @@
 
 import React from "react";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
 import { useProtectedLayout } from "../ProtectedLayout";
 import { NavItem } from "./NavItem";
 import { navigationConfig, getVisibleNavItems, isPathActive, type UserContext } from "../layoutConfig";
@@ -45,10 +44,11 @@ export function Sidebar() {
 
   // Close mobile sidebar when route changes
   React.useEffect(() => {
-    if (mobileSidebarOpen) {
-      setMobileSidebarOpen(false);
-    }
-  }, [pathname, mobileSidebarOpen, setMobileSidebarOpen]);
+    // When navigating to a new route, close the mobile overlay.
+    // IMPORTANT: Don't depend on `mobileSidebarOpen` here, otherwise opening the
+    // menu will immediately trigger this effect and close it.
+    setMobileSidebarOpen(false);
+  }, [pathname, setMobileSidebarOpen]);
 
   // Close mobile sidebar on Escape key
   React.useEffect(() => {
@@ -81,11 +81,15 @@ export function Sidebar() {
     }
   }, [sidebarCollapsed, announce]);
 
-  const sidebarContent = (
+  // Apply focus trap ref only when mobile sidebar is open
+  return (
     <nav
+      ref={mobileSidebarOpen ? focusTrapRef : undefined}
       id="app-sidebar"
       aria-label="Main navigation"
       className="flex flex-col h-full"
+      role={mobileSidebarOpen ? "dialog" : undefined}
+      aria-modal={mobileSidebarOpen ? "true" : undefined}
     >
       {/* Mobile close button */}
       <div className="lg:hidden flex items-center justify-between p-4 border-b">
@@ -117,46 +121,6 @@ export function Sidebar() {
         ))}
       </div>
     </nav>
-  );
-
-  return (
-    <>
-      {/* Desktop sidebar */}
-      <aside
-        className={cn(
-          "hidden lg:block border-r bg-background transition-all duration-200",
-          sidebarCollapsed ? "w-16" : "w-64"
-        )}
-      >
-        {sidebarContent}
-      </aside>
-
-      {/* Mobile sidebar overlay */}
-      {mobileSidebarOpen && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden"
-            onClick={() => {
-              setMobileSidebarOpen(false);
-              announce("Menu closed");
-            }}
-            aria-hidden="true"
-          />
-          
-          {/* Sidebar with focus trap */}
-          <aside
-            ref={focusTrapRef}
-            className="fixed inset-y-0 left-0 w-64 bg-background border-r z-50 lg:hidden"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Mobile navigation"
-          >
-            {sidebarContent}
-          </aside>
-        </>
-      )}
-    </>
   );
 }
 

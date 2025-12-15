@@ -14,35 +14,35 @@ describe("layoutConfig utilities", () => {
   describe("isPathActive", () => {
     it("matches exact paths", () => {
       expect(isPathActive("/dashboard", "/dashboard")).toBe(true);
-      expect(isPathActive("/appointments", "/appointments")).toBe(true);
+      expect(isPathActive("/dashboard/appointments", "/dashboard/appointments")).toBe(true);
     });
 
     it("matches prefix paths (except root)", () => {
-      expect(isPathActive("/appointments/123", "/appointments")).toBe(true);
-      expect(isPathActive("/properties/456/edit", "/properties")).toBe(true);
+      expect(isPathActive("/dashboard/appointments/123", "/dashboard/appointments")).toBe(true);
+      expect(isPathActive("/dashboard/properties/456/edit", "/dashboard/properties")).toBe(true);
     });
 
     it("does not match unrelated paths", () => {
-      expect(isPathActive("/appointments", "/properties")).toBe(false);
-      expect(isPathActive("/staff", "/schedule")).toBe(false);
+      expect(isPathActive("/dashboard/appointments", "/dashboard/properties")).toBe(false);
+      expect(isPathActive("/dashboard/staff", "/dashboard/schedule")).toBe(false);
     });
 
     it("does not match root with prefix", () => {
       // Root should only match exactly, not as prefix
-      expect(isPathActive("/appointments", "/dashboard")).toBe(false);
+      expect(isPathActive("/dashboard/appointments", "/dashboard")).toBe(false);
     });
 
     it("normalizes trailing slashes for matching", () => {
       // Trailing slashes are normalized, so these should match
-      expect(isPathActive("/appointments/", "/appointments")).toBe(true);
-      expect(isPathActive("/appointments", "/appointments/")).toBe(true);
+      expect(isPathActive("/dashboard/appointments/", "/dashboard/appointments")).toBe(true);
+      expect(isPathActive("/dashboard/appointments", "/dashboard/appointments/")).toBe(true);
     });
   });
 
   describe("extractParams", () => {
     it("extracts single parameter", () => {
-      const pattern = /^\/properties\/([^\/]+)$/;
-      const params = extractParams("/properties/123", pattern);
+      const pattern = /^\/dashboard\/properties\/([^\/]+)$/;
+      const params = extractParams("/dashboard/properties/123", pattern);
 
       expect(params).toEqual({
         "0": "123",
@@ -51,8 +51,8 @@ describe("layoutConfig utilities", () => {
     });
 
     it("extracts multiple parameters", () => {
-      const pattern = /^\/appointments\/([^\/]+)\/edit$/;
-      const params = extractParams("/appointments/456/edit", pattern);
+      const pattern = /^\/dashboard\/appointments\/([^\/]+)\/edit$/;
+      const params = extractParams("/dashboard/appointments/456/edit", pattern);
 
       expect(params).toEqual({
         "0": "456",
@@ -61,8 +61,8 @@ describe("layoutConfig utilities", () => {
     });
 
     it("returns empty object for non-matching path", () => {
-      const pattern = /^\/properties\/([^\/]+)$/;
-      const params = extractParams("/appointments/123", pattern);
+      const pattern = /^\/dashboard\/properties\/([^\/]+)$/;
+      const params = extractParams("/dashboard/appointments/123", pattern);
 
       expect(params).toEqual({});
     });
@@ -78,7 +78,7 @@ describe("layoutConfig utilities", () => {
 
   describe("findBreadcrumbResolver", () => {
     it("finds resolver for matching path", () => {
-      const resolver = findBreadcrumbResolver("/properties/123");
+      const resolver = findBreadcrumbResolver("/dashboard/properties/123");
       expect(resolver).toBeDefined();
       expect(resolver?.pattern).toBeDefined();
     });
@@ -89,12 +89,12 @@ describe("layoutConfig utilities", () => {
     });
 
     it("finds resolver for staff paths", () => {
-      const resolver = findBreadcrumbResolver("/staff/456");
+      const resolver = findBreadcrumbResolver("/dashboard/staff/456");
       expect(resolver).toBeDefined();
     });
 
     it("finds resolver for appointment paths", () => {
-      const resolver = findBreadcrumbResolver("/appointments/789");
+      const resolver = findBreadcrumbResolver("/dashboard/appointments/789");
       expect(resolver).toBeDefined();
     });
   });

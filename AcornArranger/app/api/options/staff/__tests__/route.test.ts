@@ -250,7 +250,10 @@ describe("/api/options/staff", () => {
       
       if (data.options.length > 0) {
         const option = data.options[0];
-        expect(typeof option.id).toBeTruthy(); // number or string
+        expect(option).toHaveProperty("id");
+        expect(option.id).toBeDefined();
+        expect(["number", "string"]).toContain(typeof option.id); // Allow number or string
+        expect(option).toHaveProperty("label");
         expect(typeof option.label).toBe("string");
       }
     });

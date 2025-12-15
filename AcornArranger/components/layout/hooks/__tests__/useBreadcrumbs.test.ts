@@ -12,21 +12,21 @@ describe("useBreadcrumbs", () => {
       ]);
     });
 
-    it("generates breadcrumbs for /appointments", () => {
-      const { result } = renderHook(() => useBreadcrumbs("/appointments"));
+    it("generates breadcrumbs for /dashboard/appointments", () => {
+      const { result } = renderHook(() => useBreadcrumbs("/dashboard/appointments"));
 
       expect(result.current).toEqual([
         { label: "Dashboard", href: "/dashboard" },
-        { label: "Appointments", href: "/appointments" },
+        { label: "Appointments", href: "/dashboard/appointments" },
       ]);
     });
 
-    it("generates breadcrumbs for /properties", () => {
-      const { result } = renderHook(() => useBreadcrumbs("/properties"));
+    it("generates breadcrumbs for /dashboard/properties", () => {
+      const { result } = renderHook(() => useBreadcrumbs("/dashboard/properties"));
 
       expect(result.current).toEqual([
         { label: "Dashboard", href: "/dashboard" },
-        { label: "Properties", href: "/properties" },
+        { label: "Properties", href: "/dashboard/properties" },
       ]);
     });
   });
@@ -34,28 +34,28 @@ describe("useBreadcrumbs", () => {
   describe("Deep Paths with Async Resolvers", () => {
     it("generates breadcrumbs with loading state for dynamic routes", () => {
       const { result } = renderHook(() =>
-        useBreadcrumbs("/appointments/123")
+        useBreadcrumbs("/dashboard/appointments/123")
       );
 
       // Dynamic segments should show loading initially
       expect(result.current).toEqual([
         { label: "Dashboard", href: "/dashboard" },
-        { label: "Appointments", href: "/appointments" },
-        { label: "Loading...", href: "/appointments/123", isLoading: true },
+        { label: "Appointments", href: "/dashboard/appointments" },
+        { label: "Loading...", href: "/dashboard/appointments/123", isLoading: true },
       ]);
     });
 
     it("generates breadcrumbs with loading state and static segments", () => {
       const { result } = renderHook(() =>
-        useBreadcrumbs("/properties/456/edit")
+        useBreadcrumbs("/dashboard/properties/456/edit")
       );
 
       // Dynamic ID segment shows loading, static "edit" shows immediately
       expect(result.current).toEqual([
         { label: "Dashboard", href: "/dashboard" },
-        { label: "Properties", href: "/properties" },
-        { label: "Loading...", href: "/properties/456", isLoading: true },
-        { label: "Edit", href: "/properties/456/edit" },
+        { label: "Properties", href: "/dashboard/properties" },
+        { label: "Loading...", href: "/dashboard/properties/456", isLoading: true },
+        { label: "Edit", href: "/dashboard/properties/456/edit" },
       ]);
     });
   });
@@ -76,18 +76,19 @@ describe("useBreadcrumbs", () => {
   describe("Edge Cases", () => {
     it("handles trailing slashes", () => {
       const { result } = renderHook(() =>
-        useBreadcrumbs("/appointments/")
+        useBreadcrumbs("/dashboard/appointments/")
       );
 
       expect(result.current).toEqual([
         { label: "Dashboard", href: "/dashboard" },
-        { label: "Appointments", href: "/appointments" },
+        { label: "Appointments", href: "/dashboard/appointments" },
       ]);
     });
 
-    it("handles paths without /protected prefix", () => {
+    it("handles paths without /dashboard prefix", () => {
       const { result } = renderHook(() => useBreadcrumbs("/appointments"));
-
+      // We still always include Dashboard as the root crumb, and then fall back
+      // to title-casing for unknown roots.
       expect(result.current).toEqual([
         { label: "Dashboard", href: "/dashboard" },
         { label: "Appointments", href: "/appointments" },
@@ -99,11 +100,11 @@ describe("useBreadcrumbs", () => {
     it("returns same reference for same pathname", () => {
       const { result, rerender } = renderHook(
         ({ pathname }) => useBreadcrumbs(pathname),
-        { initialProps: { pathname: "/appointments" } }
+        { initialProps: { pathname: "/dashboard/appointments" } }
       );
 
       const firstResult = result.current;
-      rerender({ pathname: "/appointments" });
+      rerender({ pathname: "/dashboard/appointments" });
       const secondResult = result.current;
 
       expect(firstResult).toBe(secondResult);
@@ -112,11 +113,11 @@ describe("useBreadcrumbs", () => {
     it("returns different reference for different pathname", () => {
       const { result, rerender } = renderHook(
         ({ pathname }) => useBreadcrumbs(pathname),
-        { initialProps: { pathname: "/appointments" } }
+        { initialProps: { pathname: "/dashboard/appointments" } }
       );
 
       const firstResult = result.current;
-      rerender({ pathname: "/properties" });
+      rerender({ pathname: "/dashboard/properties" });
       const secondResult = result.current;
 
       expect(firstResult).not.toBe(secondResult);

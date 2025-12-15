@@ -20,11 +20,11 @@ export const StaffAdapter: EntityAdapter<StaffFilters> = {
       pageSize: pagination.pageSize,
       sort: sortParam,
       statusIds: filters.statusIds,
-      serviceIds: filters.serviceIds,
-      staffIds: filters.staffIds,
-      propertyIds: filters.propertyIds,
-      dateFrom: filters.dateFrom,
-      dateTo: filters.dateTo,
+      roleIds: filters.roleIds,
+      canClean: filters.canClean,
+      canLeadTeam: filters.canLeadTeam,
+      // Remove unused filters that don't apply to staff list
+      // serviceIds, staffIds, propertyIds, dateFrom, dateTo are for appointments/plans
     });
   },
 };

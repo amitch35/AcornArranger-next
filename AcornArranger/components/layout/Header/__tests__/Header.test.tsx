@@ -44,7 +44,7 @@ describe("Header", () => {
       renderHeader();
 
       // Sidebar toggle should be present
-      expect(screen.getByLabelText(/sidebar/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/toggle menu/i)).toBeInTheDocument();
 
       // Logo should be present
       expect(screen.getByText("AcornArranger")).toBeInTheDocument();
@@ -65,7 +65,7 @@ describe("Header", () => {
     it("has correct ARIA attributes", () => {
       renderHeader();
 
-      const toggle = screen.getByLabelText(/sidebar/i);
+      const toggle = screen.getByLabelText(/toggle menu/i);
       expect(toggle).toHaveAttribute("aria-expanded");
       expect(toggle).toHaveAttribute("aria-controls", "app-sidebar");
     });
@@ -73,7 +73,7 @@ describe("Header", () => {
     it("toggles sidebar when clicked", () => {
       renderHeader();
 
-      const toggle = screen.getByLabelText(/sidebar/i);
+      const toggle = screen.getByLabelText(/toggle menu/i);
       
       // Initial state should be expanded (aria-expanded="true")
       expect(toggle).toHaveAttribute("aria-expanded", "true");

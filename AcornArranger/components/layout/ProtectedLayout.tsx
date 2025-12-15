@@ -129,7 +129,8 @@ export function ProtectedLayout({
             <aside
               className={cn(
                 "protected-layout__sidebar",
-                sidebarCollapsed && "protected-layout__sidebar--collapsed"
+                sidebarCollapsed && "protected-layout__sidebar--collapsed",
+                mobileSidebarOpen && "protected-layout__sidebar--open"
               )}
             >
               {sidebar}
@@ -174,6 +175,15 @@ export function ProtectedLayout({
             <div className="protected-layout__content">{children}</div>
           </main>
         </div>
+
+        {/* Mobile sidebar backdrop */}
+        {mobileSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
+            onClick={() => setMobileSidebarOpen(false)}
+            aria-hidden="true"
+          />
+        )}
 
         {/* Portal mount points for overlays */}
         <div id="portal-modals" />
