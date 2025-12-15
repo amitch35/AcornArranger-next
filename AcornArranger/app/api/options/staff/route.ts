@@ -28,7 +28,8 @@ export async function GET(req: NextRequest) {
 
     // Use inner join if we need to filter by role capabilities
     const needsRoleFilter = canClean === "true" || canLeadTeam === "true";
-    const roleSelect = `roles${needsRoleFilter ? "!inner" : ""}(id,title,can_clean,can_lead_team)`;
+    // Keep embedded role shape consistent across endpoints
+    const roleSelect = `role:roles${needsRoleFilter ? "!inner" : ""}(id,title,can_clean,can_lead_team)`;
     let query = supabase
       .from("rc_staff")
       .select(

@@ -125,7 +125,7 @@ describe("/api/staff", () => {
       // And ensure our embedded role select includes roles.id (RoleSchema expects `id`)
       const selectArg = (mockSupabase as any)?._mocks?.select?.mock?.calls?.[0]?.[0];
       expect(typeof selectArg).toBe("string");
-      expect(selectArg).toContain("roles");
+      expect(selectArg).toContain("role:roles");
       expect(selectArg).toContain("(id,");
     });
 

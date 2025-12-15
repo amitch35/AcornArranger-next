@@ -39,7 +39,8 @@ export const GET = withAuth(async (req: NextRequest) => {
     const needsRoleFilter = canClean === "true" || canLeadTeam === "true" || (roleIds && roleIds.length > 0);
     // NOTE: rc_staff uses `role` as the FK column (to roles.id).
     // Keep the embedded role shape consistent with our Zod schemas (Role.id).
-    const roleSelect = `roles${needsRoleFilter ? "!inner" : ""}(id,title,description,priority,can_clean,can_lead_team)`;
+    // IMPORTANT: alias embedded role object as `role` to match UI + Zod schemas.
+    const roleSelect = `role:roles${needsRoleFilter ? "!inner" : ""}(id,title,description,priority,can_clean,can_lead_team)`;
     
     // Full staff select with all fields and joins
     const select = `

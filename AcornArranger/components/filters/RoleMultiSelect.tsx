@@ -37,6 +37,7 @@ export function RoleMultiSelect({
 }: RoleMultiSelectProps) {
   const [open, setOpen] = React.useState(false);
   const buttonId = id ?? React.useId();
+  const labelCacheRef = React.useRef<Map<string, string>>(new Map());
 
   const selectedSet = React.useMemo(() => new Set(value), [value]);
   const selectedLabels = React.useMemo(
@@ -53,8 +54,19 @@ export function RoleMultiSelect({
   const clearAll = () => {
     if (value.length === 0) return;
     onChange([]);
-    onClearNotice?.(value.length, selectedLabels.slice(0, 3));
+    // Prefer human labels; fall back to raw values if needed.
+    const labels = value
+      .map((v) => labelCacheRef.current.get(v) ?? options.find((o) => o.value === v)?.label ?? v)
+      .slice(0, 3);
+    onClearNotice?.(value.length, labels);
   };
+
+  // Cache latest known labels so we can still display them after an option disappears.
+  React.useEffect(() => {
+    for (const opt of options) {
+      labelCacheRef.current.set(opt.value, opt.label);
+    }
+  }, [options]);
 
   // Prune selections no longer present in options
   React.useEffect(() => {
@@ -67,7 +79,10 @@ export function RoleMultiSelect({
     if (invalid.length > 0) {
       const next = value.filter((v) => validSet.has(v));
       onChange(next);
-      onClearNotice?.(invalid.length, invalid.slice(0, 3));
+      const removedLabels = invalid
+        .map((v) => labelCacheRef.current.get(v) ?? v)
+        .slice(0, 3);
+      onClearNotice?.(invalid.length, removedLabels);
     }
   }, [options, value, onChange, onClearNotice]);
 
