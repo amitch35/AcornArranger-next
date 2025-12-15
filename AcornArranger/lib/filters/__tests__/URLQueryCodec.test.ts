@@ -9,7 +9,7 @@ import {
 describe("URLQueryCodec", () => {
   it("round-trips canonical fields and preserves ordering", () => {
     const params = new URLSearchParams(
-      "q=hello&page=2&pageSize=50&sort=name:asc&dateFrom=2024-01-01T00:00:00.000Z&dateTo=2024-02-01T00:00:00.000Z&statusIds=1,2&serviceIds=21942,23044&staffIds=10,12&propertyIds=117138,128046"
+      "q=hello&page=2&pageSize=50&sort=name:asc&dateFrom=2024-01-01T00:00:00.000Z&dateTo=2024-02-01T00:00:00.000Z&statusIds=1,2&roleIds=3,4&canClean=true&canLeadTeam=true&serviceIds=21942,23044&staffIds=10,12&propertyIds=117138,128046"
     );
     const decoded = decodeFromSearchParams(params);
     const validated = validateBaseFilters(decoded, Schemas.appointment);
@@ -22,6 +22,9 @@ describe("URLQueryCodec", () => {
     expect(encoded.get("dateFrom")).toBe("2024-01-01T00:00:00.000Z");
     expect(encoded.get("dateTo")).toBe("2024-02-01T00:00:00.000Z");
     expect(encoded.get("statusIds")).toBe("1,2");
+    expect(encoded.get("roleIds")).toBe("3,4");
+    expect(encoded.get("canClean")).toBe("true");
+    expect(encoded.get("canLeadTeam")).toBe("true");
     expect(encoded.get("serviceIds")).toBe("21942,23044");
     expect(encoded.get("staffIds")).toBe("10,12");
     expect(encoded.get("propertyIds")).toBe("117138,128046");
@@ -78,7 +81,7 @@ describe("URLQueryCodec", () => {
 
   it("strips unknown keys on re-encode and preserves canonical key order", () => {
     const params = new URLSearchParams(
-      "zzz=1&sort=a&page=2&serviceIds=3,1&q=s&dateFrom=2024-01-01&propertyIds=5&statusIds=2,1&dateTo=2024-01-02&pageSize=10"
+      "zzz=1&sort=a&page=2&serviceIds=3,1&q=s&dateFrom=2024-01-01&propertyIds=5&statusIds=2,1&roleIds=5,4&canClean=true&canLeadTeam=true&dateTo=2024-01-02&pageSize=10"
     );
     const decoded = decodeFromSearchParams(params);
     const validated = validateBaseFilters(decoded, Schemas.property);
@@ -88,6 +91,7 @@ describe("URLQueryCodec", () => {
     expect(s.includes("zzz=")).toBe(false);
     // ensure sorted arrays
     expect(encoded.get("statusIds")).toBe("1,2");
+    expect(encoded.get("roleIds")).toBe("4,5");
     expect(encoded.get("serviceIds")).toBe("1,3");
   });
 

@@ -11,7 +11,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     const supabase = await createClient();
     const { data, error, status } = await supabase
       .from("roles")
-      .select("role_id:id,title,description,priority,can_lead_team,can_clean")
+      .select("id,title,description,priority,can_lead_team,can_clean")
       .eq("id", id)
       .maybeSingle();
 

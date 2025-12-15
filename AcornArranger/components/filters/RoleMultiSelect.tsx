@@ -58,18 +58,18 @@ export function RoleMultiSelect({
 
   // Prune selections no longer present in options
   React.useEffect(() => {
+    // Avoid clearing URL-driven selections while options are still loading.
+    // Once options arrive, we can safely prune truly invalid values.
+    if (options.length === 0) return;
     if (value.length === 0) return;
     const validSet = new Set(options.map((o) => o.value));
     const invalid = value.filter((v) => !validSet.has(v));
     if (invalid.length > 0) {
       const next = value.filter((v) => validSet.has(v));
       onChange(next);
-      const removedLabels = options
-        .filter((o) => invalid.includes(o.value))
-        .map((o) => o.label);
-      onClearNotice?.(invalid.length, removedLabels.slice(0, 3));
+      onClearNotice?.(invalid.length, invalid.slice(0, 3));
     }
-  }, [options]);
+  }, [options, value, onChange, onClearNotice]);
 
   const selectedSummary = selectedLabels.length === 0
     ? label

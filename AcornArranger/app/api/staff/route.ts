@@ -37,10 +37,9 @@ export const GET = withAuth(async (req: NextRequest) => {
 
     // Use inner join if filtering by role capabilities
     const needsRoleFilter = canClean === "true" || canLeadTeam === "true" || (roleIds && roleIds.length > 0);
-    // NOTE: rc_staff uses `role` as the FK column (per generated types + legacy code),
-    // but roles primary key is exposed as `role_id`. We alias it to `id` in the embedded
-    // object for API consistency with our Zod schemas.
-    const roleSelect = `roles${needsRoleFilter ? "!inner" : ""}(role_id:id,title,description,priority,can_clean,can_lead_team)`;
+    // NOTE: rc_staff uses `role` as the FK column (to roles.id).
+    // Keep the embedded role shape consistent with our Zod schemas (Role.id).
+    const roleSelect = `roles${needsRoleFilter ? "!inner" : ""}(id,title,description,priority,can_clean,can_lead_team)`;
     
     // Full staff select with all fields and joins
     const select = `

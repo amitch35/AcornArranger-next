@@ -122,10 +122,11 @@ describe("/api/staff", () => {
       expect(latestQuery).toBeTruthy();
       expect(latestQuery.in).toHaveBeenCalledWith("role", [1, 2]);
 
-      // And ensure our embedded role select aliases roles.role_id -> role.id
+      // And ensure our embedded role select includes roles.id (RoleSchema expects `id`)
       const selectArg = (mockSupabase as any)?._mocks?.select?.mock?.calls?.[0]?.[0];
       expect(typeof selectArg).toBe("string");
-      expect(selectArg).toContain("role_id:id");
+      expect(selectArg).toContain("roles");
+      expect(selectArg).toContain("(id,");
     });
 
     it("should filter by canClean", async () => {

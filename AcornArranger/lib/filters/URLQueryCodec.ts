@@ -13,9 +13,12 @@ type CanonicalKeys =
   | "pageSize"
   | "sort"
   | "statusIds"
+  | "roleIds"
   | "serviceIds"
   | "staffIds"
   | "propertyIds"
+  | "canClean"
+  | "canLeadTeam"
   | "dateFrom"
   | "dateTo";
 
@@ -27,6 +30,9 @@ const CANONICAL_KEY_ORDER: CanonicalKeys[] = [
   "dateFrom",
   "dateTo",
   "statusIds",
+  "roleIds",
+  "canClean",
+  "canLeadTeam",
   "serviceIds",
   "staffIds",
   "propertyIds",
@@ -34,7 +40,7 @@ const CANONICAL_KEY_ORDER: CanonicalKeys[] = [
 
 export type DecodeOptions = {
   allow?: Partial<
-    Record<"statusIds" | "serviceIds" | "staffIds" | "propertyIds", Set<number>>
+    Record<"statusIds" | "roleIds" | "serviceIds" | "staffIds" | "propertyIds", Set<number>>
   >;
 };
 
@@ -82,6 +88,7 @@ export function decodeFromSearchParams(
   result.dateTo = normalizeIso(get("dateTo") ?? undefined);
 
   const statusIds = parseCsvNumbers(get("statusIds"));
+  const roleIds = parseCsvNumbers(get("roleIds"));
   const serviceIds = parseCsvNumbers(get("serviceIds"));
   const staffIds = parseCsvNumbers(get("staffIds"));
   const propertyIds = parseCsvNumbers(get("propertyIds"));
@@ -90,6 +97,8 @@ export function decodeFromSearchParams(
   result.statusIds = allow?.statusIds
     ? statusIds.filter((n) => allow.statusIds!.has(n))
     : statusIds;
+  // (No allow-list for roleIds currently; can be added if needed.)
+  result.roleIds = allow?.roleIds ? roleIds.filter((n) => allow.roleIds!.has(n)) : roleIds;
   result.serviceIds = allow?.serviceIds
     ? serviceIds.filter((n) => allow.serviceIds!.has(n))
     : serviceIds;
@@ -99,6 +108,12 @@ export function decodeFromSearchParams(
   result.propertyIds = allow?.propertyIds
     ? propertyIds.filter((n) => allow.propertyIds!.has(n))
     : propertyIds;
+
+  // Booleans
+  const canClean = get("canClean");
+  const canLeadTeam = get("canLeadTeam");
+  result.canClean = canClean === "true" ? true : undefined;
+  result.canLeadTeam = canLeadTeam === "true" ? true : undefined;
 
   return result as Record<CanonicalKeys, unknown>;
 }
@@ -142,11 +157,18 @@ export function encodeToSearchParams(
         break;
       }
       case "statusIds":
+      case "roleIds":
       case "serviceIds":
       case "staffIds":
       case "propertyIds": {
         const joined = encodeCsvNumbers(value as number[] | undefined);
         if (joined) params.set(key, joined);
+        break;
+      }
+      case "canClean":
+      case "canLeadTeam": {
+        const b = value === true;
+        if (b) params.set(key, "true");
         break;
       }
     }

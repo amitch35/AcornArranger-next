@@ -14,7 +14,7 @@ export const GET = withAuth(async (req: NextRequest) => {
     const supabase = await createClient();
     let query = supabase
       .from("roles")
-      .select("role_id:id,title,description,priority,can_lead_team,can_clean", { count: "exact" })
+      .select("id,title,description,priority,can_lead_team,can_clean", { count: "exact" })
       ;
 
     if (q) {

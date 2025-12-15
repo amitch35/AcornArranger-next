@@ -35,7 +35,7 @@ export const GET = withAuth(async (
       first_name,
       last_name,
       hb_user_id,
-      role:roles(role_id:id,title,description,priority,can_clean,can_lead_team),
+      role:roles(id,title,description,priority,can_clean,can_lead_team),
       status:staff_status_key(status_id,status)
     `;
 
