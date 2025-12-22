@@ -25,6 +25,9 @@ export function Sidebar() {
   const { sidebarCollapsed, mobileSidebarOpen, setMobileSidebarOpen } = useProtectedLayout();
   const focusTrapRef = useFocusTrap(mobileSidebarOpen);
   const announce = useAnnouncer();
+  // Mobile overlay should always render expanded (icons + labels), regardless of
+  // the persisted desktop "rail collapsed" preference.
+  const effectiveCollapsed = sidebarCollapsed && !mobileSidebarOpen;
 
   // TODO: Get real user context from auth when available
   // For now, assume all users are authenticated
@@ -75,6 +78,7 @@ export function Sidebar() {
   // Announce sidebar collapse state changes on desktop
   React.useEffect(() => {
     // Only announce on desktop (avoid duplicate mobile announcements)
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
     const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
     if (isDesktop) {
       announce(sidebarCollapsed ? "Sidebar collapsed" : "Sidebar expanded");
@@ -115,7 +119,7 @@ export function Sidebar() {
             href={item.href}
             icon={item.icon}
             label={item.label}
-            collapsed={sidebarCollapsed}
+            collapsed={effectiveCollapsed}
             active={isPathActive(pathname, item.href)}
           />
         ))}

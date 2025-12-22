@@ -8,12 +8,13 @@ import {
   VisibilityState,
   flexRender,
   getCoreRowModel,
-  getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import type { Table as TanStackTable } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react";
 
 export type DataTableChange = {
   page?: number;
@@ -33,6 +34,12 @@ export type DataTableProps<TData, TValue> = {
   onChange?: (change: DataTableChange) => void;
   initialSorting?: SortingState;
   initialVisibility?: VisibilityState;
+  /**
+   * When true, sorting is assumed to be handled externally (e.g., server-side).
+   * The table will still track sort state for UI/ARIA and emit `onChange`,
+   * but it will NOT sort rows client-side.
+   */
+  manualSorting?: boolean;
   renderToolbar?: (table: TanStackTable<TData>) => React.ReactNode;
 };
 
@@ -47,6 +54,7 @@ export function DataTable<TData, TValue>({
   onChange,
   initialSorting,
   initialVisibility,
+  manualSorting = false,
   renderToolbar,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>(initialSorting ?? []);
@@ -57,6 +65,7 @@ export function DataTable<TData, TValue>({
     data,
     columns,
     state: { sorting, columnVisibility, columnFilters },
+    manualSorting,
     onSortingChange: (updater) => {
       const next = typeof updater === "function" ? updater(sorting) : updater;
       setSorting(next);
@@ -65,7 +74,6 @@ export function DataTable<TData, TValue>({
     onColumnVisibilityChange: setColumnVisibility,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
   });
 
   return (
@@ -83,9 +91,49 @@ export function DataTable<TData, TValue>({
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => {
+                const canSort = header.column.getCanSort?.() ?? false;
+                const headerDef = header.column.columnDef.header;
+                const isDefaultHeader =
+                  typeof headerDef === "string" || typeof headerDef === "undefined";
+                const sorted = header.column.getIsSorted?.();
+                const sortDir = sorted === "desc" ? "desc" : sorted === "asc" ? "asc" : null;
+
+                const headerContent = header.isPlaceholder
+                  ? null
+                  : flexRender(header.column.columnDef.header, header.getContext());
+
+                const renderDefaultSortableHeader =
+                  canSort && isDefaultHeader && typeof headerContent === "string"
+                    ? (
+                        <Button
+                          variant="ghost"
+                          className="-ml-2 h-8 px-2 py-1 text-left font-medium"
+                          onClick={() => header.column.toggleSorting(sortDir === "asc")}
+                        >
+                          <span className="mr-1">{headerContent}</span>
+                          <span aria-hidden="true" className="inline-flex items-center text-muted-foreground">
+                            {sortDir === "asc" ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : sortDir === "desc" ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronsUpDown className="h-4 w-4" />
+                            )}
+                          </span>
+                        </Button>
+                      )
+                    : headerContent;
+
                 return (
-                  <TableHead key={header.id} aria-sort={header.column.getIsSorted() ? (header.column.getIsSorted() === "desc" ? "descending" : "ascending") : "none"}>
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                  <TableHead
+                    key={header.id}
+                    aria-sort={
+                      sorted
+                        ? (sorted === "desc" ? "descending" : "ascending")
+                        : "none"
+                    }
+                  >
+                    {renderDefaultSortableHeader}
                   </TableHead>
                 );
               })}

@@ -2,10 +2,12 @@ import type { StaffFilters } from "@/lib/filters/schemas";
 import { toSearchParams, buildSortParam, type EntityAdapter } from "./common";
 
 const SORT_KEY_MAP = {
-  id: "id",
+  // Column IDs come from TanStack Table column ids (accessorKey by default).
+  // Map them to the API sort keys expected by /api/staff (see route.ts parseSortParam mapping).
+  user_id: "id",
   name: "name",
-  firstName: "firstName",
-  lastName: "lastName",
+  first_name: "firstName",
+  last_name: "lastName",
   role: "role",
   status: "status",
 } as const;

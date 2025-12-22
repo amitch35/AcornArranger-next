@@ -164,6 +164,42 @@ describe("Sidebar", () => {
       sidebarAside = container.querySelector(".protected-layout__sidebar");
       expect(sidebarAside).toHaveClass("protected-layout__sidebar--open");
     });
+
+    it("mobile overlay shows labels even if desktop sidebar is collapsed", async () => {
+      // Simulate a user collapsing the desktop sidebar previously.
+      window.localStorage.setItem("acorn-arranger-sidebar-collapsed", "true");
+
+      // Mobile viewport
+      (window as any).matchMedia = vi.fn().mockImplementation((query: string) => ({
+        matches: query.includes("min-width: 1024px") ? false : false,
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      }));
+
+      renderSidebarWithToggle();
+
+      // Allow ProtectedLayout/useSidebarState to hydrate collapsed=true from localStorage.
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      // In collapsed mode, labels are not rendered as visible text.
+      expect(screen.queryByText("Appointments")).toBeNull();
+
+      // Open mobile overlay via the toggle button
+      const toggle = screen.getByRole("button", { name: /toggle menu/i });
+      await act(async () => {
+        fireEvent.click(toggle);
+      });
+
+      // When overlay is open, we should render expanded labels even if desktop is collapsed.
+      expect(screen.getByText("Appointments")).toBeInTheDocument();
+    });
   });
 });
 

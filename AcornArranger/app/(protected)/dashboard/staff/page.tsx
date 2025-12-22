@@ -370,6 +370,7 @@ export default function StaffListPage() {
         total={data?.total}
         page={page}
         pageSize={pageSize}
+        manualSorting
         loading={isLoading}
         error={error?.message}
         onChange={(change) => {
