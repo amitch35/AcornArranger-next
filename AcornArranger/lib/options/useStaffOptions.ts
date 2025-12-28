@@ -3,9 +3,10 @@ import { useQuery, keepPreviousData } from "@tanstack/react-query";
 export interface StaffOptionsParams {
   q?: string;
   page?: number;
-  limit?: number;
+  pageSize?: number;
   statusIds?: number[]; // default [1]
   canClean?: boolean;   // default true
+  canLeadTeam?: boolean;
   excludePlanId?: number;
 }
 
@@ -15,10 +16,11 @@ function buildQuery(params: StaffOptionsParams): string {
   const sp = new URLSearchParams();
   if (params.q) sp.set("q", params.q);
   if (params.page) sp.set("page", String(params.page));
-  if (params.limit) sp.set("limit", String(params.limit));
-  if (params.statusIds?.length) sp.set("filter_status_ids", params.statusIds.join(","));
-  if (params.canClean === true) sp.set("filter_can_clean", "true");
-  if (params.excludePlanId != null) sp.set("exclude_plan_id", String(params.excludePlanId));
+  if (params.pageSize) sp.set("pageSize", String(params.pageSize));
+  if (params.statusIds?.length) sp.set("statusIds", params.statusIds.join(","));
+  if (params.canClean === true) sp.set("canClean", "true");
+  if (params.canLeadTeam === true) sp.set("canLeadTeam", "true");
+  if (params.excludePlanId != null) sp.set("excludePlanId", String(params.excludePlanId));
   const qs = sp.toString();
   return qs ? `?${qs}` : "";
 }
