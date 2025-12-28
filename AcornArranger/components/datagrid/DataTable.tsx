@@ -8,6 +8,7 @@ import {
   VisibilityState,
   flexRender,
   getCoreRowModel,
+  getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import type { Table as TanStackTable } from "@tanstack/react-table";
@@ -74,6 +75,8 @@ export function DataTable<TData, TValue>({
     onColumnVisibilityChange: setColumnVisibility,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
+    // If sorting is NOT manual, enable TanStack's client-side sorted row model.
+    ...(manualSorting ? {} : { getSortedRowModel: getSortedRowModel() }),
   });
 
   return (

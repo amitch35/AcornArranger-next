@@ -33,5 +33,33 @@ describe("DataTable", () => {
 
     expect(onChange).toHaveBeenCalledWith({ sort: [{ id: "name", desc: false }] });
   });
+
+  it("sorts rows client-side by default (manualSorting=false)", async () => {
+    render(
+      <DataTable<Row, unknown>
+        columns={[
+          { accessorKey: "id", header: "ID" },
+          { accessorKey: "name", header: "Name" },
+        ]}
+        data={[
+          { id: 2, name: "B" },
+          { id: 1, name: "A" },
+        ]}
+      />
+    );
+
+    // Before sorting, first data row should be id=2 (original order)
+    const before = screen.getAllByRole("row");
+    // rows[0] is header; rows[1] is first data row
+    expect(before[1]).toHaveTextContent("2");
+
+    const nameHeader = screen.getByRole("button", { name: /name/i });
+    await act(async () => {
+      fireEvent.click(nameHeader);
+    });
+
+    const after = screen.getAllByRole("row");
+    expect(after[1]).toHaveTextContent("1");
+  });
 });
 
