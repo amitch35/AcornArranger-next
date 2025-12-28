@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Header } from "../Header";
 import { ProtectedLayout } from "../../ProtectedLayout";
 
@@ -32,10 +33,16 @@ vi.mock("@/lib/supabase/client", () => ({
 describe("Header", () => {
   // Helper to render Header within ProtectedLayout context
   const renderHeader = () => {
+    const qc = new QueryClient({
+      defaultOptions: { queries: { retry: false, staleTime: 0 } },
+    });
+
     return render(
-      <ProtectedLayout header={<Header />}>
-        <div>Test content</div>
-      </ProtectedLayout>
+      <QueryClientProvider client={qc}>
+        <ProtectedLayout header={<Header />}>
+          <div>Test content</div>
+        </ProtectedLayout>
+      </QueryClientProvider>
     );
   };
 

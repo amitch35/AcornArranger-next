@@ -9,10 +9,12 @@ export interface AuthContext {
 
 /**
  * Handler function signature for authenticated API routes
+ * Accepts any additional context (like Next.js params) alongside role
+ * TReq allows using NextRequest or other Request subtypes
  */
-export type AuthenticatedHandler = (
-  req: Request,
-  context: AuthContext
+export type AuthenticatedHandler<TContext = unknown, TReq extends Request = Request> = (
+  req: TReq,
+  context: AuthContext & TContext
 ) => Promise<Response>;
 
 /**
@@ -25,7 +27,7 @@ export type AuthenticatedHandler = (
  * All security is handled by Postgres RLS policies at the database layer.
  * 
  * @param handler - The API route handler to wrap
- * @returns Wrapped handler that ensures authentication
+ * @returns Wrapped handler that ensures authentication and forwards params
  * 
  * @example
  * export const GET = withAuth(async (req, { role }) => {
@@ -33,12 +35,31 @@ export type AuthenticatedHandler = (
  *   // Database queries automatically respect RLS policies
  *   return Response.json({ message: `Hello, ${role}!` });
  * });
+ * 
+ * @example
+ * // With dynamic params
+ * export const GET = withAuth(async (req, { role, params }) => {
+ *   const id = params.id; // params forwarded from Next.js
+ *   return Response.json({ id, role });
+ * });
  */
-export function withAuth(handler: AuthenticatedHandler) {
-  return async (req: Request): Promise<Response> => {
+export function withAuth<TContext = unknown, TReq extends Request = Request>(
+  handler: AuthenticatedHandler<TContext, TReq>
+) {
+  return async (req: TReq, context?: TContext): Promise<Response> => {
     try {
       const role = await getCurrentRole();
-      return handler(req, { role });
+      
+      // Await params if it's a Promise (Next.js 15 behavior for dynamic routes)
+      let resolvedContext = context;
+      if (context && typeof context === 'object' && 'params' in context) {
+        const params = (context as any).params;
+        if (params && typeof params === 'object' && 'then' in params) {
+          resolvedContext = { ...context, params: await params } as TContext;
+        }
+      }
+      
+      return handler(req, { role, ...resolvedContext } as AuthContext & TContext);
     } catch (err) {
       const error = err as Error;
       
@@ -91,11 +112,11 @@ export function withAuth(handler: AuthenticatedHandler) {
  *   { minRole: 'authorized_user' }
  * );
  */
-export function withMinRole(
-  handler: AuthenticatedHandler,
+export function withMinRole<TReq extends Request = Request>(
+  handler: AuthenticatedHandler<unknown, TReq>,
   options: { minRole: Role }
 ) {
-  return withAuth(async (req, context) => {
+  return withAuth<unknown, TReq>(async (req, context) => {
     const { hasAtLeastRole } = await import('./auth');
     
     if (!hasAtLeastRole(context.role, options.minRole)) {

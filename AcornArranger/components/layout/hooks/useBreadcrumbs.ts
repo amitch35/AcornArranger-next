@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
+import { useQueries } from "@tanstack/react-query";
 import { 
   BreadcrumbSegment, 
   breadcrumbMap,
@@ -38,11 +39,45 @@ export function useBreadcrumbs(
   pathname: string,
   params?: Record<string, string | string[]>
 ): BreadcrumbSegment[] {
-  // State for async-resolved titles
-  const [resolvedTitles, setResolvedTitles] = useState<
-    Record<string, string>
-  >({});
-  const [loadingPaths, setLoadingPaths] = useState<Set<string>>(new Set());
+  // Identify all resolver-backed crumb paths and build query descriptors up front.
+  const resolverCrumbs = useMemo(() => {
+    const segments = pathname.replace(/\/$/, "").split("/").filter(Boolean);
+    let currentPath = "";
+
+    const items: Array<{
+      path: string;
+      segment: string;
+      resolverParams: Record<string, string>;
+      resolver: ReturnType<typeof findBreadcrumbResolver>;
+    }> = [];
+
+    for (let i = 0; i < segments.length; i++) {
+      const segment = segments[i];
+      currentPath += `/${segment}`;
+      if (segment === "dashboard") continue;
+
+      const resolver = findBreadcrumbResolver(currentPath);
+      if (!resolver?.query) continue;
+
+      items.push({
+        path: currentPath,
+        segment,
+        resolverParams: extractParams(currentPath, resolver.pattern),
+        resolver,
+      });
+    }
+
+    return items;
+  }, [pathname]);
+
+  const queryResults = useQueries({
+    queries: resolverCrumbs.map((item) => ({
+      queryKey: item.resolver!.query!.key(item.resolverParams),
+      queryFn: () => item.resolver!.query!.fn(item.resolverParams),
+      enabled: true,
+      // Use global QueryClient defaults (staleTime, retry, etc.)
+    })),
+  });
 
   // Build initial breadcrumbs from pathname
   const breadcrumbs = useMemo(() => {
@@ -68,15 +103,22 @@ export function useBreadcrumbs(
       // Check if we have a resolver for this path
       const resolver = findBreadcrumbResolver(currentPath);
       
-      if (resolver) {
-        // We have an async resolver
-        const isLoading = loadingPaths.has(currentPath);
-        const resolvedLabel = resolvedTitles[currentPath];
+      if (resolver?.query) {
+        const resolverParams = extractParams(currentPath, resolver.pattern);
+        const loadingLabel =
+          typeof resolver.loadingLabel === "function"
+            ? resolver.loadingLabel(resolverParams)
+            : resolver.loadingLabel;
+
+        const idx = resolverCrumbs.findIndex((c) => c.path === currentPath);
+        const result = idx >= 0 ? queryResults[idx] : undefined;
+        const resolvedLabel =
+          result?.data != null ? resolver.query.label(result.data, resolverParams) : undefined;
 
         crumbs.push({
-          label: resolvedLabel || resolver.loadingLabel || "Loading...",
+          label: resolvedLabel || loadingLabel || "Loading...",
           href: currentPath,
-          isLoading: isLoading || !resolvedLabel,
+          isLoading: Boolean(result?.isLoading && !resolvedLabel),
         });
       } else {
         // Use static mapping or title-case
@@ -88,63 +130,7 @@ export function useBreadcrumbs(
     }
 
     return crumbs;
-  }, [pathname, resolvedTitles, loadingPaths]);
-
-  // Resolve async titles
-  useEffect(() => {
-    const segments = pathname.replace(/\/$/, "").split("/").filter(Boolean);
-    let currentPath = "";
-
-    for (let i = 0; i < segments.length; i++) {
-      const segment = segments[i];
-      currentPath += `/${segment}`;
-
-      if (segment === "dashboard") continue;
-
-      const resolver = findBreadcrumbResolver(currentPath);
-      
-      if (resolver && !resolvedTitles[currentPath]) {
-        const pathToResolve = currentPath;
-        
-        setLoadingPaths((prev) => new Set(prev).add(pathToResolve));
-
-        const resolverParams = extractParams(pathToResolve, resolver.pattern);
-        
-        resolver
-          .resolve(resolverParams)
-          .then((title) => {
-            setResolvedTitles((prev) => ({
-              ...prev,
-              [pathToResolve]: title,
-            }));
-            setLoadingPaths((prev) => {
-              const next = new Set(prev);
-              next.delete(pathToResolve);
-              return next;
-            });
-          })
-          .catch((error) => {
-            console.error(
-              `Failed to resolve breadcrumb for ${pathToResolve}:`,
-              error
-            );
-            // Fallback to segment on error
-            setResolvedTitles((prev) => ({
-              ...prev,
-              [pathToResolve]: getSegmentLabel(
-                pathToResolve.split("/").pop() || "",
-                pathToResolve
-              ),
-            }));
-            setLoadingPaths((prev) => {
-              const next = new Set(prev);
-              next.delete(pathToResolve);
-              return next;
-            });
-          });
-      }
-    }
-  }, [pathname, resolvedTitles]);
+  }, [pathname, resolverCrumbs, queryResults]);
 
   return breadcrumbs;
 }

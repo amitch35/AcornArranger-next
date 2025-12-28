@@ -7,6 +7,7 @@ import {
   Settings,
   type LucideIcon
 } from "lucide-react";
+import { fetchStaffDetail, getStaffDisplayName } from "@/src/features/staff/api";
 
 /**
  * Layout configuration for navigation and breadcrumbs
@@ -63,8 +64,17 @@ export interface BreadcrumbResolver {
   pattern: RegExp;
   /** Async function to resolve the title */
   resolve: (params: Record<string, string>) => Promise<string>;
-  /** Optional loading fallback */
-  loadingLabel?: string;
+  /** Optional loading fallback (can be param-aware) */
+  loadingLabel?: string | ((params: Record<string, string>) => string);
+  /**
+   * Optional React Query descriptor for "one cache to rule them all".
+   * If provided, breadcrumbs should use QueryClient caching (staleTime, dedupe, etc.).
+   */
+  query?: {
+    key: (params: Record<string, string>) => readonly unknown[];
+    fn: (params: Record<string, string>) => Promise<unknown>;
+    label: (data: unknown, params: Record<string, string>) => string;
+  };
 }
 
 // ============================================================================
@@ -177,16 +187,30 @@ export const breadcrumbResolvers: BreadcrumbResolver[] = [
       // For now, return a formatted ID
       return `Property ${params.id}`;
     },
-    loadingLabel: "Loading...",
+    loadingLabel: (params) => `Property ${params.id}`,
+    query: {
+      key: (params) => ["properties", "breadcrumb", params.id],
+      fn: async (params) => `Property ${params.id}`,
+      label: (data) => String(data),
+    },
   },
   
   // Example: Resolve staff names for /dashboard/staff/:id
   {
     pattern: /^\/dashboard\/staff\/([^\/]+)$/,
     resolve: async (params) => {
-      return `Staff ${params.id}`;
+      const id = params.id;
+      return id ? `Staff ${id}` : "Staff";
     },
-    loadingLabel: "Loading...",
+    loadingLabel: (params) => `Staff ${params.id}`,
+    query: {
+      key: (params) => ["staff", params.id],
+      fn: async (params) => fetchStaffDetail(params.id),
+      label: (data, params) => {
+        const name = getStaffDisplayName(data as any);
+        return name || `Staff ${params.id}`;
+      },
+    },
   },
   
   // Example: Resolve appointment details for /dashboard/appointments/:id
@@ -195,7 +219,12 @@ export const breadcrumbResolvers: BreadcrumbResolver[] = [
     resolve: async (params) => {
       return `Appointment ${params.id}`;
     },
-    loadingLabel: "Loading...",
+    loadingLabel: (params) => `Appointment ${params.id}`,
+    query: {
+      key: (params) => ["appointments", "breadcrumb", params.id],
+      fn: async (params) => `Appointment ${params.id}`,
+      label: (data) => String(data),
+    },
   },
 ];
 

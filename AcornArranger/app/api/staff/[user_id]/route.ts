@@ -12,9 +12,9 @@ import { deriveCapabilities } from "@/src/features/staff/schemas";
  * GET /api/staff/123
  */
 
-export const GET = withAuth(async (
+export const GET = withAuth<{ params: { user_id: string } }, NextRequest>(async (
   _req: NextRequest,
-  { params }: { params: { user_id: string } }
+  { params }
 ) => {
   try {
     const userId = Number(params.user_id);
