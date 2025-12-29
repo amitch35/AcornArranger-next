@@ -72,6 +72,7 @@ export const DurationPicker = React.forwardRef<HTMLInputElement, DurationPickerP
     const hoursRef = React.useRef<HTMLInputElement>(null);
     const minutesRef = React.useRef<HTMLInputElement>(null);
     const editingRef = React.useRef<"hh" | "mm" | null>(null);
+    const isDirtyRef = React.useRef(false);
 
     React.useImperativeHandle(ref, () => hoursRef.current as HTMLInputElement, []);
 
@@ -92,7 +93,7 @@ export const DurationPicker = React.forwardRef<HTMLInputElement, DurationPickerP
     React.useEffect(() => {
       // While the user is actively typing in a segment, avoid re-syncing from the controlled value
       // on every keystroke (it breaks caret position and can make typing feel "blocked").
-      if (editingRef.current) return;
+      if (editingRef.current && isDirtyRef.current) return;
       setHh(display.hh);
       setMm(display.mm);
     }, [display.hh, display.mm]);
@@ -224,6 +225,7 @@ export const DurationPicker = React.forwardRef<HTMLInputElement, DurationPickerP
       }
       // Mark as editing for this segment so controlled re-sync doesn't fight typing.
       editingRef.current = el === hoursRef.current ? "hh" : "mm";
+      isDirtyRef.current = false;
     };
 
     return (
@@ -243,6 +245,7 @@ export const DurationPicker = React.forwardRef<HTMLInputElement, DurationPickerP
           onKeyDown={handleHoursKeyDown}
           onFocus={(e) => {
             editingRef.current = "hh";
+            isDirtyRef.current = false;
             // Select-all makes 2-digit entry predictable regardless of where the user clicks.
             e.currentTarget.select();
           }}
@@ -251,6 +254,7 @@ export const DurationPicker = React.forwardRef<HTMLInputElement, DurationPickerP
             // Robust to caret position: keep the *last* 2 digits the user typed.
             const next = digits.slice(-2);
             setHh(next);
+            isDirtyRef.current = true;
             // Don't commit to the controlled value until the user finishes the segment (blur or 2 digits).
             if (next.length === 2 || next.length === 0) {
               emitFromTexts(next, mm);
@@ -258,6 +262,7 @@ export const DurationPicker = React.forwardRef<HTMLInputElement, DurationPickerP
           }}
           onBlur={() => {
             editingRef.current = null;
+            isDirtyRef.current = false;
             // Normalize & re-pad based on clamped value.
             if (normalizedValue === null && hh.trim() === "" && mm.trim() === "") return;
             const h = parseDigits(hh) ?? 0;
@@ -282,18 +287,21 @@ export const DurationPicker = React.forwardRef<HTMLInputElement, DurationPickerP
           onKeyDown={handleMinutesKeyDown}
           onFocus={(e) => {
             editingRef.current = "mm";
+            isDirtyRef.current = false;
             e.currentTarget.select();
           }}
           onChange={(e) => {
             const digits = e.target.value.replace(/\D/g, "");
             const next = digits.slice(-2);
             setMm(next);
+            isDirtyRef.current = true;
             if (next.length === 2 || next.length === 0) {
               emitFromTexts(hh, next);
             }
           }}
           onBlur={() => {
             editingRef.current = null;
+            isDirtyRef.current = false;
             if (normalizedValue === null && hh.trim() === "" && mm.trim() === "") return;
             const h = parseDigits(hh) ?? 0;
             const m = parseDigits(mm) ?? 0;

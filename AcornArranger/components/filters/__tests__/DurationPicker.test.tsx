@@ -16,15 +16,19 @@ function Harness({
   maxMinutes?: number;
 }) {
   const [value, setValue] = React.useState<number | null>(initial);
+  const resetTo = () => setValue(90);
   return (
-    <DurationPicker
-      aria-label="Duration"
-      valueMinutes={value}
-      onChange={setValue}
-      stepMinutes={stepMinutes}
-      minMinutes={minMinutes}
-      maxMinutes={maxMinutes}
-    />
+    <div>
+      <button type="button" onClick={resetTo}>Reset</button>
+      <DurationPicker
+        aria-label="Duration"
+        valueMinutes={value}
+        onChange={setValue}
+        stepMinutes={stepMinutes}
+        minMinutes={minMinutes}
+        maxMinutes={maxMinutes}
+      />
+    </div>
   );
 }
 
@@ -95,6 +99,21 @@ describe("DurationPicker", () => {
 
     expect(hours.value).toBe("00");
     expect(minutes.value).toBe("45");
+  });
+
+  it("re-syncs display when parent changes value while focused but not typing", () => {
+    const { getByLabelText, getByText } = render(<Harness initial={65} />);
+    const hours = getByLabelText("Duration hours") as HTMLInputElement;
+    const minutes = getByLabelText("Duration minutes") as HTMLInputElement;
+
+    // Focus without typing.
+    minutes.focus();
+    // Parent updates controlled value (e.g., reset button)
+    fireEvent.click(getByText("Reset"));
+
+    // Should reflect reset value immediately even while focused.
+    expect(hours.value).toBe("01");
+    expect(minutes.value).toBe("30");
   });
 });
 
