@@ -119,6 +119,13 @@ export const DurationPicker = React.forwardRef<HTMLInputElement, DurationPickerP
       [onChange, minMinutes, maxMinutes],
     );
 
+    const getCurrentTexts = React.useCallback(() => {
+      // Prefer live DOM values to avoid stale React state in blur/change closures.
+      const hhText = hoursRef.current?.value ?? hh;
+      const mmText = minutesRef.current?.value ?? mm;
+      return { hhText, mmText };
+    }, [hh, mm]);
+
     const syncDisplayFromMinutes = React.useCallback((minutes: number | null) => {
       if (minutes === null) {
         setHh("");
@@ -255,18 +262,28 @@ export const DurationPicker = React.forwardRef<HTMLInputElement, DurationPickerP
             const next = digits.slice(-2);
             setHh(next);
             isDirtyRef.current = true;
-            // Don't commit to the controlled value until the user finishes the segment (blur or 2 digits).
-            if (next.length === 2 || next.length === 0) {
-              emitFromTexts(next, mm);
+            // Don't commit to the controlled value until the user finishes the segment.
+            // We commit eagerly only once we have 2 digits; for clearing/partial entry we defer to blur.
+            if (next.length === 2) {
+              const { mmText } = getCurrentTexts();
+              emitFromTexts(next, mmText);
             }
           }}
           onBlur={() => {
             editingRef.current = null;
             isDirtyRef.current = false;
             // Normalize & re-pad based on clamped value.
-            if (normalizedValue === null && hh.trim() === "" && mm.trim() === "") return;
-            const h = parseDigits(hh) ?? 0;
-            const m = parseDigits(mm) ?? 0;
+            const { hhText, mmText } = getCurrentTexts();
+            const hhEmpty = hhText.trim() === "";
+            const mmEmpty = mmText.trim() === "";
+            if (hhEmpty && mmEmpty) {
+              setHh("");
+              setMm("");
+              if (normalizedValue !== null) onChange(null);
+              return;
+            }
+            const h = parseDigits(hhText) ?? 0;
+            const m = parseDigits(mmText) ?? 0;
             const clamped = clampInt(h * 60 + m, minMinutes, maxMinutes);
             const { h: nh, m: nm } = toHHMM(clamped);
             setHh(pad2(nh));
@@ -295,16 +312,25 @@ export const DurationPicker = React.forwardRef<HTMLInputElement, DurationPickerP
             const next = digits.slice(-2);
             setMm(next);
             isDirtyRef.current = true;
-            if (next.length === 2 || next.length === 0) {
-              emitFromTexts(hh, next);
+            if (next.length === 2) {
+              const { hhText } = getCurrentTexts();
+              emitFromTexts(hhText, next);
             }
           }}
           onBlur={() => {
             editingRef.current = null;
             isDirtyRef.current = false;
-            if (normalizedValue === null && hh.trim() === "" && mm.trim() === "") return;
-            const h = parseDigits(hh) ?? 0;
-            const m = parseDigits(mm) ?? 0;
+            const { hhText, mmText } = getCurrentTexts();
+            const hhEmpty = hhText.trim() === "";
+            const mmEmpty = mmText.trim() === "";
+            if (hhEmpty && mmEmpty) {
+              setHh("");
+              setMm("");
+              if (normalizedValue !== null) onChange(null);
+              return;
+            }
+            const h = parseDigits(hhText) ?? 0;
+            const m = parseDigits(mmText) ?? 0;
             const clamped = clampInt(h * 60 + m, minMinutes, maxMinutes);
             const { h: nh, m: nm } = toHHMM(clamped);
             setHh(pad2(nh));

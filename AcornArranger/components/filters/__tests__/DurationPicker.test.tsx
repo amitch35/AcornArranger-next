@@ -20,6 +20,7 @@ function Harness({
   return (
     <div>
       <button type="button" onClick={resetTo}>Reset</button>
+      <div data-testid="value">{value === null ? "null" : String(value)}</div>
       <DurationPicker
         aria-label="Duration"
         valueMinutes={value}
@@ -114,6 +115,20 @@ describe("DurationPicker", () => {
     // Should reflect reset value immediately even while focused.
     expect(hours.value).toBe("01");
     expect(minutes.value).toBe("30");
+  });
+
+  it("allows clearing both segments to null via the UI (empty HH and MM)", () => {
+    const { getByLabelText, getByTestId } = render(<Harness initial={65} />);
+    const hours = getByLabelText("Duration hours") as HTMLInputElement;
+    const minutes = getByLabelText("Duration minutes") as HTMLInputElement;
+
+    fireEvent.change(hours, { target: { value: "" } });
+    fireEvent.change(minutes, { target: { value: "" } });
+    fireEvent.blur(minutes);
+
+    expect(getByTestId("value").textContent).toBe("null");
+    expect(hours.value).toBe("");
+    expect(minutes.value).toBe("");
   });
 });
 
