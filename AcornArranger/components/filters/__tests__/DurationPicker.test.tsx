@@ -130,6 +130,21 @@ describe("DurationPicker", () => {
     expect(hours.value).toBe("");
     expect(minutes.value).toBe("");
   });
+
+  it("allows selecting minutes from the dropdown", () => {
+    const { getByLabelText, getByRole } = render(<Harness initial={60} />);
+    const minutes = getByLabelText("Duration minutes") as HTMLInputElement;
+
+    // Open minutes dropdown and select 45.
+    fireEvent.click(getByRole("button", { name: "Choose minutes" }));
+    fireEvent.click(getByRole("option", { name: "45" }));
+
+    fireEvent.blur(minutes);
+    // 01:45 => 105 minutes
+    // We assert through the harness' displayed value.
+    const valueEl = document.querySelector('[data-testid="value"]');
+    expect(valueEl?.textContent).toBe("105");
+  });
 });
 
 
