@@ -14,9 +14,9 @@ function buildQuery(params: PropertyOptionsParams): string {
   const sp = new URLSearchParams();
   if (params.q) sp.set("q", params.q);
   if (params.page) sp.set("page", String(params.page));
-  if (params.limit) sp.set("limit", String(params.limit));
+  if (params.limit) sp.set("pageSize", String(params.limit));
   if (params.city) sp.set("city", params.city);
-  if (params.statusIds?.length) sp.set("filter_status_ids", params.statusIds.join(","));
+  if (params.statusIds?.length) sp.set("statusIds", params.statusIds.join(","));
   const qs = sp.toString();
   return qs ? `?${qs}` : "";
 }

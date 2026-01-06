@@ -176,4 +176,3 @@ export function PropertyMultiSelect({
 
 export default PropertyMultiSelect;
 
-

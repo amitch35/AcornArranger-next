@@ -16,6 +16,7 @@ export default function Page() {
     q: filters.q || undefined,
     city: filters.city || undefined,
     statusIds: filters.onlyActive ? [1] : undefined,
+    limit: 1000, // Fetch all properties for dropdown (no pagination)
   });
 
   const options = React.useMemo(
@@ -88,5 +89,4 @@ export default function Page() {
     </div>
   );
 }
-
 
