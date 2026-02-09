@@ -81,5 +81,36 @@ describe("Test Utilities", () => {
 
       expect(result.error).toBe(mockError);
     });
+
+    it("should allow explicit count: 0", async () => {
+      // Bug fix: count: 0 was being overridden to dataArray.length
+      const mockClient = createMockSupabaseClient({
+        data: [{ id: 1 }, { id: 2 }],
+        count: 0, // Explicitly set to 0
+      });
+
+      const result = await mockClient
+        .from("test")
+        .select("*")
+        .range(0, 10);
+
+      expect(result.data).toHaveLength(2);
+      expect(result.count).toBe(0); // Should respect explicit 0, not override to 2
+    });
+
+    it("should default count to dataArray.length when count is undefined", async () => {
+      const mockClient = createMockSupabaseClient({
+        data: [{ id: 1 }, { id: 2 }, { id: 3 }],
+        // count: undefined (not provided)
+      });
+
+      const result = await mockClient
+        .from("test")
+        .select("*")
+        .range(0, 10);
+
+      expect(result.data).toHaveLength(3);
+      expect(result.count).toBe(3); // Should default to dataArray.length
+    });
   });
 });

@@ -77,6 +77,43 @@ describe("/api/properties", () => {
       expect(Array.isArray(data.items)).toBe(true);
     });
 
+    it("should include properties without addresses when no city filter", async () => {
+      // Create mock data with some properties having null addresses
+      const mixedProperties = [
+        ...mockPropertiesData.slice(0, 5),
+        {
+          properties_id: 999,
+          property_name: "Property Without Address",
+          estimated_cleaning_mins: 60,
+          double_unit: null,
+          address: null, // No address
+          status: { status_id: 1, status: "Active" },
+        },
+      ];
+
+      const mockSupabase = createMockSupabaseClient({
+        data: mixedProperties,
+        count: mixedProperties.length,
+      });
+
+      vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
+
+      const req = new NextRequest("http://localhost:3000/api/properties");
+
+      const response = await GET(req);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(Array.isArray(data.items)).toBe(true);
+      expect(data.items).toHaveLength(6);
+      // Verify the property without address is included
+      const propertyWithoutAddress = data.items.find(
+        (p: any) => p.properties_id === 999
+      );
+      expect(propertyWithoutAddress).toBeDefined();
+      expect(propertyWithoutAddress.address).toBeNull();
+    });
+
     it("should filter by city", async () => {
       const filteredProperties = mockPropertiesData.filter(
         (p) => p.address?.city?.startsWith("San")

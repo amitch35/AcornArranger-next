@@ -86,7 +86,6 @@ export function createMockSupabaseClient(options: {
   const { error = null } = options;
   // Default status: 500 if error present, otherwise 200
   const status = options.status ?? (error ? 500 : 200);
-  let { count = 0 } = options;
   let data = options.data;
   
   // Normalize data to always be an array for consistent handling, except for explicit null
@@ -96,7 +95,9 @@ export function createMockSupabaseClient(options: {
     data !== undefined ? [data] : [];
   
   const resolvedData = data === null ? null : dataArray;
-  count = count || dataArray.length;
+  // Use nullish coalescing to allow explicit count: 0
+  // Don't use destructuring default to avoid overriding explicit 0
+  const count = options.count ?? dataArray.length;
 
   if (error) {
     // Return error mock with chainable query
