@@ -103,12 +103,14 @@ export default function StaffDetailPage() {
   if (error) {
     return (
       <div className="container py-8 space-y-6">
-        <Link href="/dashboard/staff">
-          <Button variant="ghost" className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Staff
-          </Button>
-        </Link>
+        <Button 
+          variant="ghost" 
+          className="gap-2"
+          onClick={() => router.back()}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Staff
+        </Button>
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
@@ -122,12 +124,14 @@ export default function StaffDetailPage() {
   if (!staff) {
     return (
       <div className="container py-8 space-y-6">
-        <Link href="/dashboard/staff">
-          <Button variant="ghost" className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Staff
-          </Button>
-        </Link>
+        <Button 
+          variant="ghost" 
+          className="gap-2"
+          onClick={() => router.back()}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Staff
+        </Button>
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Not Found</AlertTitle>
@@ -142,12 +146,14 @@ export default function StaffDetailPage() {
       {/* Header with back button */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href="/dashboard/staff">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-              <span className="sr-only">Back to Staff</span>
-            </Button>
-          </Link>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => router.back()}
+          >
+            <ArrowLeft className="h-5 w-5" />
+            <span className="sr-only">Back to Staff</span>
+          </Button>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
               {staff.name || `${staff.first_name || ""} ${staff.last_name || ""}`.trim() || "Staff Member"}
@@ -276,12 +282,13 @@ export default function StaffDetailPage() {
 
       {/* Actions */}
       <div className="flex items-center gap-4">
-        <Link href="/dashboard/staff">
-          <Button variant="outline">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Staff List
-          </Button>
-        </Link>
+        <Button 
+          variant="outline"
+          onClick={() => router.back()}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Staff List
+        </Button>
       </div>
     </div>
   );

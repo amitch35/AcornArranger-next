@@ -20,10 +20,14 @@ type CanonicalKeys =
   | "canClean"
   | "canLeadTeam"
   | "dateFrom"
-  | "dateTo";
+  | "dateTo"
+  | "city"
+  | "cleaningTimeMin"
+  | "cleaningTimeMax";
 
 const CANONICAL_KEY_ORDER: CanonicalKeys[] = [
   "q",
+  "city",
   "page",
   "pageSize",
   "sort",
@@ -36,6 +40,8 @@ const CANONICAL_KEY_ORDER: CanonicalKeys[] = [
   "serviceIds",
   "staffIds",
   "propertyIds",
+  "cleaningTimeMin",
+  "cleaningTimeMax",
 ];
 
 export type DecodeOptions = {
@@ -115,6 +121,13 @@ export function decodeFromSearchParams(
   result.canClean = canClean === "true" ? true : undefined;
   result.canLeadTeam = canLeadTeam === "true" ? true : undefined;
 
+  // Property-specific filters
+  result.city = get("city") ?? undefined;
+  const cleaningTimeMin = Number(get("cleaningTimeMin"));
+  result.cleaningTimeMin = Number.isFinite(cleaningTimeMin) && cleaningTimeMin >= 0 ? cleaningTimeMin : undefined;
+  const cleaningTimeMax = Number(get("cleaningTimeMax"));
+  result.cleaningTimeMax = Number.isFinite(cleaningTimeMax) && cleaningTimeMax >= 0 ? cleaningTimeMax : undefined;
+
   return result as Record<CanonicalKeys, unknown>;
 }
 
@@ -169,6 +182,17 @@ export function encodeToSearchParams(
       case "canLeadTeam": {
         const b = value === true;
         if (b) params.set(key, "true");
+        break;
+      }
+      case "city": {
+        const v = String(value);
+        if (v.length > 0) params.set(key, v);
+        break;
+      }
+      case "cleaningTimeMin":
+      case "cleaningTimeMax": {
+        const n = Number(value);
+        if (Number.isFinite(n) && n >= 0) params.set(key, String(n));
         break;
       }
     }

@@ -21,6 +21,12 @@ export const GET = withAuth(async (req: NextRequest) => {
     const offset = Math.max(0, (page - 1) * Math.max(1, pageSize));
     const city = searchParams.get("city");
     const statusIds = parseNumberArray(searchParams.get("statusIds"));
+    const cleaningTimeMin = searchParams.get("cleaningTimeMin")
+      ? Number(searchParams.get("cleaningTimeMin"))
+      : undefined;
+    const cleaningTimeMax = searchParams.get("cleaningTimeMax")
+      ? Number(searchParams.get("cleaningTimeMax"))
+      : undefined;
 
     const supabase = await createClient();
     const base = supabase.from("rc_properties");
@@ -31,19 +37,31 @@ export const GET = withAuth(async (req: NextRequest) => {
       property_name,
       estimated_cleaning_mins,
       double_unit,
-      address:rc_addresses ( city,address,country,state_name,postal_code ),
+      address:rc_addresses!inner ( city,address,country,state_name,postal_code ),
       status:property_status_key ( status,status_id )
     `;
 
-    const cityTrim = city ? city.trim() : undefined;
-    let query = cityTrim
-      ? base.select(select, { count: "exact" }).ilike("rc_addresses.city", `${cityTrim}%`)
-      : base.select(select, { count: "exact" });
+    let query = base.select(select, { count: "exact" });
 
+    // Apply filters
     if (q) query = query.ilike("property_name", `%${q}%`);
     if (statusIds && statusIds.length) query = query.in("status_id", statusIds);
+    
+    // City filter - use inner join to filter properties by address city
+    const cityTrim = city ? city.trim() : undefined;
+    if (cityTrim) {
+      query = query.ilike("rc_addresses.city", `${cityTrim}%`);
+    }
 
-    // Apply dynamic sort (fallback to property_name asc)
+    // Apply cleaning time range filters (inclusive, excludes nulls)
+    if (cleaningTimeMin !== undefined && Number.isFinite(cleaningTimeMin)) {
+      query = query.gte("estimated_cleaning_mins", cleaningTimeMin);
+    }
+    if (cleaningTimeMax !== undefined && Number.isFinite(cleaningTimeMax)) {
+      query = query.lte("estimated_cleaning_mins", cleaningTimeMax);
+    }
+
+    // Apply dynamic sort (fallback to status_id asc, then property_name asc - matches legacy)
     const { parseSortParam } = await import("@/lib/api/sort");
     const rules = parseSortParam(sort, {
       id: "properties_id",
@@ -53,7 +71,7 @@ export const GET = withAuth(async (req: NextRequest) => {
     });
     const ordered = rules.length
       ? rules.reduce((q, r) => q.order(r.column, { ascending: r.ascending }), query)
-      : query.order("property_name", { ascending: true });
+      : query.order("status_id", { ascending: true }).order("property_name", { ascending: true });
 
     const { data, error, status, count } = await ordered.range(offset, offset + Math.max(1, pageSize) - 1);
 

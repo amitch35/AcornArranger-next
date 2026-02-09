@@ -30,6 +30,20 @@ function mockFetchImplementation() {
       );
     }
 
+    if (url.includes("/api/options/staff-status")) {
+      return new Response(
+        JSON.stringify({
+          options: [
+            { id: 1, label: "Active" },
+            { id: 2, label: "Inactive" },
+            { id: 3, label: "Unverified" },
+          ],
+          total: 3,
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
     if (url.includes("/api/staff")) {
       // Echo back a single staff member; test cases can assert on requested url.
       return new Response(

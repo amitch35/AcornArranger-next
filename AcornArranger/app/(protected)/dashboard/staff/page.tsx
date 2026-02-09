@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/datagrid/DataTable";
 import { TablePagination } from "@/components/datagrid/TablePagination";
+import { ResultsCount } from "@/components/datagrid/ResultsCount";
 import { RoleMultiSelect } from "@/components/filters/RoleMultiSelect";
 import { StatusMultiSelect } from "@/components/filters/StatusMultiSelect";
 import { StaffAdapter } from "@/src/adapters/Staff";
@@ -67,6 +68,7 @@ export default function StaffListPage() {
   const [statusIds, setStatusIds] = React.useState<string[]>(
     searchParams.get("statusIds")?.split(",").filter(Boolean) || []
   );
+  const [hasInitializedDefaults, setHasInitializedDefaults] = React.useState(false);
   const [roleIds, setRoleIds] = React.useState<string[]>(
     searchParams.get("roleIds")?.split(",").filter(Boolean) || []
   );
@@ -98,14 +100,36 @@ export default function StaffListPage() {
         label: opt.label,
       }));
     },
+    staleTime: 24 * 60 * 60 * 1000, // 24 hours - role options rarely change
   });
 
-  // Status options (hardcoded based on staff_status_key table)
-  const statusOptions = [
-    { value: "1", label: "Active" },
-    { value: "2", label: "Inactive" },
-    { value: "3", label: "Unverified" },
-  ];
+  // Fetch staff status options from API
+  const { data: statusOptions = [] } = useQuery<Array<{ value: string; label: string }>>({
+    queryKey: ["staff-status-options"],
+    queryFn: async () => {
+      const res = await fetch("/api/options/staff-status");
+      if (!res.ok) throw new Error("Failed to load staff statuses");
+      const data = await res.json();
+      return data.options.map((opt: any) => ({
+        value: String(opt.id),
+        label: opt.label,
+      }));
+    },
+    staleTime: 24 * 60 * 60 * 1000, // 24 hours - status options rarely change
+  });
+
+  // Set default status selections on initial load (Active, Unverified)
+  React.useEffect(() => {
+    if (!hasInitializedDefaults && statusOptions.length > 0 && statusIds.length === 0 && !searchParams.get("statusIds")) {
+      const activeOption = statusOptions.find(opt => opt.label === "Active");
+      const unverifiedOption = statusOptions.find(opt => opt.label === "Unverified");
+      const defaults = [activeOption?.value, unverifiedOption?.value].filter(Boolean) as string[];
+      if (defaults.length > 0) {
+        setStatusIds(defaults);
+      }
+      setHasInitializedDefaults(true);
+    }
+  }, [statusOptions, hasInitializedDefaults, statusIds.length, searchParams]);
 
   // Build filters object
   const filters: StaffFilters = React.useMemo(
@@ -139,7 +163,9 @@ export default function StaffListPage() {
     return qs ? `${StaffAdapter.endpoint}?${qs}` : StaffAdapter.endpoint;
   }, [apiParams]);
 
-  // Fetch staff data
+  // Fetch staff data (wait for defaults to initialize to avoid double-fetch)
+  const shouldFetchStaff = hasInitializedDefaults || searchParams.get("statusIds") !== null;
+  
   const {
     data,
     isLoading,
@@ -151,10 +177,18 @@ export default function StaffListPage() {
       if (!res.ok) throw new Error("Failed to load staff");
       return res.json();
     },
+    enabled: shouldFetchStaff,
   });
 
-  // Update URL when filters change
+  // Update URL when filters change (skip on initial load before defaults)
+  const initialRenderRef = React.useRef(true);
   React.useEffect(() => {
+    // Skip URL update on very first render to avoid race with defaults
+    if (initialRenderRef.current) {
+      initialRenderRef.current = false;
+      return;
+    }
+
     const params = new URLSearchParams();
     if (q) params.set("q", q);
     if (statusIds.length) params.set("statusIds", statusIds.join(","));
@@ -361,6 +395,15 @@ export default function StaffListPage() {
             </Label>
           </div>
         </div>
+      </div>
+
+      {/* Results Count */}
+      <div className="flex items-center justify-between">
+        <ResultsCount
+          total={data?.total ?? 0}
+          loading={isLoading}
+          entityName="staff members"
+        />
       </div>
 
       {/* Table */}

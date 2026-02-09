@@ -36,7 +36,10 @@ export function createMockSupabaseQuery(mockData: any[] = [], mockCount: number 
     query.eq = vi.fn(() => query); // Return self for chaining
     query.in = vi.fn(() => query);
     query.ilike = vi.fn(() => query);
+    query.gte = vi.fn(() => query); // Greater than or equal
+    query.lte = vi.fn(() => query); // Less than or equal
     query.order = vi.fn(() => query);
+    query.select = vi.fn(() => query); // For chaining after update
 
     // Terminal methods
     query.range = mockRange;
@@ -48,9 +51,11 @@ export function createMockSupabaseQuery(mockData: any[] = [], mockCount: number 
   };
 
   const mockSelect = vi.fn(() => createChainableQuery());
+  const mockUpdate = vi.fn(() => createChainableQuery());
 
   const mockFrom = vi.fn(() => ({
     select: mockSelect,
+    update: mockUpdate,
   }));
 
   return {
@@ -61,6 +66,7 @@ export function createMockSupabaseQuery(mockData: any[] = [], mockCount: number 
     _mocks: {
       from: mockFrom,
       select: mockSelect,
+      update: mockUpdate,
       range: mockRange,
       maybeSingle: mockMaybeSingle,
       getLatestQuery: () => latestQuery,
@@ -72,25 +78,39 @@ export function createMockSupabaseQuery(mockData: any[] = [], mockCount: number 
  * Create a full mock Supabase client
  */
 export function createMockSupabaseClient(options: {
-  data?: any[];
+  data?: any[] | any | null;
   count?: number;
   error?: Error | null;
+  status?: number;
 } = {}) {
-  const { data = [], count = 0, error = null } = options;
+  const { error = null } = options;
+  // Default status: 500 if error present, otherwise 200
+  const status = options.status ?? (error ? 500 : 200);
+  let { count = 0 } = options;
+  let data = options.data;
+  
+  // Normalize data to always be an array for consistent handling, except for explicit null
+  const dataArray = 
+    data === null ? [] : 
+    Array.isArray(data) ? data : 
+    data !== undefined ? [data] : [];
+  
+  const resolvedData = data === null ? null : dataArray;
+  count = count || dataArray.length;
 
   if (error) {
     // Return error mock with chainable query
     const mockRange = vi.fn().mockResolvedValue({
       data: null,
       error,
-      status: 500,
+      status: status || 500,
       count: 0,
     });
 
     const mockMaybeSingle = vi.fn().mockResolvedValue({
       data: null,
       error,
-      status: 500,
+      status: status || 500,
     });
 
     const createErrorQuery = () => {
@@ -98,9 +118,12 @@ export function createMockSupabaseClient(options: {
         eq: vi.fn(() => query), // Return self for chaining, consistent with success path
         in: vi.fn(() => query),
         ilike: vi.fn(() => query),
+        gte: vi.fn(() => query),
+        lte: vi.fn(() => query),
         order: vi.fn(() => query),
         range: mockRange,
         maybeSingle: mockMaybeSingle,
+        select: vi.fn(() => query), // For PUT chaining
       };
       return query;
     };
@@ -108,6 +131,7 @@ export function createMockSupabaseClient(options: {
     return {
       from: vi.fn(() => ({
         select: vi.fn(() => createErrorQuery()),
+        update: vi.fn(() => createErrorQuery()),
       })),
       auth: {
         getClaims: vi.fn(),
@@ -118,7 +142,7 @@ export function createMockSupabaseClient(options: {
   }
 
   // Return success mock
-  return createMockSupabaseQuery(data, count);
+  return createMockSupabaseQuery(dataArray, count);
 }
 
 /**
@@ -142,6 +166,32 @@ export function generateMockStaff(count: number = 10) {
     status: {
       status_id: ((i % 3) + 1) as 1 | 2 | 3,
       status: ["Active", "Inactive", "Unverified"][i % 3] as "Active" | "Inactive" | "Unverified",
+    },
+  }));
+}
+
+/**
+ * Mock data generators for properties
+ */
+export function generateMockProperties(count: number = 10) {
+  const cities = ["San Diego", "Los Angeles", "San Francisco", "Sacramento", "Oakland"];
+  const propertyTypes = ["Beach House", "Mountain Cabin", "City Condo", "Suburban Home", "Downtown Loft"];
+  
+  return Array.from({ length: count }, (_, i) => ({
+    properties_id: i + 1,
+    property_name: `${propertyTypes[i % propertyTypes.length]} ${i + 1}`,
+    estimated_cleaning_mins: i % 4 === 3 ? null : 60 + (i % 10) * 15, // null every 4th, others 60-195 mins
+    double_unit: i % 3 === 0 ? [(i % count) + 2, (i % count) + 3] : null,
+    address: {
+      city: cities[i % cities.length],
+      address: `${100 + i} Main St`,
+      country: "USA",
+      state_name: "CA",
+      postal_code: `9${(2000 + i).toString().slice(-4)}`,
+    },
+    status: {
+      status_id: ((i % 3) + 1) as 1 | 2 | 3,
+      status: ["Active", "Inactive", "Pending"][i % 3],
     },
   }));
 }
