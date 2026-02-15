@@ -19,6 +19,7 @@ import type { Staff } from "@/src/features/staff/schemas";
 import { Check, X, Eye } from "lucide-react";
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
+import { saveListUrl } from "@/lib/navigation/listReturnUrl";
 
 /**
  * Staff List Page
@@ -255,7 +256,10 @@ export default function StaffListPage() {
         id: "actions",
         header: "Actions",
         cell: ({ row }) => (
-          <Link href={`/dashboard/staff/${row.original.user_id}`}>
+          <Link
+            href={`/dashboard/staff/${row.original.user_id}`}
+            onClick={() => saveListUrl("staff")}
+          >
             <Button variant="ghost" size="sm">
               <Eye className="h-4 w-4 mr-1" />
               View

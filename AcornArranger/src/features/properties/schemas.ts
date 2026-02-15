@@ -101,6 +101,7 @@ export const PropertyUpdatePayloadSchema = z.object({
   double_unit: z
     .array(z.number().int().positive())
     .max(20, "Cannot link more than 20 properties")
+    .nullable()
     .optional()
     .transform((arr) => {
       // Dedupe array

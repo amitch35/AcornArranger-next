@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,7 @@ import Link from "next/link";
 import type { PropertyRow } from "@/src/features/properties/schemas";
 import { formatMinutes } from "@/src/features/properties/schemas";
 import { fetchPropertyDetail } from "@/src/features/properties/api";
+import { getListUrl } from "@/lib/navigation/listReturnUrl";
 
 /**
  * Property Detail Page
@@ -44,7 +45,6 @@ function StatusBadge({ status }: { status: PropertyRow["status"] }) {
 
 export default function PropertyDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const propertyId = params?.id as string;
 
   // Fetch property detail
@@ -53,12 +53,40 @@ export default function PropertyDetailPage() {
     isLoading,
     error,
   } = useQuery<PropertyRow>({
-    queryKey: ["properties", propertyId],
-    queryFn: async () => {
-      return fetchPropertyDetail(propertyId);
-    },
+    queryKey: ["property", propertyId],
+    queryFn: () => fetchPropertyDetail(propertyId),
     enabled: !!propertyId,
+    staleTime: 2 * 60 * 1000, // 2 minutes - avoid refetch when navigating back from edit
   });
+
+  // Fetch names for linked properties (separate cache, long staleTime since names rarely change)
+  const linkedIds = property?.double_unit ?? [];
+  const { data: linkedProperties } = useQuery<PropertyRow[]>({
+    queryKey: ["linked-properties", ...linkedIds.slice().sort()],
+    queryFn: async () => {
+      const results = await Promise.all(
+        linkedIds.map(async (id) => {
+          try {
+            const res = await fetch(`/api/properties/${id}`);
+            if (!res.ok) return null;
+            return await res.json();
+          } catch {
+            return null;
+          }
+        })
+      );
+      return results.filter((p): p is PropertyRow => p !== null);
+    },
+    enabled: linkedIds.length > 0,
+    staleTime: 30 * 60 * 1000, // 30 minutes - ID-to-name mapping is essentially static
+  });
+
+  // Build a lookup map for linked property names
+  const linkedNameMap = React.useMemo(() => {
+    const map = new Map<number, string>();
+    linkedProperties?.forEach((p) => map.set(p.properties_id, p.property_name));
+    return map;
+  }, [linkedProperties]);
 
   // Loading state
   if (isLoading) {
@@ -79,18 +107,18 @@ export default function PropertyDetailPage() {
     );
   }
 
+  const listUrl = getListUrl("properties", "/dashboard/properties");
+
   // Error state
   if (error) {
     return (
       <div className="container py-8 space-y-6">
-        <Button 
-          variant="ghost" 
-          className="gap-2"
-          onClick={() => router.back()}
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Properties
-        </Button>
+        <Link href={listUrl}>
+          <Button variant="ghost" className="gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Properties
+          </Button>
+        </Link>
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
@@ -104,14 +132,12 @@ export default function PropertyDetailPage() {
   if (!property) {
     return (
       <div className="container py-8 space-y-6">
-        <Button 
-          variant="ghost" 
-          className="gap-2"
-          onClick={() => router.back()}
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Properties
-        </Button>
+        <Link href={listUrl}>
+          <Button variant="ghost" className="gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Properties
+          </Button>
+        </Link>
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Not Found</AlertTitle>
@@ -126,14 +152,12 @@ export default function PropertyDetailPage() {
       {/* Header with back button */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => router.back()}
-          >
-            <ArrowLeft className="h-5 w-5" />
-            <span className="sr-only">Back to Properties</span>
-          </Button>
+          <Link href={listUrl}>
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+              <span className="sr-only">Back to Properties</span>
+            </Button>
+          </Link>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
               {property.property_name || "Property"}
@@ -254,18 +278,22 @@ export default function PropertyDetailPage() {
                       {property.double_unit.length} {property.double_unit.length === 1 ? "unit" : "units"}
                     </Badge>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="space-y-1">
                     {property.double_unit.map((unitId) => (
-                      <Link key={unitId} href={`/dashboard/properties/${unitId}`}>
-                        <Badge variant="secondary" className="font-mono cursor-pointer hover:bg-secondary/80">
+                      <Link
+                        key={unitId}
+                        href={`/dashboard/properties/${unitId}`}
+                        className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors"
+                      >
+                        <Badge variant="secondary" className="font-mono text-xs shrink-0">
                           #{unitId}
                         </Badge>
+                        <span className="truncate">
+                          {linkedNameMap.get(unitId) ?? "Loading..."}
+                        </span>
                       </Link>
                     ))}
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Click an ID to view linked property
-                  </p>
                 </div>
               ) : (
                 <p className="text-muted-foreground mt-2">No linked units</p>
@@ -285,13 +313,12 @@ export default function PropertyDetailPage() {
 
       {/* Actions */}
       <div className="flex items-center gap-4">
-        <Button 
-          variant="outline"
-          onClick={() => router.back()}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Properties List
-        </Button>
+        <Link href={listUrl}>
+          <Button variant="outline">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Properties List
+          </Button>
+        </Link>
         <Link href={`/dashboard/properties/${propertyId}/edit`}>
           <Button>
             <Edit className="h-4 w-4 mr-2" />

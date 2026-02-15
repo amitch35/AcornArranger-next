@@ -226,6 +226,40 @@ describe("PropertyMultiSelect", () => {
   });
 
   describe("Remote Loading Support", () => {
+    it("preserves selections when options are filtered by search", () => {
+      const onChange = vi.fn();
+      const { rerender } = render(
+        <PropertyMultiSelect
+          options={mockOptions}
+          value={["1", "2"]} // Ocean View Villa, Mountain Retreat
+          onChange={onChange}
+          loadOptions={vi.fn()} // Remote mode enabled
+        />
+      );
+
+      // Verify initial selections are displayed
+      expect(screen.getByText("Ocean View Villa")).toBeInTheDocument();
+      expect(screen.getByText("Mountain Retreat")).toBeInTheDocument();
+
+      // Simulate parent filtering options based on search (only "Beach" properties)
+      const filteredOptions = mockOptions.filter((o) => o.label.includes("Beach"));
+      rerender(
+        <PropertyMultiSelect
+          options={filteredOptions}
+          value={["1", "2"]} // Keep same selections
+          onChange={onChange}
+          loadOptions={vi.fn()}
+        />
+      );
+
+      // Previously selected items should still be displayed as badges
+      expect(screen.getByText("Ocean View Villa")).toBeInTheDocument();
+      expect(screen.getByText("Mountain Retreat")).toBeInTheDocument();
+      
+      // onChange should NOT have been called (no pruning in remote mode)
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
     it("calls loadOptions with search query after debounce", async () => {
       vi.useFakeTimers();
       const loadOptions = vi.fn();

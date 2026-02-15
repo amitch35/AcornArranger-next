@@ -50,11 +50,25 @@ export function PropertyMultiSelect({
   const buttonId = id ?? React.useId();
   const [searchValue, setSearchValue] = React.useState("");
 
+  // Maintain a cache of labels for selected items so they persist during search filtering
+  const labelCacheRef = React.useRef<Map<string, string>>(new Map());
+  
+  // Update label cache when options change
+  React.useEffect(() => {
+    options.forEach((opt) => {
+      labelCacheRef.current.set(opt.value, opt.label);
+    });
+  }, [options]);
+
   const selectedSet = React.useMemo(() => new Set(value), [value]);
-  const selectedLabels = React.useMemo(
-    () => options.filter((o) => selectedSet.has(o.value)).map((o) => o.label),
-    [options, selectedSet]
-  );
+  
+  // Get labels for selected items, using cache if not in current filtered options
+  const selectedLabels = React.useMemo(() => {
+    return value.map((val) => {
+      const opt = options.find((o) => o.value === val);
+      return opt?.label ?? labelCacheRef.current.get(val) ?? val;
+    });
+  }, [value, options]);
 
   const toggle = (val: string) => {
     const exists = selectedSet.has(val);
@@ -69,7 +83,9 @@ export function PropertyMultiSelect({
   };
 
   // Prune selections no longer present in options
+  // Skip in remote loading mode - options are filtered by search, not actually deleted
   React.useEffect(() => {
+    if (loadOptions) return; // Remote mode: don't prune during search filtering
     if (value.length === 0) return;
     const validSet = new Set(options.map((o) => o.value));
     const invalid = value.filter((v) => !validSet.has(v));
@@ -81,7 +97,7 @@ export function PropertyMultiSelect({
         .map((o) => o.label);
       onClearNotice?.(invalid.length, removedLabels.slice(0, 3));
     }
-  }, [options]);
+  }, [options, loadOptions]);
 
   // Remote search support: debounce and call loadOptions
   React.useEffect(() => {
@@ -153,8 +169,9 @@ export function PropertyMultiSelect({
 
       {showBadges && value.length > 0 && (
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          {value.map((val) => {
-            const labelText = options.find((o) => o.value === val)?.label ?? val;
+          {value.map((val, idx) => {
+            // Use cached label for selected items (persists during search filtering)
+            const labelText = selectedLabels[idx] ?? val;
             return (
               <Badge key={val} variant="secondary" className="gap-1">
                 {labelText}

@@ -19,7 +19,7 @@ export async function updatePropertySettings(
   id: string | number,
   payload: {
     estimated_cleaning_mins?: number | null;
-    double_unit?: number[];
+    double_unit?: number[] | null;
   }
 ): Promise<PropertyRow> {
   const res = await fetch(`/api/properties/${id}`, {

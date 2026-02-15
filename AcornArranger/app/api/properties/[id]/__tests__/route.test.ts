@@ -61,6 +61,22 @@ describe("/api/properties/[id]", () => {
       expect(data.property_name).toBe("Beach House");
     });
 
+    it("should include scheduling fields (estimated_cleaning_mins and double_unit) in response", async () => {
+      const mockSupabase = createMockSupabaseClient({
+        data: mockProperty,
+      });
+
+      vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
+
+      const req = new NextRequest("http://localhost:3000/api/properties/1");
+      const response = await GET(req, { params: { id: "1" } });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data).toHaveProperty("estimated_cleaning_mins", 90);
+      expect(data).toHaveProperty("double_unit", [2, 3]);
+    });
+
     it("should return 400 for invalid id", async () => {
       const req = new NextRequest(
         "http://localhost:3000/api/properties/invalid"
@@ -244,6 +260,94 @@ describe("/api/properties/[id]", () => {
 
       expect(response.status).toBe(200);
       expect(data.double_unit).toBeNull();
+    });
+
+    it("should accept estimated_cleaning_mins at boundary 0", async () => {
+      const updatedProperty = {
+        ...mockProperty,
+        estimated_cleaning_mins: 0,
+      };
+      const mockSupabase = createMockSupabaseClient({
+        data: updatedProperty,
+      });
+
+      vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
+
+      const req = new NextRequest("http://localhost:3000/api/properties/1", {
+        method: "PUT",
+        body: JSON.stringify({ estimated_cleaning_mins: 0 }),
+      });
+
+      const response = await PUT(req, { params: { id: "1" } });
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data.estimated_cleaning_mins).toBe(0);
+    });
+
+    it("should accept estimated_cleaning_mins at boundary 1440", async () => {
+      const updatedProperty = {
+        ...mockProperty,
+        estimated_cleaning_mins: 1440,
+      };
+      const mockSupabase = createMockSupabaseClient({
+        data: updatedProperty,
+      });
+
+      vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
+
+      const req = new NextRequest("http://localhost:3000/api/properties/1", {
+        method: "PUT",
+        body: JSON.stringify({ estimated_cleaning_mins: 1440 }),
+      });
+
+      const response = await PUT(req, { params: { id: "1" } });
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data.estimated_cleaning_mins).toBe(1440);
+    });
+
+    it("should accept double_unit with null (clearing linked units)", async () => {
+      const updatedProperty = {
+        ...mockProperty,
+        double_unit: null,
+      };
+      const mockSupabase = createMockSupabaseClient({
+        data: updatedProperty,
+      });
+
+      vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
+
+      const req = new NextRequest("http://localhost:3000/api/properties/1", {
+        method: "PUT",
+        body: JSON.stringify({ double_unit: null }),
+      });
+
+      const response = await PUT(req, { params: { id: "1" } });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.double_unit).toBeNull();
+    });
+
+    it("should accept double_unit with exactly 20 items", async () => {
+      const twentyIds = Array.from({ length: 20 }, (_, i) => i + 2);
+      const updatedProperty = {
+        ...mockProperty,
+        double_unit: twentyIds,
+      };
+      const mockSupabase = createMockSupabaseClient({
+        data: updatedProperty,
+      });
+
+      vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
+
+      const req = new NextRequest("http://localhost:3000/api/properties/1", {
+        method: "PUT",
+        body: JSON.stringify({ double_unit: twentyIds }),
+      });
+
+      const response = await PUT(req, { params: { id: "1" } });
+      expect(response.status).toBe(200);
     });
 
     it("should reject negative estimated_cleaning_mins", async () => {

@@ -19,6 +19,7 @@ import { formatMinutes } from "@/src/features/properties/schemas";
 import { Eye } from "lucide-react";
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
+import { saveListUrl } from "@/lib/navigation/listReturnUrl";
 
 /**
  * Properties List Page
@@ -100,7 +101,7 @@ function LinkedUnitsPopover({ linkedIds }: { linkedIds: number[] }) {
                   key={prop.properties_id}
                   href={`/dashboard/properties/${prop.properties_id}`}
                   className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors"
-                  onClick={() => setOpen(false)}
+                  onClick={() => { saveListUrl("properties"); setOpen(false); }}
                 >
                   <Badge variant="secondary" className="font-mono text-xs shrink-0">
                     #{prop.properties_id}
@@ -297,7 +298,10 @@ export default function PropertiesListPage() {
         id: "actions",
         header: "Actions",
         cell: ({ row }) => (
-          <Link href={`/dashboard/properties/${row.original.properties_id}`}>
+          <Link
+            href={`/dashboard/properties/${row.original.properties_id}`}
+            onClick={() => saveListUrl("properties")}
+          >
             <Button variant="ghost" size="sm">
               <Eye className="h-4 w-4 mr-1" />
               View

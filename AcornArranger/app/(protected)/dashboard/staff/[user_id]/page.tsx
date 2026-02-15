@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { ArrowLeft, User, Briefcase, CheckCircle2, XCircle, AlertCircle } from "
 import Link from "next/link";
 import type { StaffDetailResponse } from "@/src/features/staff/schemas";
 import { fetchStaffDetail } from "@/src/features/staff/api";
+import { getListUrl } from "@/lib/navigation/listReturnUrl";
 
 /**
  * Staff Detail Page
@@ -64,8 +65,8 @@ function CapabilityBadge({ label, enabled }: { label: string; enabled: boolean }
 
 export default function StaffDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const userId = params?.user_id as string;
+  const listUrl = getListUrl("staff", "/dashboard/staff");
 
   // Fetch staff detail
   const {
@@ -74,9 +75,8 @@ export default function StaffDetailPage() {
     error,
   } = useQuery<StaffDetailResponse>({
     queryKey: ["staff", userId],
-    queryFn: async () => {
-      return fetchStaffDetail(userId);
-    },
+    queryFn: () => fetchStaffDetail(userId),
+    staleTime: 5 * 60 * 1000, // 2 minutes - avoid refetch on back navigation
     enabled: !!userId,
   });
 
@@ -103,14 +103,12 @@ export default function StaffDetailPage() {
   if (error) {
     return (
       <div className="container py-8 space-y-6">
-        <Button 
-          variant="ghost" 
-          className="gap-2"
-          onClick={() => router.back()}
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Staff
-        </Button>
+        <Link href={listUrl}>
+          <Button variant="ghost" className="gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Staff
+          </Button>
+        </Link>
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
@@ -124,14 +122,12 @@ export default function StaffDetailPage() {
   if (!staff) {
     return (
       <div className="container py-8 space-y-6">
-        <Button 
-          variant="ghost" 
-          className="gap-2"
-          onClick={() => router.back()}
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Staff
-        </Button>
+        <Link href={listUrl}>
+          <Button variant="ghost" className="gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Staff
+          </Button>
+        </Link>
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Not Found</AlertTitle>
@@ -146,14 +142,12 @@ export default function StaffDetailPage() {
       {/* Header with back button */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => router.back()}
-          >
-            <ArrowLeft className="h-5 w-5" />
-            <span className="sr-only">Back to Staff</span>
-          </Button>
+          <Link href={listUrl}>
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+              <span className="sr-only">Back to Staff</span>
+            </Button>
+          </Link>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
               {staff.name || `${staff.first_name || ""} ${staff.last_name || ""}`.trim() || "Staff Member"}
@@ -282,13 +276,12 @@ export default function StaffDetailPage() {
 
       {/* Actions */}
       <div className="flex items-center gap-4">
-        <Button 
-          variant="outline"
-          onClick={() => router.back()}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Staff List
-        </Button>
+        <Link href={listUrl}>
+          <Button variant="outline">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Staff List
+          </Button>
+        </Link>
       </div>
     </div>
   );

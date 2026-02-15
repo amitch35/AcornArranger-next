@@ -285,6 +285,56 @@ describe("PropertiesListPage", () => {
     expect(cells.length).toBeGreaterThanOrEqual(1);
   });
 
+  it("includes cleaningTimeMin in URL when minimum cleaning filter is set", async () => {
+    const fetchMock = mockFetchImplementation();
+    globalThis.fetch = fetchMock as any;
+
+    renderWithQueryClient(<PropertiesListPage />);
+
+    // Wait for initial load
+    await waitFor(() => {
+      expect(fetchMock.mock.calls.some((c) => String(c[0]).includes("/api/properties"))).toBe(true);
+    });
+
+    replaceMock.mockClear();
+
+    // Find the minimum cleaning time hours input and set a value
+    const minHoursInput = screen.getByLabelText("Minimum cleaning time hours");
+    fireEvent.change(minHoursInput, { target: { value: "01" } });
+    fireEvent.blur(minHoursInput);
+
+    await waitFor(() => {
+      expect(replaceMock).toHaveBeenCalled();
+      const lastCall = replaceMock.mock.calls.at(-1)?.[0] as string | undefined;
+      expect(lastCall).toContain("cleaningTimeMin=60");
+    });
+  });
+
+  it("includes cleaningTimeMax in URL when maximum cleaning filter is set", async () => {
+    const fetchMock = mockFetchImplementation();
+    globalThis.fetch = fetchMock as any;
+
+    renderWithQueryClient(<PropertiesListPage />);
+
+    // Wait for initial load
+    await waitFor(() => {
+      expect(fetchMock.mock.calls.some((c) => String(c[0]).includes("/api/properties"))).toBe(true);
+    });
+
+    replaceMock.mockClear();
+
+    // Find the maximum cleaning time hours input and set a value
+    const maxHoursInput = screen.getByLabelText("Maximum cleaning time hours");
+    fireEvent.change(maxHoursInput, { target: { value: "02" } });
+    fireEvent.blur(maxHoursInput);
+
+    await waitFor(() => {
+      expect(replaceMock).toHaveBeenCalled();
+      const lastCall = replaceMock.mock.calls.at(-1)?.[0] as string | undefined;
+      expect(lastCall).toContain("cleaningTimeMax=120");
+    });
+  });
+
   it("renders View action button for each property", async () => {
     globalThis.fetch = mockFetchImplementation() as any;
 

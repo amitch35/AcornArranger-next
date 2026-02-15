@@ -100,6 +100,12 @@ describe("PropertyUpdatePayloadSchema", () => {
     const result = PropertyUpdatePayloadSchema.parse(input);
     expect(result.double_unit).toEqual([]);
   });
+
+  it("should accept null for double_unit (clearing linked units)", () => {
+    const input = { double_unit: null };
+    const result = PropertyUpdatePayloadSchema.parse(input);
+    expect(result.double_unit).toBeNull();
+  });
 });
 
 describe("formatMinutes", () => {
