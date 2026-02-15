@@ -66,21 +66,31 @@ export default function PropertyEditPage() {
   const propertyOptions = React.useMemo(() => {
     if (!propertyOptionsData?.options) return [];
     return propertyOptionsData.options
-      .filter((opt) => opt.id !== propertyId) // Exclude self
+      .filter((opt) => String(opt.id) !== propertyId) // Exclude self
       .map((opt) => ({
         label: opt.label,
         value: String(opt.id),
       }));
   }, [propertyOptionsData, propertyId]);
 
-  // Initialize form values when property loads
+  // Track which property the form was initialized from so we reinitialize on route change
+  const [initializedForId, setInitializedForId] = React.useState<string | null>(null);
+
+  // Initialize form values when property loads or when navigating to a different property
   React.useEffect(() => {
-    if (property && !hasChanges) {
+    if (!property) return;
+    // Reinitialize when the property changes (different route) or on first load
+    if (initializedForId !== propertyId) {
       setCleaningMinutes(property.estimated_cleaning_mins ?? null);
-      // Convert number[] to string[] for PropertyMultiSelect
+      setLinkedUnitsStr((property.double_unit ?? []).map(String));
+      setHasChanges(false);
+      setInitializedForId(propertyId);
+    } else if (!hasChanges) {
+      // Same property, no user edits yet — sync with latest server data
+      setCleaningMinutes(property.estimated_cleaning_mins ?? null);
       setLinkedUnitsStr((property.double_unit ?? []).map(String));
     }
-  }, [property, hasChanges]);
+  }, [property, propertyId, initializedForId, hasChanges]);
 
   // Update mutation
   const updateMutation = useMutation({
@@ -214,7 +224,7 @@ export default function PropertyEditPage() {
                 onChange={handleCleaningTimeChange}
                 minMinutes={0}
                 maxMinutes={1440}
-                label="Cleaning time"
+                aria-label="Cleaning time"
               />
             </div>
 
