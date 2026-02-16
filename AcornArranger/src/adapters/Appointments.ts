@@ -1,14 +1,17 @@
 import type { AppointmentFilters } from "@/lib/filters/schemas";
 import { toSearchParams, buildSortParam, type EntityAdapter } from "./common";
 
+/**
+ * Sort key mapping: TanStack Table column IDs → API sort param keys.
+ * The API route maps these to actual DB columns.
+ */
 const SORT_KEY_MAP = {
   id: "id",
-  arrivalTime: "arrivalTime",
   serviceTime: "serviceTime",
+  property: "property",
+  staff: "staff",
   nextArrivalTime: "nextArrivalTime",
   status: "status",
-  turnAround: "turnAround",
-  cancelledDate: "cancelledDate",
 } as const;
 
 export const AppointmentsAdapter: EntityAdapter<AppointmentFilters> = {
@@ -26,10 +29,11 @@ export const AppointmentsAdapter: EntityAdapter<AppointmentFilters> = {
       propertyIds: filters.propertyIds,
       dateFrom: filters.dateFrom,
       dateTo: filters.dateTo,
+      taOnly: filters.taOnly,
+      nextArrivalBefore: filters.nextArrivalBefore,
+      nextArrivalAfter: filters.nextArrivalAfter,
     });
   },
 };
 
 export default AppointmentsAdapter;
-
-

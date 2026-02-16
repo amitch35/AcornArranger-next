@@ -14,6 +14,12 @@ export function Calendar({ className, ...props }: CalendarProps) {
     <DayPicker
       className={cn("p-2", className)}
       captionLayout="label"
+      modifiersClassNames={{
+        selected: "rdp-selected-custom",
+        range_start: "rdp-range-start-custom",
+        range_end: "rdp-range-end-custom",
+        range_middle: "rdp-range-middle-custom",
+      }}
       {...props}
     />
   );

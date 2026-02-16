@@ -26,7 +26,7 @@ export function DateRangePicker({ label = "Date Range", value, onChange, disable
   const [open, setOpen] = React.useState(false);
   const buttonId = id ?? React.useId();
 
-  const setPreset = (preset: "today" | "yesterday" | "tomorrow" | "last7" | "last30" | "thisMonth" | "lastMonth") => {
+  const setPreset = (preset: "today" | "yesterday" | "tomorrow" | "thisWeek" | "nextWeek" | "thisMonth" | "lastMonth") => {
     const now = new Date();
     const start = new Date(now);
     const end = new Date(now);
@@ -41,12 +41,22 @@ export function DateRangePicker({ label = "Date Range", value, onChange, disable
         start.setDate(start.getDate() - 1);
         end.setDate(end.getDate() - 1);
         break;
-      case "last7":
-        start.setDate(start.getDate() - 6);
+      case "thisWeek": {
+        // Start from Sunday of current week
+        const dayOfWeek = now.getDay();
+        start.setDate(start.getDate() - dayOfWeek);
+        // End on Saturday of current week
+        end.setDate(end.getDate() + (6 - dayOfWeek));
         break;
-      case "last30":
-        start.setDate(start.getDate() - 29);
+      }
+      case "nextWeek": {
+        // Start from Sunday of next week
+        const dayOfWeek = now.getDay();
+        start.setDate(start.getDate() + (7 - dayOfWeek));
+        // End on Saturday of next week
+        end.setDate(end.getDate() + (13 - dayOfWeek));
         break;
+      }
       case "thisMonth":
         start.setDate(1);
         end.setMonth(end.getMonth() + 1); end.setDate(0);
@@ -88,8 +98,8 @@ export function DateRangePicker({ label = "Date Range", value, onChange, disable
               <Button variant="secondary" onClick={() => setPreset("today")}>Today</Button>
               <Button variant="secondary" onClick={() => setPreset("yesterday")}>Yesterday</Button>
               <Button variant="secondary" onClick={() => setPreset("tomorrow")}>Tomorrow</Button>
-              <Button variant="secondary" onClick={() => setPreset("last7")}>Last 7 days</Button>
-              <Button variant="secondary" onClick={() => setPreset("last30")}>Last 30 days</Button>
+              <Button variant="secondary" onClick={() => setPreset("thisWeek")}>This week</Button>
+              <Button variant="secondary" onClick={() => setPreset("nextWeek")}>Next week</Button>
               <Button variant="secondary" onClick={() => setPreset("thisMonth")}>This month</Button>
               <Button variant="secondary" onClick={() => setPreset("lastMonth")}>Last month</Button>
               <Button variant="ghost" onClick={() => onChange(undefined)} aria-label="Clear date range">Clear</Button>

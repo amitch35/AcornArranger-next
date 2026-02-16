@@ -160,3 +160,32 @@
     }
   }
 }
+
+/* Date Range Picker Custom Styling */
+@layer components {
+  /* Selected date endpoints - logo color (#12a1b7) */
+  .rdp-selected-custom,
+  .rdp-range-start-custom,
+  .rdp-range-end-custom {
+    background-color: #12a1b7 !important;
+    color: white !important;
+    font-weight: 600;
+  }
+
+  /* Range middle - lighter tint with better contrast */
+  .rdp-range-middle-custom {
+    background-color: rgba(18, 161, 183, 0.2) !important;
+    color: hsl(var(--foreground)) !important;
+  }
+
+  /* Hover states */
+  .rdp-day:not(.rdp-selected-custom):not(.rdp-range-middle-custom):hover {
+    background-color: rgba(18, 161, 183, 0.1) !important;
+  }
+
+  /* Today indicator */
+  .rdp-day_button[aria-current="date"]:not(.rdp-selected-custom) {
+    border: 2px solid #12a1b7;
+    font-weight: 600;
+  }
+}

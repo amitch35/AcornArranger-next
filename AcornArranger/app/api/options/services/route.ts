@@ -13,11 +13,15 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status });
     }
 
-    const options = (data ?? []).map((row) => ({ id: row.service_id, label: row.name ?? String(row.service_id) }));
+    const options = (data ?? []).map((row) => ({
+      id: row.service_id,
+      label: row.name ?? String(row.service_id),
+    }));
     return NextResponse.json({ options }, { status: 200 });
   } catch (err: any) {
-    return NextResponse.json({ error: err?.message ?? "Unknown error" }, { status: 500 });
+    return NextResponse.json(
+      { error: err?.message ?? "Unknown error" },
+      { status: 500 }
+    );
   }
 }
-
-

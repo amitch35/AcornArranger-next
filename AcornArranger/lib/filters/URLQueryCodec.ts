@@ -23,7 +23,10 @@ type CanonicalKeys =
   | "dateTo"
   | "city"
   | "cleaningTimeMin"
-  | "cleaningTimeMax";
+  | "cleaningTimeMax"
+  | "taOnly"
+  | "nextArrivalBefore"
+  | "nextArrivalAfter";
 
 const CANONICAL_KEY_ORDER: CanonicalKeys[] = [
   "q",
@@ -42,6 +45,9 @@ const CANONICAL_KEY_ORDER: CanonicalKeys[] = [
   "propertyIds",
   "cleaningTimeMin",
   "cleaningTimeMax",
+  "taOnly",
+  "nextArrivalBefore",
+  "nextArrivalAfter",
 ];
 
 export type DecodeOptions = {
@@ -121,6 +127,12 @@ export function decodeFromSearchParams(
   result.canClean = canClean === "true" ? true : undefined;
   result.canLeadTeam = canLeadTeam === "true" ? true : undefined;
 
+  // Appointment-specific filters
+  const taOnly = get("taOnly");
+  result.taOnly = taOnly === "true" ? true : undefined;
+  result.nextArrivalBefore = normalizeIso(get("nextArrivalBefore") ?? undefined);
+  result.nextArrivalAfter = normalizeIso(get("nextArrivalAfter") ?? undefined);
+
   // Property-specific filters
   result.city = get("city") ?? undefined;
   const cleaningTimeMin = Number(get("cleaningTimeMin"));
@@ -164,7 +176,9 @@ export function encodeToSearchParams(
         break;
       }
       case "dateFrom":
-      case "dateTo": {
+      case "dateTo":
+      case "nextArrivalBefore":
+      case "nextArrivalAfter": {
         const iso = normalizeIso(String(value));
         if (iso) params.set(key, iso);
         break;
@@ -179,7 +193,8 @@ export function encodeToSearchParams(
         break;
       }
       case "canClean":
-      case "canLeadTeam": {
+      case "canLeadTeam":
+      case "taOnly": {
         const b = value === true;
         if (b) params.set(key, "true");
         break;

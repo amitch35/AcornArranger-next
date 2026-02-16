@@ -31,6 +31,9 @@ export const AppointmentFiltersSchema = BaseFilterSchema.extend({
   serviceIds: IdArraySchema,
   staffIds: IdArraySchema,
   propertyIds: IdArraySchema,
+  taOnly: z.boolean().optional(),
+  nextArrivalBefore: IsoDateString,
+  nextArrivalAfter: IsoDateString,
 });
 
 export const PropertyFiltersSchema = BaseFilterSchema.extend({
