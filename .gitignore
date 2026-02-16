@@ -42,3 +42,7 @@ AcornArranger/next-env.d.ts
 
 # TypeScript incremental build cache
 *.tsbuildinfo
+
+
+AcornArranger/supabase/snippets/0 - Workspace.sql
+AcornArranger/supabase/seed.sql

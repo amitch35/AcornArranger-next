@@ -1,4 +1,3 @@
-
 export type Json =
   | string
   | number
@@ -314,7 +313,7 @@ export type Database = {
           country_code: string | null
           created_at: string
           id: number
-          location: unknown | null
+          location: unknown
           place_id: string | null
           postal_code: string | null
           state_name: string | null
@@ -326,7 +325,7 @@ export type Database = {
           country_code?: string | null
           created_at?: string
           id?: number
-          location?: unknown | null
+          location?: unknown
           place_id?: string | null
           postal_code?: string | null
           state_name?: string | null
@@ -338,7 +337,7 @@ export type Database = {
           country_code?: string | null
           created_at?: string
           id?: number
-          location?: unknown | null
+          location?: unknown
           place_id?: string | null
           postal_code?: string | null
           state_name?: string | null
@@ -873,22 +872,13 @@ export type Database = {
         Args: { schedule_date: string }
         Returns: undefined
       }
-      custom_access_token_hook: {
-        Args: { event: Json }
-        Returns: Json
-      }
+      custom_access_token_hook: { Args: { event: Json }; Returns: Json }
       get_geom_and_placeid_from_address: {
         Args: { address: string }
         Returns: Record<string, unknown>
       }
-      get_geom_from_address: {
-        Args: { address: string }
-        Returns: unknown
-      }
-      get_rc_token: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      get_geom_from_address: { Args: { address: string }; Returns: unknown }
+      get_rc_token: { Args: never; Returns: string }
       get_staff_shifts: {
         Args: { date_from: string; date_to: string }
         Returns: Json
@@ -910,26 +900,14 @@ export type Database = {
         Args: { destination_place_ids: string[]; origin_place_ids: string[] }
         Returns: number
       }
-      http_get_employees: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      http_get_geocode: {
-        Args: { address: string }
-        Returns: number
-      }
-      http_get_properties: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
+      http_get_employees: { Args: never; Returns: number }
+      http_get_geocode: { Args: { address: string }; Returns: number }
+      http_get_properties: { Args: never; Returns: number }
       http_get_shifts: {
         Args: { date_from: string; date_to: string }
         Returns: number
       }
-      http_get_staff: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
+      http_get_staff: { Args: never; Returns: number }
       http_put_appointment_staff: {
         Args: { appointment_id: number; assignment_json: Json }
         Returns: number
@@ -958,10 +936,7 @@ export type Database = {
         Args: { staff_to_remove: number; target_plan: number }
         Returns: undefined
       }
-      process_send_schedule_job_queue: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      process_send_schedule_job_queue: { Args: never; Returns: undefined }
       schedule_send_rc_schedule_plans: {
         Args: { schedule_date: string }
         Returns: undefined
@@ -978,26 +953,14 @@ export type Database = {
         Args: { appt_id: number; staff_json: Json }
         Returns: undefined
       }
-      set_travel_times: {
-        Args: { address_id: number }
-        Returns: undefined
-      }
+      set_travel_times: { Args: { address_id: number }; Returns: undefined }
       update_appointments: {
         Args: { date_from: string; date_to: string }
         Returns: undefined
       }
-      update_employee_roles: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      update_properties: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      update_staff: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      update_employee_roles: { Args: never; Returns: undefined }
+      update_properties: { Args: never; Returns: undefined }
+      update_staff: { Args: never; Returns: undefined }
     }
     Enums: {
       app_permission:
@@ -1327,32 +1290,14 @@ export type Database = {
         Args: { _bucket_id: string; _name: string }
         Returns: boolean
       }
-      extension: {
-        Args: { name: string }
-        Returns: string
-      }
-      filename: {
-        Args: { name: string }
-        Returns: string
-      }
-      foldername: {
-        Args: { name: string }
-        Returns: string[]
-      }
-      get_level: {
-        Args: { name: string }
-        Returns: number
-      }
-      get_prefix: {
-        Args: { name: string }
-        Returns: string
-      }
-      get_prefixes: {
-        Args: { name: string }
-        Returns: string[]
-      }
+      extension: { Args: { name: string }; Returns: string }
+      filename: { Args: { name: string }; Returns: string }
+      foldername: { Args: { name: string }; Returns: string[] }
+      get_level: { Args: { name: string }; Returns: number }
+      get_prefix: { Args: { name: string }; Returns: string }
+      get_prefixes: { Args: { name: string }; Returns: string[] }
       get_size_by_bucket: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           bucket_id: string
           size: number
@@ -1389,10 +1334,7 @@ export type Database = {
           updated_at: string
         }[]
       }
-      operation: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      operation: { Args: never; Returns: string }
       search: {
         Args: {
           bucketname: string
