@@ -60,6 +60,15 @@ function getTodayDateString(): string {
   return `${year}-${month}-${day}`;
 }
 
+// Helper to format Date object as YYYY-MM-DD in local timezone (no UTC conversion)
+function formatDateToLocal(date: Date | undefined): string | undefined {
+  if (!date) return undefined;
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 // ============================================================================
 // Status Badge (mirrors Staff page approach)
 // ============================================================================
@@ -280,9 +289,9 @@ export default function AppointmentsListPage() {
 
   // ---- Build filters object ----
   const filters: AppointmentFilters = React.useMemo(() => {
-    // Convert Date objects to ISO string format for API
-    const dateFromISO = dateRange?.from?.toISOString().split("T")[0];
-    const dateToISO = dateRange?.to?.toISOString().split("T")[0];
+    // Convert Date objects to YYYY-MM-DD format for API (local timezone, no UTC shift)
+    const dateFromISO = formatDateToLocal(dateRange?.from);
+    const dateToISO = formatDateToLocal(dateRange?.to);
     
     return {
       q,
@@ -349,12 +358,14 @@ export default function AppointmentsListPage() {
     if (serviceIds.length) params.set("serviceIds", serviceIds.join(","));
     if (taOnly) params.set("taOnly", "true");
     
-    // Convert Date objects to YYYY-MM-DD for URL
-    if (dateRange?.from) {
-      params.set("dateFrom", dateRange.from.toISOString().split("T")[0]);
+    // Convert Date objects to YYYY-MM-DD for URL (local timezone, no UTC shift)
+    const dateFromStr = formatDateToLocal(dateRange?.from);
+    const dateToStr = formatDateToLocal(dateRange?.to);
+    if (dateFromStr) {
+      params.set("dateFrom", dateFromStr);
     }
-    if (dateRange?.to) {
-      params.set("dateTo", dateRange.to.toISOString().split("T")[0]);
+    if (dateToStr) {
+      params.set("dateTo", dateToStr);
     }
     
     if (page > 1) params.set("page", String(page));
@@ -502,8 +513,8 @@ export default function AppointmentsListPage() {
     statusIds.length > 0 ||
     serviceIds.length > 0 ||
     taOnly ||
-    dateRange?.from?.toISOString().split("T")[0] !== todayString ||
-    dateRange?.to?.toISOString().split("T")[0] !== todayString;
+    formatDateToLocal(dateRange?.from) !== todayString ||
+    formatDateToLocal(dateRange?.to) !== todayString;
 
   return (
     <div className="container py-8 space-y-6">

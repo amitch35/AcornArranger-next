@@ -70,6 +70,14 @@ function parseCsvNumbers(value: string | string[] | null | undefined): number[] 
 
 function normalizeIso(input: string | undefined): string | undefined {
   if (!input) return undefined;
+  
+  // Preserve YYYY-MM-DD format without converting to full ISO timestamp
+  // This prevents timezone shifts when filtering by date only
+  const dateOnlyPattern = /^\d{4}-\d{2}-\d{2}$/;
+  if (dateOnlyPattern.test(input)) {
+    return input; // Return as-is for date-only strings
+  }
+  
   try {
     const d = new Date(input);
     if (isNaN(d.getTime())) return undefined;

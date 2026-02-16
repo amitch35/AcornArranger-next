@@ -47,16 +47,19 @@ describe("URLQueryCodec", () => {
     expect(encoded.get("propertyIds")).toBe("42");
   });
 
-  it("normalizes dates to ISO UTC on both encode and decode", () => {
+  it("preserves YYYY-MM-DD format and normalizes full datetime strings", () => {
     const params = new URLSearchParams(
-      "dateFrom=2024-01-01&dateTo=2024-02-01T12:30:00-05:00"
+      "dateFrom=2024-01-01&dateTo=2024-02-01&nextArrivalBefore=2024-02-01T12:30:00-05:00"
     );
     const decoded = decodeFromSearchParams(params);
-    const validated = validateBaseFilters(decoded, Schemas.staff);
+    const validated = validateBaseFilters(decoded, Schemas.appointment);
     const encoded = encodeToSearchParams(validated);
 
-    expect(encoded.get("dateFrom")).toMatch(/Z$/);
-    expect(encoded.get("dateTo")).toMatch(/Z$/);
+    // Date-only strings should be preserved as YYYY-MM-DD (no timezone conversion)
+    expect(encoded.get("dateFrom")).toBe("2024-01-01");
+    expect(encoded.get("dateTo")).toBe("2024-02-01");
+    // Full datetime strings should be normalized to ISO UTC
+    expect(encoded.get("nextArrivalBefore")).toMatch(/Z$/);
   });
 
   it("coerces/ignores invalid pagination values", () => {

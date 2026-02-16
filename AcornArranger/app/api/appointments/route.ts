@@ -96,11 +96,13 @@ export const GET = withAuth(async (req: NextRequest) => {
     }
 
     // Date range filters on departure_time (service time start)
+    // Note: dateFrom/dateTo are YYYY-MM-DD strings
     if (dateFrom) {
       query = query.gte("departure_time", dateFrom);
     }
     if (dateTo) {
-      query = query.lte("departure_time", dateTo);
+      // Append end-of-day time to include entire day (matches legacy behavior)
+      query = query.lte("departure_time", `${dateTo} 23:59:59+00`);
     }
 
     // T/A filter
