@@ -67,9 +67,12 @@ export function ServiceMultiSelect({
     onClearNotice?.(value.length, selectedLabels.slice(0, 3));
   };
 
-  // Prune selections no longer present in options
+  // Prune selections no longer present in options.
+  // Guard: skip when options haven't loaded yet — an empty list means "not ready",
+  // not "all options removed", and we must not wipe pre-initialized defaults.
   React.useEffect(() => {
     if (value.length === 0) return;
+    if (options.length === 0) return;
     const validSet = new Set(options.map((o) => o.value));
     const invalid = value.filter((v) => !validSet.has(v));
     if (invalid.length > 0) {

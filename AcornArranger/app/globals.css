@@ -161,6 +161,16 @@
   }
 }
 
+/* Toast close button — hidden until hover/focus so it doesn't clutter */
+[data-sonner-toast] [data-close-button] {
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+[data-sonner-toast]:hover [data-close-button],
+[data-sonner-toast]:focus-within [data-close-button] {
+  opacity: 1;
+}
+
 /* Date Range Picker Custom Styling */
 @layer components {
   /* Selected date endpoints - logo color (#12a1b7) */

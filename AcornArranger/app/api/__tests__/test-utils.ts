@@ -38,6 +38,7 @@ export function createMockSupabaseQuery(mockData: any[] = [], mockCount: number 
     query.ilike = vi.fn(() => query);
     query.gte = vi.fn(() => query); // Greater than or equal
     query.lte = vi.fn(() => query); // Less than or equal
+    query.filter = vi.fn(() => query); // Supabase filter
     query.order = vi.fn(() => query);
     query.select = vi.fn(() => query); // For chaining after update
 
@@ -116,15 +117,16 @@ export function createMockSupabaseClient(options: {
 
     const createErrorQuery = () => {
       const query: any = {
-        eq: vi.fn(() => query), // Return self for chaining, consistent with success path
+        eq: vi.fn(() => query),
         in: vi.fn(() => query),
         ilike: vi.fn(() => query),
         gte: vi.fn(() => query),
         lte: vi.fn(() => query),
+        filter: vi.fn(() => query),
         order: vi.fn(() => query),
         range: mockRange,
         maybeSingle: mockMaybeSingle,
-        select: vi.fn(() => query), // For PUT chaining
+        select: vi.fn(() => query),
       };
       return query;
     };
