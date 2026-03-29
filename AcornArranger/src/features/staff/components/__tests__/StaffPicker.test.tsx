@@ -92,5 +92,88 @@ describe("StaffPicker", () => {
 
     expect(onChange).toHaveBeenCalledWith([1]);
   });
+
+  it("Select All selects all visible options", async () => {
+    vi.mocked(useStaffOptions).mockReturnValue({
+      data: {
+        options: [
+          { id: 1, label: "Alice" },
+          { id: 2, label: "Bob" },
+        ],
+        total: 2,
+      },
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    } as any);
+
+    const onChange = vi.fn();
+    renderWithQueryClient(<StaffPicker value={[]} onChange={onChange} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /^Staff(:|$)/i }));
+
+    fireEvent.click(screen.getByRole("button", { name: /select all/i }));
+
+    expect(onChange).toHaveBeenCalledWith(expect.arrayContaining([1, 2]));
+    expect(onChange.mock.calls[0][0]).toHaveLength(2);
+  });
+
+  it("Select All merges with existing selections without duplicates", async () => {
+    vi.mocked(useStaffOptions).mockReturnValue({
+      data: {
+        options: [
+          { id: 1, label: "Alice" },
+          { id: 2, label: "Bob" },
+        ],
+        total: 2,
+      },
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    } as any);
+
+    const onChange = vi.fn();
+    // Alice (id=1) is already selected
+    renderWithQueryClient(<StaffPicker value={[1]} onChange={onChange} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Staff: Alice/i }));
+
+    fireEvent.click(screen.getByRole("button", { name: /select all/i }));
+
+    const emitted: number[] = onChange.mock.calls[0][0];
+    expect(emitted).toEqual(expect.arrayContaining([1, 2]));
+    // No duplicates
+    expect(emitted).toHaveLength(new Set(emitted).size);
+  });
+
+  it("Select All button is disabled when all options are already selected", async () => {
+    vi.mocked(useStaffOptions).mockReturnValue({
+      data: { options: [{ id: 1, label: "Alice" }], total: 1 },
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    } as any);
+
+    renderWithQueryClient(<StaffPicker value={[1]} onChange={() => {}} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Staff: Alice/i }));
+
+    expect(screen.getByRole("button", { name: /select all/i })).toBeDisabled();
+  });
+
+  it("Select All button is disabled while options are loading", async () => {
+    vi.mocked(useStaffOptions).mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isError: false,
+      refetch: vi.fn(),
+    } as any);
+
+    renderWithQueryClient(<StaffPicker value={[]} onChange={() => {}} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /^Staff(:|$)/i }));
+
+    expect(screen.getByRole("button", { name: /select all/i })).toBeDisabled();
+  });
 });
 

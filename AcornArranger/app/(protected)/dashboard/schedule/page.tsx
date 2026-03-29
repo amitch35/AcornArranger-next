@@ -12,7 +12,12 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, Wrench, Copy, Plus, Upload } from "lucide-react";
+import { ChevronDown, ChevronRight, Wrench, Copy, Plus, Upload, Loader2 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { StaffPicker } from "@/src/features/staff/components/StaffPicker";
 import { ServiceMultiSelect } from "@/components/filters/ServiceMultiSelect";
 import { DatePicker } from "@/components/filters/DatePicker";
@@ -136,6 +141,7 @@ export default function SchedulePage() {
 
   // Backlog filter (service only)
   const [backlogServiceFilter, setBacklogServiceFilter] = React.useState<string[]>([]);
+  const filterInitialized = React.useRef(false);
 
   // Fetch service options
   const { data: serviceOptions = [] } = useQuery({
@@ -151,6 +157,17 @@ export default function SchedulePage() {
     },
     staleTime: 24 * 60 * 60 * 1000,
   });
+
+  // Auto-select default backlog service filters on first load
+  React.useEffect(() => {
+    if (filterInitialized.current || serviceOptions.length === 0) return;
+    filterInitialized.current = true;
+    const defaults = ["Departure Clean", "Office Cleaning"];
+    const ids = serviceOptions
+      .filter((o: { value: string; label: string }) => defaults.some((d) => o.label.toLowerCase().includes(d.toLowerCase())))
+      .map((o: { value: string; label: string }) => o.value);
+    if (ids.length > 0) setBacklogServiceFilter(ids);
+  }, [serviceOptions]);
 
   // Fetch appointments for the date (status 1,2 - not cancelled)
   const { data: appointmentsData, isLoading: appointmentsLoading } = useQuery({
@@ -222,6 +239,7 @@ export default function SchedulePage() {
     mutationFn: () => buildPlan(planDate, buildOptions),
     onSuccess: () => {
       refetchPlans();
+      setBuildOptionsOpen(false);
     },
     onError: (err) => {
       toastError(err instanceof Error ? err.message : "Build failed", {
@@ -308,13 +326,26 @@ export default function SchedulePage() {
         </div>
 
         <div className="flex items-end gap-2">
-          <Button
-            onClick={handleBuild}
-            disabled={buildMutation.isPending || availableStaff.length === 0}
-          >
-            <Wrench className="h-4 w-4 mr-2" />
-            Build
-          </Button>
+          <Tooltip open={availableStaff.length === 0 ? undefined : false}>
+            <TooltipTrigger asChild>
+              <span tabIndex={availableStaff.length === 0 ? 0 : undefined}>
+                <Button
+                  onClick={handleBuild}
+                  disabled={buildMutation.isPending || availableStaff.length === 0}
+                >
+                  {buildMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Wrench className="h-4 w-4 mr-2" />
+                  )}
+                  Build
+                </Button>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              Select staff in Build Options to enable
+            </TooltipContent>
+          </Tooltip>
           <Button
             variant="outline"
             onClick={handleCopy}

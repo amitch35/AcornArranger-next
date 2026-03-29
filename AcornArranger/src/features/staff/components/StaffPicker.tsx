@@ -148,6 +148,15 @@ export function StaffPicker({
 
   const clearAll = () => onChange([]);
 
+  const selectAll = () => {
+    const allIds = options.map((o) => Number(o.id));
+    const merged = Array.from(new Set([...value, ...allIds]));
+    onChange(merged);
+  };
+
+  const allSelected =
+    options.length > 0 && options.every((o) => selectedSet.has(o.id));
+
   const summary =
     selectedLabels.length === 0
       ? label
@@ -173,13 +182,25 @@ export function StaffPicker({
           </PopoverTrigger>
           <PopoverContent className="w-[420px] p-0" align="start">
             <Command>
-              {statusIds.length === 1 && statusIds[0] === 1 ? (
-                <div className="flex items-center justify-end px-3 pt-3">
+              <div className="flex items-center justify-between px-3 pt-3">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="h-6 px-2 text-xs"
+                  disabled={isLoading || options.length === 0 || allSelected}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    selectAll();
+                  }}
+                >
+                  Select All
+                </Button>
+                {statusIds.length === 1 && statusIds[0] === 1 ? (
                   <Badge variant="outline" className="h-5 px-2 text-[11px] text-muted-foreground">
                     Showing Active staff only
                   </Badge>
-                </div>
-              ) : null}
+                ) : null}
+              </div>
               <CommandInput
                 placeholder={placeholder}
                 value={searchValue}
