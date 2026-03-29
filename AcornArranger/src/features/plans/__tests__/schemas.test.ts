@@ -2,7 +2,10 @@ import { describe, it, expect } from "vitest";
 import {
   PLAN_BUILD_DEFAULTS,
   ROUTING_TYPE_LABELS,
+  isPlanSent,
   type PlanBuildOptions,
+  type Plan,
+  type PlanAppointment,
 } from "../schemas";
 
 describe("Plan Schemas", () => {
@@ -36,6 +39,74 @@ describe("Plan Schemas", () => {
 
     it("has target_staff_count undefined by default", () => {
       expect(PLAN_BUILD_DEFAULTS.target_staff_count).toBeUndefined();
+    });
+  });
+
+  describe("isPlanSent", () => {
+    function makeApptInfo(id: number): PlanAppointment["appointment_info"] {
+      return {
+        appointment_id: id,
+        arrival_time: null,
+        service_time: null,
+        next_arrival_time: null,
+        turn_around: null,
+        cancelled_date: null,
+        property_info: { properties_id: 100, property_name: "Test" },
+        service: { service_id: 21942, service_name: "Clean" },
+        status: { status_id: 1, status: "Confirmed" },
+      };
+    }
+
+    function makePlan(appointmentOverrides: Partial<PlanAppointment>[]): Plan {
+      return {
+        plan_id: 1,
+        plan_date: "2025-01-15",
+        team: 1,
+        staff: [],
+        appointments: appointmentOverrides.map((o, i) => ({
+          appointment_id: 100 + i,
+          sent_to_rc: null,
+          appointment_info: makeApptInfo(100 + i),
+          ...o,
+        })),
+      };
+    }
+
+    it("returns false for a plan with no appointments", () => {
+      expect(isPlanSent(makePlan([]))).toBe(false);
+    });
+
+    it("returns false when all appointments have sent_to_rc null", () => {
+      const plan = makePlan([
+        { sent_to_rc: null },
+        { sent_to_rc: null },
+      ]);
+      expect(isPlanSent(plan)).toBe(false);
+    });
+
+    it("returns true when at least one appointment has sent_to_rc set", () => {
+      const plan = makePlan([
+        { sent_to_rc: null },
+        { sent_to_rc: "2025-01-15T10:00:00Z" },
+      ]);
+      expect(isPlanSent(plan)).toBe(true);
+    });
+
+    it("returns true when all appointments have sent_to_rc set", () => {
+      const plan = makePlan([
+        { sent_to_rc: "2025-01-15T09:00:00Z" },
+        { sent_to_rc: "2025-01-15T10:00:00Z" },
+      ]);
+      expect(isPlanSent(plan)).toBe(true);
+    });
+
+    it("returns true when the first appointment is sent but later ones are not", () => {
+      const plan = makePlan([
+        { sent_to_rc: "2025-01-15T09:00:00Z" },
+        { sent_to_rc: null },
+        { sent_to_rc: null },
+      ]);
+      expect(isPlanSent(plan)).toBe(true);
     });
   });
 

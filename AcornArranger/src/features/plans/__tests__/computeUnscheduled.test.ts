@@ -98,6 +98,60 @@ describe("computeUnscheduled", () => {
     expect(result[0]!.planAppointmentId).toBe(101);
   });
 
+  it("returns empty array when there are no appointments", () => {
+    const result = computeUnscheduled([], [makePlan(1, 1, [101])], []);
+    expect(result).toHaveLength(0);
+  });
+
+  it("returns all appointments when there are no plans", () => {
+    const appointments = [
+      makeAppointment({ id: 1, appointment_id: 101 }),
+      makeAppointment({ id: 2, appointment_id: 102 }),
+    ];
+    const result = computeUnscheduled(appointments, [], []);
+    expect(result).toHaveLength(2);
+  });
+
+  it("excludes an appointment that appears on multiple plans (already scheduled)", () => {
+    const appointments = [
+      makeAppointment({ id: 1, appointment_id: 101 }),
+      makeAppointment({ id: 2, appointment_id: 102 }),
+    ];
+    const plans = [
+      makePlan(1, 1, [101]),
+      makePlan(2, 2, [101]),
+    ];
+
+    const result = computeUnscheduled(appointments, plans, []);
+    expect(result).toHaveLength(1);
+    expect(result[0]!.planAppointmentId).toBe(102);
+  });
+
+  it("does not exclude appointments with cancelled_date if status_id is not 5", () => {
+    const appointments = [
+      makeAppointment({
+        id: 1,
+        appointment_id: 101,
+        status: { status_id: 1, status: "Confirmed" },
+        cancelled_date: "2025-01-10T00:00:00Z",
+      }),
+    ];
+    const result = computeUnscheduled(appointments, [], []);
+    expect(result).toHaveLength(1);
+  });
+
+  it("passes through unconfirmed appointments (status_id 2)", () => {
+    const appointments = [
+      makeAppointment({
+        id: 1,
+        appointment_id: 101,
+        status: { status_id: 2, status: "Unconfirmed" },
+      }),
+    ];
+    const result = computeUnscheduled(appointments, [], []);
+    expect(result).toHaveLength(1);
+  });
+
   it("uses appointment_id when available, else id for planAppointmentId", () => {
     const appointments = [
       makeAppointment({ id: 1, appointment_id: 101 }),

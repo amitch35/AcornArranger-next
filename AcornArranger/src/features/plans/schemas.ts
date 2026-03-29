@@ -74,3 +74,29 @@ export type ErrorResponse = {
 export function isPlanSent(plan: Plan): boolean {
   return plan.appointments.some((a) => a.sent_to_rc !== null);
 }
+
+/**
+ * Raw Homebase shift record as returned by the Homebase API.
+ * Only the fields used by AcornArranger are typed here.
+ */
+export type HomebaseShift = {
+  user_id: number;
+  first_name: string;
+  last_name: string;
+  role: string;
+};
+
+/**
+ * One entry in the array returned by the `get_staff_shifts` Supabase RPC.
+ * Each entry corresponds to one Homebase shift for the requested date range.
+ *
+ * - matched: true when the Homebase user_id was found in rc_staff.hb_user_id
+ * - user_id / name: the matched rc_staff values (null when unmatched)
+ * - shift: the raw Homebase payload
+ */
+export type StaffShift = {
+  matched: boolean;
+  user_id: number | null;
+  name: string | null;
+  shift: HomebaseShift;
+};

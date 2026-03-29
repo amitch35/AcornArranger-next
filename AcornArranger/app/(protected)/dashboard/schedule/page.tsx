@@ -6,6 +6,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import {
   Collapsible,
   CollapsibleContent,
@@ -34,6 +35,10 @@ import {
   computeUnscheduled,
   type BacklogAppointment,
 } from "@/src/features/plans/components/BacklogPanel";
+import { ShiftStatusBar } from "@/src/features/plans/components/ShiftStatusBar";
+import { HomebaseShiftSuggestions } from "@/src/features/plans/components/HomebaseShiftSuggestions";
+import { useShiftStatus } from "@/src/features/plans/hooks/useShiftStatus";
+import type { StaffShift } from "@/src/features/plans/schemas";
 import type { AppointmentRow } from "@/src/features/appointments/schemas";
 
 const BUILD_OPTIONS_STORAGE_KEY = "schedule-build-options-open";
@@ -169,6 +174,18 @@ export default function SchedulePage() {
     [allAppointments, plans, backlogServiceFilter]
   );
 
+  // Fetch Homebase shifts for the selected date
+  const { data: shifts = [], isLoading: shiftsLoading } = useQuery({
+    queryKey: ["shifts", planDate],
+    queryFn: async () => {
+      const res = await fetch(`/api/shifts?date=${planDate}`);
+      if (!res.ok) return [] as StaffShift[];
+      return res.json() as Promise<StaffShift[]>;
+    },
+  });
+
+  const shiftStatus = useShiftStatus(plans, shifts);
+
   const serviceIds = React.useMemo(
     () => services.map(String),
     [services]
@@ -254,6 +271,19 @@ export default function SchedulePage() {
   const handleAddPlan = () => addMutation.mutate();
   const handleSend = () => sendMutation.mutate();
 
+  const handleUseHomebaseStaff = React.useCallback(
+    (userIds: number[]) => setAvailableStaff(userIds),
+    []
+  );
+
+  const handleToggleHomebaseStaff = React.useCallback(
+    (userId: number) =>
+      setAvailableStaff((prev) =>
+        prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+      ),
+    []
+  );
+
   return (
     <div className="container py-8 space-y-6">
       {/* Header */}
@@ -312,6 +342,14 @@ export default function SchedulePage() {
         </div>
       </div>
 
+      {/* Shift status vs Homebase */}
+      <ShiftStatusBar
+        staffOnPlansWithoutShifts={shiftStatus.staffOnPlansWithoutShifts}
+        shiftsNotOnPlans={shiftStatus.shiftsNotOnPlans}
+        unmatchedShifts={shiftStatus.unmatchedShifts}
+        isLoading={shiftsLoading}
+      />
+
       {/* Collapsible Build Options */}
       <Collapsible
         open={buildOptionsOpen}
@@ -337,6 +375,21 @@ export default function SchedulePage() {
                 canClean={true}
                 statusIds={[1]}
               />
+              {availableStaff.length === 0 && (
+                <p className="text-xs text-destructive">None selected</p>
+              )}
+              <Separator className="my-2" />
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">
+                  Today&apos;s Homebase shifts — click to add to Available Staff
+                </p>
+                <HomebaseShiftSuggestions
+                  matchedShifts={shiftStatus.matchedShifts}
+                  availableStaff={availableStaff}
+                  onUseHomebaseStaff={handleUseHomebaseStaff}
+                  onToggleStaff={handleToggleHomebaseStaff}
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
