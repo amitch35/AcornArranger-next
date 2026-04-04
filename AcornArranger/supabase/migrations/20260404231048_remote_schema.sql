@@ -1921,15 +1921,29 @@ begin
   for user_data in
     select * from jsonb_array_elements(json_data)
   loop
-    -- Find Matching Staff in ResortCleaning Staff table
-    if exists (select 1 from public.rc_staff where extensions.soundex(first_name) = extensions.soundex(user_data->>'first_name') and extensions.soundex(last_name) = extensions.soundex(user_data->>'last_name')) then
-      select user_id into staff_user_id from public.rc_staff where extensions.soundex(first_name) = extensions.soundex(user_data->>'first_name') and extensions.soundex(last_name) = extensions.soundex(user_data->>'last_name');
+    -- Find Matching Staff in ResortCleaning Staff table (email first, soundex name fallback)
+    staff_user_id := null;
+
+    if (user_data->>'email') is not null then
+      select user_id into staff_user_id
+      from public.rc_staff
+      where email = user_data->>'email';
+    end if;
+
+    if staff_user_id is null then
+      select user_id into staff_user_id
+      from public.rc_staff
+      where extensions.soundex(first_name) = extensions.soundex(user_data->>'first_name')
+        and extensions.soundex(last_name) = extensions.soundex(user_data->>'last_name');
+    end if;
+
+    if staff_user_id is not null then
       -- Get the roles table id for the default role
       if exists (select 1 from public.roles where title = user_data#>>'{job,default_role}') then
         select id from public.roles where title = (user_data#>>'{job,default_role}') into role_id;
       else
         if (user_data#>>'{job,default_role}') is null then
-        role_id := null;
+          role_id := null;
         else
           insert into public.roles (title)
           values (user_data#>>'{job,default_role}')
@@ -2097,17 +2111,19 @@ begin
         name = user_data->>'name',
         first_name = user_data->>'first_name',
         last_name = user_data->>'last_name',
-        status_id = (user_data#>>'{Status,status_id}')::smallint
+        status_id = (user_data#>>'{Status,status_id}')::smallint,
+        email = user_data->>'email'
       where user_id = staff_user_id;
     else
       -- Add a new staff record
-      insert into public.rc_staff (user_id, name, first_name, last_name, status_id)
+      insert into public.rc_staff (user_id, name, first_name, last_name, status_id, email)
       values (
         staff_user_id,
         user_data->>'name',
         user_data->>'first_name',
         user_data->>'last_name',
-        (user_data#>>'{Status,status_id}')::smallint
+        (user_data#>>'{Status,status_id}')::smallint,
+        user_data->>'email'
       );
     end if;
   end loop;
@@ -2192,7 +2208,8 @@ CREATE TABLE IF NOT EXISTS "public"."rc_staff" (
     "last_name" "text",
     "status_id" smallint,
     "role" bigint,
-    "hb_user_id" bigint
+    "hb_user_id" bigint,
+    "email" "text"
 );
 
 
@@ -2200,6 +2217,10 @@ ALTER TABLE "public"."rc_staff" OWNER TO "postgres";
 
 
 COMMENT ON COLUMN "public"."rc_staff"."hb_user_id" IS 'Homebase specific User ID matched by name between ResortCleaning and Homebase';
+
+
+
+COMMENT ON COLUMN "public"."rc_staff"."email" IS 'Staff email from ResortCleaning';
 
 
 
@@ -2812,6 +2833,11 @@ ALTER TABLE ONLY "public"."property_status_key"
 
 ALTER TABLE ONLY "public"."property_status_key"
     ADD CONSTRAINT "property_status_key_status_id_key" UNIQUE ("status_id");
+
+
+
+ALTER TABLE ONLY "public"."rc_staff"
+    ADD CONSTRAINT "rc_staff_email_key" UNIQUE ("email");
 
 
 
