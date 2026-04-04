@@ -7,7 +7,7 @@ This document defines the scope, tech choices, and an implementation checklist f
 - Functional equivalence over identical implementation; improved UX/UI
 - Keep scheduling logic in database (RPC) and preserve existing Supabase project
 - Desktop-first; mobile responsiveness is a nice-to-have
-- Dev safety: never hit external services in development by default
+- External integrations: use local Supabase and non-production credentials; wire outbound calls only in Supabase (secrets, edge functions), not via unused Next.js env toggles
 
 ### Non-Goals (for initial release)
 - Full mobile polish
@@ -33,7 +33,7 @@ This document defines the scope, tech choices, and an implementation checklist f
 - Local Supabase for development via `supabase start`
 - Configure new Supabase publishable/secret keys and asymmetric JWT signing
 - Supabase MCP (when available) for better DX
-- Dev guards to prevent external calls (Homebase, ResortCleaning)
+- Control external calls (Homebase, ResortCleaning) through Supabase configuration and environment, not duplicate flags in the Next.js app
 
 ## Domain Scope (feature parity targets)
 - **Authentication & Role-Based Access Control**: Two-tier system with `authenticated` (new users) and `authorized_user` (activated users) roles
@@ -125,7 +125,7 @@ app/
 ### M6 — Integrations & Safety
 - [ ] Homebase shift check via adapter with dev stub
 - [ ] ResortCleaning adapter with dev stub and production guard
-- [ ] Feature flags/guards prevent accidental external calls in dev
+- [ ] Outbound integrations only with explicit Supabase/local configuration (no production credentials in dev)
 
 ### M7 — UX Polish & Theming
 - [ ] Dark-first design (dark default, light optional via switcher)
@@ -219,7 +219,7 @@ app/
 ### Phase 7 — Integrations & Safety
 - [ ] Homebase adapter (configurable base URL, dev stub)
 - [ ] ResortCleaning adapter (configurable base URL, dev stub)
-- [ ] Guard rails: disallow external calls in dev unless explicitly enabled
+- [ ] Guard rails: outbound calls only when Supabase secrets/config allow (local stack defaults off)
 
 ### Phase 8 — Realtime & Notifications
 - [ ] Supabase Realtime/Broadcast channel for error/alert events
@@ -244,10 +244,9 @@ app/
 - Preserve RLS policies and roles; document any changes
 - Seed minimal dev data for staff/properties/appointments/plans
 
-## Dev Safety & Feature Flags
-- Add `NEXT_PUBLIC_ENV` and `APP_ENV` guards
-- Centralize external calls behind adapters; no-op or stub in dev
-- Visible banner when running in development mode
+## Integrations & dev environments
+- Prefer Supabase (edge functions, secrets) for outbound calls; keep adapters thin in Next.js where needed
+- Use local Supabase and non-production keys for development; stubs or disabled integrations live in Supabase config, not unused Next.js env toggles
 
 ## Open Questions (to resolve)
 - [ ] Any schema changes desired before we lock APIs?
@@ -281,6 +280,7 @@ app/
 - v0.25: **Task 15.1**; added `components/filters/DurationPicker` (HH:MM → minutes) with keyboard support, clamping (0–1440), dropdowns for hour/minute selection, and Vitest/RTL + `jest-axe` tests to support upcoming Properties settings editing.
 - v0.26: **Task 15.2 COMPLETED**; implemented `PropertyMultiSelect` following existing codebase patterns (matches `RoleMultiSelect`, `StatusMultiSelect`, `UserMultiSelect` conventions); supports static options, remote loading with debounced search (inline `setTimeout` pattern), selection pruning, badge/chip UI with remove buttons, and Clear All functionality; comprehensive test suite (23 tests) covering basic selection, chip display, clear all, selection pruning, remote loading with debounce, disabled states, custom props, and edge cases; playground wired to real `/api/options/properties` endpoint with city and active-status filters; code review identified and corrected over-engineering (removed unnecessary `excludeValues` prop and custom `useDebouncedValue` hook) to maintain codebase consistency and simplicity.
 - v0.27: **Task 6 (Schedule Builder) COMPLETED**; implemented Schedule Builder at `/dashboard/schedule` with date picker, Build/Copy/Add Plan/Send actions, collapsible Build Options (localStorage persistence) matching legacy PlanBuildOptions (available_staff, services [21942,23044], omissions, routing_type, cleaning_window, max_hours, target_staff_count); staff multi-select and team management (add/remove staff per plan via StaffPicker); unscheduled appointments backlog with service and property filters; accessible drag & drop board with @dnd-kit (backlog → plan columns, plan → plan, plan → backlog); duplicate appointment highlight in plan columns; plan APIs and RPC integration (GET, build, copy, add, staff add/remove, appointment add/remove); persistent error toasts (toastError); unit tests for PlanBuildOptions defaults and computeUnscheduled; subtasks 6.1–6.6 done.
+- v0.28: Removed unused dev “sandbox” banner (`DevBanner` / `NEXT_PUBLIC_EXTERNAL_CALLS_ENABLED`) and dead `lib/safety.ts` helpers; external integrations are governed by Supabase/local config instead of Next.js env flags.
 
 ---
 
