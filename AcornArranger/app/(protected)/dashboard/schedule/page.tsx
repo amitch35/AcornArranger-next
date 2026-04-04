@@ -312,76 +312,16 @@ export default function SchedulePage() {
         </p>
       </div>
 
-      {/* Date + Actions */}
-      <div className="flex flex-wrap items-center gap-4">
-        <div className="space-y-2">
-          <Label>Schedule Date</Label>
-          <DatePicker
-            label="Date"
-            value={planDateAsDate}
-            onChange={(date) => {
-              if (date) setPlanDate(formatDateToLocal(date));
-            }}
-          />
-        </div>
-
-        <div className="flex items-end gap-2">
-          <Tooltip open={availableStaff.length === 0 ? undefined : false}>
-            <TooltipTrigger asChild>
-              <span tabIndex={availableStaff.length === 0 ? 0 : undefined}>
-                <Button
-                  onClick={handleBuild}
-                  disabled={buildMutation.isPending || availableStaff.length === 0}
-                >
-                  {buildMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Wrench className="h-4 w-4 mr-2" />
-                  )}
-                  Build
-                </Button>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              Select staff in Build Options to enable
-            </TooltipContent>
-          </Tooltip>
-          <Button
-            variant="outline"
-            onClick={handleCopy}
-            disabled={copyMutation.isPending}
-          >
-            <Copy className="h-4 w-4 mr-2" />
-            Copy
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleAddPlan}
-            disabled={addMutation.isPending}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Plan
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleSend}
-            disabled={sendMutation.isPending}
-          >
-            <Upload className="h-4 w-4 mr-2" />
-            Send
-          </Button>
-        </div>
-      </div>
-
-      {/* Shift status vs Homebase */}
-      <ShiftStatusBar
-        staffOnPlansWithoutShifts={shiftStatus.staffOnPlansWithoutShifts}
-        shiftsNotOnPlans={shiftStatus.shiftsNotOnPlans}
-        unmatchedShifts={shiftStatus.unmatchedShifts}
-        isLoading={shiftsLoading}
+      {/* 1. Date picker */}
+      <DatePicker
+        label="Date"
+        value={planDateAsDate}
+        onChange={(date) => {
+          if (date) setPlanDate(formatDateToLocal(date));
+        }}
       />
 
-      {/* Collapsible Build Options */}
+      {/* 2. Collapsible Build Options */}
       <Collapsible
         open={buildOptionsOpen}
         onOpenChange={setBuildOptionsOpen}
@@ -505,11 +445,65 @@ export default function SchedulePage() {
         </CollapsibleContent>
       </Collapsible>
 
-      {/* Schedule board: backlog + plan columns */}
+      {/* 3. Action buttons */}
+      <div className="flex flex-wrap items-center gap-2">
+        <Tooltip open={availableStaff.length === 0 ? undefined : false}>
+          <TooltipTrigger asChild>
+            <span tabIndex={availableStaff.length === 0 ? 0 : undefined}>
+              <Button
+                onClick={handleBuild}
+                disabled={buildMutation.isPending || availableStaff.length === 0}
+              >
+                {buildMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Wrench className="h-4 w-4 mr-2" />
+                )}
+                Build
+              </Button>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            Select staff in Build Options to enable
+          </TooltipContent>
+        </Tooltip>
+        <Button
+          variant="outline"
+          onClick={handleCopy}
+          disabled={copyMutation.isPending}
+        >
+          <Copy className="h-4 w-4 mr-2" />
+          Copy
+        </Button>
+        <Button
+          variant="outline"
+          onClick={handleAddPlan}
+          disabled={addMutation.isPending}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Add Plan
+        </Button>
+        <Button
+          variant="outline"
+          onClick={handleSend}
+          disabled={sendMutation.isPending}
+        >
+          <Upload className="h-4 w-4 mr-2" />
+          Send
+        </Button>
+      </div>
+
+      {/* 4. Schedule board with shift status */}
       <div>
-        <h2 className="text-lg font-semibold mb-4">
-          Schedule Board
-        </h2>
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <h2 className="text-lg font-semibold">Schedule Board</h2>
+          <ShiftStatusBar
+            staffOnPlansWithoutShifts={shiftStatus.staffOnPlansWithoutShifts}
+            shiftsNotOnPlans={shiftStatus.shiftsNotOnPlans}
+            unmatchedShifts={shiftStatus.unmatchedShifts}
+            isLoading={shiftsLoading}
+          />
+        </div>
         {plansError ? (
           <p className="text-destructive mb-4">
             {plansError instanceof Error

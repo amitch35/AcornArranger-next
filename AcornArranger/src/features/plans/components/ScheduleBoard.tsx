@@ -252,7 +252,7 @@ export function ScheduleBoard({
         },
       }}
     >
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div className="flex flex-col lg:flex-row gap-4">
         <BacklogPanel
           appointments={backlogAppointments}
           serviceOptions={serviceOptions}
@@ -260,7 +260,7 @@ export function ScheduleBoard({
           onServiceFilterChange={onServiceFilterChange}
           isLoading={appointmentsLoading}
         />
-        <div className="flex gap-4 flex-1 min-w-0">
+        <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-4 flex-1 min-w-0">
           {plans.map((plan) => (
             <PlanColumn
               key={plan.plan_id}

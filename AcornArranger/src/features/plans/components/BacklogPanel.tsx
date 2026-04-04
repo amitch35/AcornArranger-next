@@ -3,11 +3,38 @@
 import * as React from "react";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import { ChevronDown, ChevronRight, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { ServiceMultiSelect } from "@/components/filters/ServiceMultiSelect";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
 import type { AppointmentRow } from "@/src/features/appointments/schemas";
 import type { Plan } from "../schemas";
 import { formatDateTime } from "@/src/features/appointments/schemas";
+
+/**
+ * useLayoutEffect on the client (fires synchronously before paint, preventing
+ * any flash), falls back to useEffect on the server to avoid the SSR warning.
+ */
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? React.useLayoutEffect : React.useEffect;
+
+/** Returns the current desktop state synchronously before first paint. */
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = React.useState(false);
+  useIsomorphicLayoutEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    setIsDesktop(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return isDesktop;
+}
 
 export const BACKLOG_DROPPABLE = "backlog";
 
@@ -31,14 +58,80 @@ export function BacklogPanel({
   onServiceFilterChange,
   isLoading,
 }: BacklogPanelProps) {
+  const isDesktop = useIsDesktop();
+  const [mobileOpen, setMobileOpen] = React.useState(false);
+
+  return isDesktop ? (
+    <BacklogDesktop
+      appointments={appointments}
+      serviceOptions={serviceOptions}
+      serviceFilter={serviceFilter}
+      onServiceFilterChange={onServiceFilterChange}
+      isLoading={isLoading}
+    />
+  ) : (
+    <BacklogMobile
+      appointments={appointments}
+      serviceOptions={serviceOptions}
+      serviceFilter={serviceFilter}
+      onServiceFilterChange={onServiceFilterChange}
+      isLoading={isLoading}
+      open={mobileOpen}
+      onOpenChange={setMobileOpen}
+    />
+  );
+}
+
+/** Desktop: collapsible sidebar column, open by default. */
+function BacklogDesktop({
+  appointments,
+  serviceOptions,
+  serviceFilter,
+  onServiceFilterChange,
+  isLoading,
+}: BacklogPanelProps) {
+  const [open, setOpen] = React.useState(true);
   const { setNodeRef, isOver } = useDroppable({ id: BACKLOG_DROPPABLE });
+
+  if (!open) {
+    return (
+      <div
+        ref={setNodeRef}
+        className={`shrink-0 rounded-lg border bg-card flex flex-col items-center py-3 px-1 gap-2 ${isOver ? "ring-2 ring-primary/50" : ""}`}
+      >
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => setOpen(true)}
+          aria-label="Expand unscheduled panel"
+        >
+          <PanelLeftOpen className="h-4 w-4" />
+        </Button>
+        <span className="text-xs font-medium text-muted-foreground [writing-mode:vertical-lr] rotate-180 select-none">
+          Unscheduled ({appointments.length})
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div
       ref={setNodeRef}
       className={`flex flex-col w-72 shrink-0 rounded-lg border bg-card p-4 ${isOver ? "ring-2 ring-primary/50" : ""}`}
     >
-      <h3 className="font-semibold mb-3">Unscheduled</h3>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-semibold">Unscheduled</h3>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 text-muted-foreground hover:text-foreground"
+          onClick={() => setOpen(false)}
+          aria-label="Collapse unscheduled panel"
+        >
+          <PanelLeftClose className="h-4 w-4" />
+        </Button>
+      </div>
       <div className="space-y-3 mb-4">
         <div>
           <Label className="text-xs">Service</Label>
@@ -62,6 +155,74 @@ export function BacklogPanel({
           ))
         )}
       </div>
+    </div>
+  );
+}
+
+/** Mobile/tablet: full-width collapsible section, collapsed by default. */
+function BacklogMobile({
+  appointments,
+  serviceOptions,
+  serviceFilter,
+  onServiceFilterChange,
+  isLoading,
+  open,
+  onOpenChange,
+}: BacklogPanelProps & { open: boolean; onOpenChange: (v: boolean) => void }) {
+  const { setNodeRef, isOver } = useDroppable({ id: BACKLOG_DROPPABLE });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`rounded-lg border bg-card ${isOver ? "ring-2 ring-primary/50" : ""}`}
+    >
+      <Collapsible open={open} onOpenChange={onOpenChange}>
+        <CollapsibleTrigger asChild>
+          <Button
+            variant="ghost"
+            className="w-full flex items-center justify-between px-4 py-3 h-auto rounded-lg font-semibold"
+          >
+            <span>
+              Unscheduled
+              {appointments.length > 0 && (
+                <span className="ml-2 text-xs font-normal text-muted-foreground">
+                  ({appointments.length})
+                </span>
+              )}
+            </span>
+            {open ? (
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            )}
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="px-4 pb-4 space-y-3">
+            <div>
+              <Label className="text-xs">Service</Label>
+              <ServiceMultiSelect
+                options={serviceOptions}
+                value={serviceFilter}
+                onChange={onServiceFilterChange}
+                showBadges={false}
+                placeholder="All"
+              />
+            </div>
+            <div className="space-y-2">
+              {isLoading ? (
+                <p className="text-sm text-muted-foreground">Loading...</p>
+              ) : appointments.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No unscheduled appointments</p>
+              ) : (
+                appointments.map((apt) => (
+                  <BacklogItem key={apt.planAppointmentId} appointment={apt} />
+                ))
+              )}
+            </div>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 }

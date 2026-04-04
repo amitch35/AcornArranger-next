@@ -93,7 +93,7 @@ export function PlanColumn({
     <div
       ref={setNodeRef}
       className={`
-        flex flex-col min-w-[280px] max-w-[320px] rounded-lg border p-4 bg-card
+        flex flex-col w-full rounded-lg border p-4 bg-card
         ${isOver ? "ring-2 ring-primary/50" : ""}
       `}
     >
