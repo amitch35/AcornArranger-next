@@ -30,12 +30,14 @@ async function fetchAuthUserMenuSummary(): Promise<AuthUserMenuSummary | null> {
   };
 }
 
-const INVALIDATING_EVENTS = new Set([
-  "SIGNED_IN",
-  "SIGNED_OUT",
-  "USER_UPDATED",
-  "TOKEN_REFRESHED",
-]);
+/** Events excluded on purpose (GoTrueClient):
+ *  - TOKEN_REFRESHED: routine refresh / tab focus token handling.
+ *  - SIGNED_IN: also emitted when the tab becomes visible again (`_recoverAndRefresh`
+ *    notifies subscribers with the existing session), not only on a real login.
+ *  Invalidating on those refetches this query and calls `getUser()` every refocus.
+ *  Real logins/remounts still run the query once on mount; profile saves use
+ *  `invalidateQueries`; metadata edits emit USER_UPDATED. */
+const INVALIDATING_EVENTS = new Set<string>(["SIGNED_OUT", "USER_UPDATED"]);
 
 /**
  * Cached `getUser()` summary for the header menu. Long staleTime; invalidated on
