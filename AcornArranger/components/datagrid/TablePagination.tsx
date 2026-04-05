@@ -38,11 +38,17 @@ export function TablePagination({ page, pageSize, total, onPageChange, onPageSiz
   }, [page, pageCount]);
 
   return (
-    <div className="flex w-full items-center justify-between gap-3 p-3">
-      <div className="flex items-center gap-2">
-        <Label id="rows-per-page-label" htmlFor="rows-per-page">Rows per page</Label>
+    <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 p-3">
+      <div className="flex shrink-0 items-center gap-2 justify-self-start">
+        <Label id="rows-per-page-label" htmlFor="rows-per-page">
+          Rows per page
+        </Label>
         <Select value={String(pageSize)} onValueChange={(v) => onPageSizeChange(Number(v))}>
-          <SelectTrigger id="rows-per-page" aria-labelledby="rows-per-page-label">
+          <SelectTrigger
+            id="rows-per-page"
+            aria-labelledby="rows-per-page-label"
+            className="w-auto min-w-[4.25rem]"
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -54,7 +60,7 @@ export function TablePagination({ page, pageSize, total, onPageChange, onPageSiz
           </SelectContent>
         </Select>
       </div>
-      <Pagination>
+      <Pagination className="w-auto min-w-0 justify-self-center">
         <PaginationContent>
           <PaginationItem>
             <PaginationPrevious aria-label="Previous page" aria-disabled={!canPrev} onClick={(e) => { e.preventDefault(); if (canPrev) onPageChange(page - 1); }} href="#" />
@@ -75,6 +81,7 @@ export function TablePagination({ page, pageSize, total, onPageChange, onPageSiz
           </PaginationItem>
         </PaginationContent>
       </Pagination>
+      <div className="min-w-0" aria-hidden />
     </div>
   );
 }
