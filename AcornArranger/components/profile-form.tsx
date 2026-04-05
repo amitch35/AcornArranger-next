@@ -2,16 +2,18 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
+import { authUserMenuSummaryQueryKey } from "@/lib/query-keys/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, AlertTriangle } from "lucide-react";
 import type { Role } from "@/lib/auth";
 
 const profileSchema = z.object({
@@ -29,8 +31,12 @@ interface ProfileFormProps {
 
 export function ProfileForm({ user, profile, userRole }: ProfileFormProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "success" | "error" | "warning";
+    text: string;
+  } | null>(null);
 
   const {
     register,
@@ -64,12 +70,26 @@ export function ProfileForm({ user, profile, userRole }: ProfileFormProps) {
         throw profileError;
       }
 
-      setMessage({
-        type: 'success',
-        text: 'Profile updated successfully!',
+      const { error: authMetaError } = await supabase.auth.updateUser({
+        data: { display_name: data.display_name ?? "" },
       });
 
-      // Refresh the page data
+      if (authMetaError) {
+        setMessage({
+          type: "warning",
+          text:
+            "Your profile was saved, but we could not refresh your session display name. Try signing out and back in, or save again.",
+        });
+      } else {
+        await queryClient.invalidateQueries({
+          queryKey: authUserMenuSummaryQueryKey,
+        });
+        setMessage({
+          type: "success",
+          text: "Profile updated successfully!",
+        });
+      }
+
       router.refresh();
     } catch (error: any) {
       console.error('Profile update error:', error);
@@ -85,9 +105,11 @@ export function ProfileForm({ user, profile, userRole }: ProfileFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {message && (
-        <Alert variant={message.type === 'error' ? 'destructive' : 'default'}>
-          {message.type === 'success' ? (
+        <Alert variant={message.type === "error" ? "destructive" : "default"}>
+          {message.type === "success" ? (
             <CheckCircle2 className="h-4 w-4" />
+          ) : message.type === "warning" ? (
+            <AlertTriangle className="h-4 w-4" />
           ) : (
             <XCircle className="h-4 w-4" />
           )}

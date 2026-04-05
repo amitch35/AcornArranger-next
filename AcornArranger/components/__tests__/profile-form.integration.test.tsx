@@ -1,9 +1,17 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ProfileForm } from '../profile-form';
 import { createMockSupabaseClient } from '@/lib/__tests__/test-utils';
 import { createClient } from '@/lib/supabase/client';
+
+function renderWithQueryClient(ui: React.ReactElement) {
+  const qc = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>);
+}
 
 // Mock the Supabase client module
 vi.mock('@/lib/supabase/client', () => ({
@@ -44,7 +52,7 @@ describe('ProfileForm Integration Tests', () => {
       const mockSupabase = createMockSupabaseClient({ role: 'authenticated' });
       vi.mocked(createClient).mockReturnValue(mockSupabase as any);
 
-      render(
+      renderWithQueryClient(
         <ProfileForm
           user={mockUser}
           profile={mockProfile}
@@ -61,7 +69,7 @@ describe('ProfileForm Integration Tests', () => {
       const mockSupabase = createMockSupabaseClient({ role: 'authorized_user' });
       vi.mocked(createClient).mockReturnValue(mockSupabase as any);
 
-      render(
+      renderWithQueryClient(
         <ProfileForm
           user={mockUser}
           profile={mockProfile}
@@ -76,7 +84,7 @@ describe('ProfileForm Integration Tests', () => {
       const mockSupabase = createMockSupabaseClient({ role: 'authenticated' });
       vi.mocked(createClient).mockReturnValue(mockSupabase as any);
 
-      render(
+      renderWithQueryClient(
         <ProfileForm
           user={mockUser}
           profile={mockProfile}
@@ -101,7 +109,7 @@ describe('ProfileForm Integration Tests', () => {
 
       vi.mocked(createClient).mockReturnValue(mockSupabase as any);
 
-      render(
+      renderWithQueryClient(
         <ProfileForm
           user={mockUser}
           profile={mockProfile}
@@ -120,7 +128,48 @@ describe('ProfileForm Integration Tests', () => {
       });
 
       await waitFor(() => {
+        expect(mockSupabase.auth.updateUser).toHaveBeenCalledWith({
+          data: { display_name: 'Updated Name' },
+        });
+      });
+
+      await waitFor(() => {
         expect(screen.getByText(/profile updated successfully/i)).toBeInTheDocument();
+      });
+    });
+
+    it('should warn when profile saves but auth metadata update fails', async () => {
+      const mockSupabase = createMockSupabaseClient({ role: 'authenticated' });
+      const mockUpdate = vi.fn().mockResolvedValue({ data: {}, error: null });
+      mockSupabase.auth.updateUser = vi.fn().mockResolvedValue({
+        data: { user: null },
+        error: { message: 'Auth service unavailable' },
+      });
+
+      mockSupabase.from = vi.fn(() => ({
+        update: vi.fn(() => ({
+          eq: mockUpdate,
+        })),
+      })) as any;
+
+      vi.mocked(createClient).mockReturnValue(mockSupabase as any);
+
+      renderWithQueryClient(
+        <ProfileForm
+          user={mockUser}
+          profile={mockProfile}
+          userRole="authenticated"
+        />
+      );
+
+      const displayNameInput = screen.getByLabelText('Display Name');
+      fireEvent.change(displayNameInput, { target: { value: 'New Name' } });
+      fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(/profile was saved, but we could not refresh your session display name/i)
+        ).toBeInTheDocument();
       });
     });
 
@@ -142,7 +191,7 @@ describe('ProfileForm Integration Tests', () => {
 
       vi.mocked(createClient).mockReturnValue(mockSupabase as any);
 
-      render(
+      renderWithQueryClient(
         <ProfileForm
           user={mockUser}
           profile={mockProfile}
@@ -167,7 +216,7 @@ describe('ProfileForm Integration Tests', () => {
       const mockSupabase = createMockSupabaseClient({ role: 'authenticated' });
       vi.mocked(createClient).mockReturnValue(mockSupabase as any);
 
-      render(
+      renderWithQueryClient(
         <ProfileForm
           user={mockUser}
           profile={mockProfile}
@@ -185,7 +234,7 @@ describe('ProfileForm Integration Tests', () => {
       const mockSupabase = createMockSupabaseClient({ role: 'authenticated' });
       vi.mocked(createClient).mockReturnValue(mockSupabase as any);
 
-      render(
+      renderWithQueryClient(
         <ProfileForm
           user={mockUser}
           profile={mockProfile}

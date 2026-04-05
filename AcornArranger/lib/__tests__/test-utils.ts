@@ -97,11 +97,22 @@ export function createMockSupabaseClient(options: {
       : { data: { user: null }, error: null }
   );
 
+  const updateUser = vi.fn().mockResolvedValue({
+    data: { user: { ...mockSession.user } },
+    error: null,
+  });
+
+  const onAuthStateChange = vi.fn(() => ({
+    data: { subscription: { unsubscribe: vi.fn() } },
+  }));
+
   return {
     auth: {
       getClaims,
       getSession,
       getUser,
+      updateUser,
+      onAuthStateChange,
       signInWithPassword: vi.fn(),
       signOut: vi.fn(),
     },

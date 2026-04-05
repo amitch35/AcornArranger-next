@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { User, Settings, LogOut } from "lucide-react";
+import { User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -14,6 +14,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useAuthUserMenuSummary } from "@/lib/hooks/useAuthUserMenuSummary";
 
 /**
  * ProfileMenu - User profile dropdown menu
@@ -27,23 +28,7 @@ import { createClient } from "@/lib/supabase/client";
  */
 export function ProfileMenu() {
   const router = useRouter();
-  const [user, setUser] = React.useState<{
-    email?: string;
-    name?: string;
-  } | null>(null);
-
-  React.useEffect(() => {
-    const supabase = createClient();
-    
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) {
-        setUser({
-          email: data.user.email,
-          name: data.user.user_metadata?.name,
-        });
-      }
-    });
-  }, []);
+  const { data: user } = useAuthUserMenuSummary();
 
   const handleSignOut = async () => {
     const supabase = createClient();

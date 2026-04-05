@@ -95,7 +95,7 @@ export default async function WelcomePage() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Have questions? Reach out to our support team.
+                      Have questions? Reach out to our support.
                     </p>
                   </CardContent>
                 </Card>

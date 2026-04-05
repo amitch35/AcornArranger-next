@@ -17,15 +17,19 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/lib/supabase/client", () => ({
   createClient: () => ({
     auth: {
-      getUser: () => Promise.resolve({
-        data: {
-          user: {
-            email: "test@example.com",
-            user_metadata: { name: "Test User" },
+      getUser: () =>
+        Promise.resolve({
+          data: {
+            user: {
+              email: "test@example.com",
+              user_metadata: { display_name: "Test User" },
+            },
           },
-        },
-      }),
+        }),
       signOut: vi.fn(),
+      onAuthStateChange: vi.fn(() => ({
+        data: { subscription: { unsubscribe: vi.fn() } },
+      })),
     },
   }),
 }));
