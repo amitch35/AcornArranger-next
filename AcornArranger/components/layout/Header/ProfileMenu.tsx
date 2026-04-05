@@ -1,13 +1,16 @@
 "use client";
 
-import React from "react";
-import { User, LogOut } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Laptop, LogOut, Moon, Sun, User } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -21,14 +24,22 @@ import { useAuthUserMenuSummary } from "@/lib/hooks/useAuthUserMenuSummary";
  * 
  * Displays user avatar and provides access to:
  * - Account settings
- * - App settings
+ * - Theme (light / dark / system)
  * - Sign out
  * 
  * Uses Supabase auth for sign out functionality.
  */
+const THEME_ICON_SIZE = 16;
+
 export function ProfileMenu() {
   const router = useRouter();
   const { data: user } = useAuthUserMenuSummary();
+  const [mounted, setMounted] = useState(false);
+  const { theme, setTheme } = useTheme();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -71,7 +82,7 @@ export function ProfileMenu() {
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent align="end" className="w-60">
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             {user?.name && (
@@ -90,6 +101,38 @@ export function ProfileMenu() {
           <User className="mr-2 h-4 w-4" />
           <span>Profile Settings</span>
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+          Theme
+        </DropdownMenuLabel>
+        {mounted && (
+          <DropdownMenuRadioGroup
+            value={theme ?? "system"}
+            onValueChange={setTheme}
+          >
+            <DropdownMenuRadioItem className="flex gap-2" value="light">
+              <Sun
+                size={THEME_ICON_SIZE}
+                className="text-muted-foreground"
+              />
+              <span>Light</span>
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem className="flex gap-2" value="dark">
+              <Moon
+                size={THEME_ICON_SIZE}
+                className="text-muted-foreground"
+              />
+              <span>Dark</span>
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem className="flex gap-2" value="system">
+              <Laptop
+                size={THEME_ICON_SIZE}
+                className="text-muted-foreground"
+              />
+              <span>System</span>
+            </DropdownMenuRadioItem>
+          </DropdownMenuRadioGroup>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={handleSignOut}

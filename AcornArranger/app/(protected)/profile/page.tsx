@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getClientRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { ProfileForm } from "@/components/profile-form";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 import {
   Card,
   CardContent,
@@ -42,18 +43,6 @@ export default async function ProfilePage() {
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Personal Information</CardTitle>
-          <CardDescription>
-            Update your profile details. Changes are saved automatically.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ProfileForm user={user} profile={profile} userRole={role} />
-        </CardContent>
-      </Card>
-
       {role === "authenticated" && (
         <Card className="border-yellow-200 dark:border-yellow-900 bg-yellow-50 dark:bg-yellow-950">
           <CardHeader>
@@ -79,6 +68,31 @@ export default async function ProfilePage() {
           </CardHeader>
         </Card>
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Personal Information</CardTitle>
+          <CardDescription>
+            Update your profile details. Changes are saved automatically.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ProfileForm user={user} profile={profile} userRole={role} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Appearance</CardTitle>
+          <CardDescription>
+            Preference for light, dark, or match your system.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-start gap-3">
+          <span className="text-sm font-medium leading-none">Theme</span>
+          <ThemeSwitcher />
+        </CardContent>
+      </Card>
     </div>
   );
 }

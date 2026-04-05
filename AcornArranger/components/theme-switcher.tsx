@@ -26,30 +26,47 @@ const ThemeSwitcher = () => {
   }
 
   const ICON_SIZE = 16;
+  const resolved = theme ?? "system";
+  const trigger =
+    resolved === "light" ? (
+      <>
+        <Sun
+          size={ICON_SIZE}
+          className="text-muted-foreground shrink-0"
+          aria-hidden
+        />
+        <span>Light</span>
+      </>
+    ) : resolved === "dark" ? (
+      <>
+        <Moon
+          size={ICON_SIZE}
+          className="text-muted-foreground shrink-0"
+          aria-hidden
+        />
+        <span>Dark</span>
+      </>
+    ) : (
+      <>
+        <Laptop
+          size={ICON_SIZE}
+          className="text-muted-foreground shrink-0"
+          aria-hidden
+        />
+        <span>System</span>
+      </>
+    );
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size={"sm"}>
-          {theme === "light" ? (
-            <Sun
-              key="light"
-              size={ICON_SIZE}
-              className={"text-muted-foreground"}
-            />
-          ) : theme === "dark" ? (
-            <Moon
-              key="dark"
-              size={ICON_SIZE}
-              className={"text-muted-foreground"}
-            />
-          ) : (
-            <Laptop
-              key="system"
-              size={ICON_SIZE}
-              className={"text-muted-foreground"}
-            />
-          )}
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2 font-normal text-foreground"
+          aria-label={`Theme: ${resolved}. Change theme`}
+        >
+          {trigger}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-content" align="start">
