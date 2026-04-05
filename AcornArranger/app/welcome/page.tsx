@@ -46,15 +46,15 @@ export default async function WelcomePage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="rounded-lg bg-blue-50 dark:bg-blue-950 p-4 space-y-2">
-            <h3 className="font-semibold text-blue-900 dark:text-blue-100">
+          <div className="rounded-lg border border-primary/30 bg-primary/10 dark:border-primary/25 dark:bg-primary/15 p-4 space-y-2">
+            <h3 className="font-semibold text-foreground">
               Account Activation Pending
             </h3>
-            <p className="text-sm text-blue-800 dark:text-blue-200">
+            <p className="text-sm text-muted-foreground">
               Your account is currently awaiting activation by an administrator. 
-              Once activated, you'll have full access to all AcornArranger features including:
+              Once activated, you&apos;ll have full access to all AcornArranger features including:
             </p>
-            <ul className="text-sm text-blue-800 dark:text-blue-200 list-disc list-inside space-y-1 ml-2">
+            <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1 ml-2">
               <li>View and manage properties, staff, and appointments</li>
               <li>Create and manage schedules</li>
               <li>See missing shifts and conflicts</li>

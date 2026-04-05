@@ -162,12 +162,14 @@ export function ProfileForm({ user, profile, userRole }: ProfileFormProps) {
         <h3 className="font-medium text-sm">Account Status</h3>
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Role:</span>
-          <span className={`text-sm font-medium ${
-            userRole === 'authorized_user' 
-              ? 'text-green-600 dark:text-green-400' 
-              : 'text-yellow-600 dark:text-yellow-400'
-          }`}>
-            {userRole === 'authorized_user' ? 'Authorized User' : 'Awaiting Activation'}
+          <span
+            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
+              userRole === "authorized_user"
+                ? "border-primary/40 bg-primary/10 text-primary"
+                : "border-sky-400/70 bg-sky-50 text-sky-900 dark:border-sky-500/45 dark:bg-sky-950/50 dark:text-sky-200"
+            }`}
+          >
+            {userRole === "authorized_user" ? "Authorized User" : "Awaiting Activation"}
           </span>
         </div>
       </div>

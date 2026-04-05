@@ -563,7 +563,7 @@ function PlanAppointmentItem({
       className={`
         rounded border p-2 text-sm cursor-grab active:cursor-grabbing
         bg-background hover:bg-muted/50
-        ${isDuplicate ? "border-blue-400 bg-blue-50 dark:bg-blue-950/30" : ""}
+        ${isDuplicate ? "border-sky-400 bg-sky-50 dark:border-sky-500/40 dark:bg-sky-950/35" : ""}
         ${isDragging ? "opacity-50" : ""}
       `}
       role="button"
@@ -578,7 +578,7 @@ function PlanAppointmentItem({
       <div className="font-medium truncate">{propName}</div>
       <div className="text-xs text-muted-foreground truncate">{serviceName}</div>
       {isDuplicate && (
-        <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+        <div className="text-xs font-medium text-sky-800 dark:text-sky-300 mt-1">
           In multiple plans
         </div>
       )}

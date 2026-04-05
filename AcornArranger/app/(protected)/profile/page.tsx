@@ -44,12 +44,12 @@ export default async function ProfilePage() {
       </div>
 
       {role === "authenticated" && (
-        <Card className="border-yellow-200 dark:border-yellow-900 bg-yellow-50 dark:bg-yellow-950">
+        <Card className="border-primary/30 bg-primary/10 dark:border-primary/25 dark:bg-primary/15">
           <CardHeader>
-            <CardTitle className="text-yellow-900 dark:text-yellow-100">
+            <CardTitle className="text-foreground">
               Account Activation Pending
             </CardTitle>
-            <CardDescription className="text-yellow-800 dark:text-yellow-200 space-y-2">
+            <CardDescription className="text-muted-foreground space-y-2">
               <span>
                 Your account is awaiting activation. Once activated by an
                 administrator, you&apos;ll have full access to all features.
@@ -58,7 +58,7 @@ export default async function ProfilePage() {
                 In the meantime, you can{" "}
                 <Link
                   href="/welcome"
-                  className="font-medium text-yellow-900 underline underline-offset-4 dark:text-yellow-100"
+                  className="font-medium text-primary underline underline-offset-4 hover:text-primary/90"
                 >
                   return to the welcome page
                 </Link>{" "}
