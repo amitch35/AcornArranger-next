@@ -5,6 +5,13 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  /* Brand palette (hex) — landing/marketing surfaces */
+  --brand-teal: #12a1b7;
+  --brand-teal-dark: #0d7282;
+  --brand-deep: #063237;
+  --brand-night: #0e131f;
+  --brand-lavender: #f8f0fb;
+
   --background: oklch(0.985 0.002 260);
   --foreground: oklch(0.145 0.005 260);
   --card: oklch(1.0 0 0);
@@ -67,6 +74,12 @@
 }
 
 .dark {
+  --brand-teal: #12a1b7;
+  --brand-teal-dark: #0d7282;
+  --brand-deep: #063237;
+  --brand-night: #0e131f;
+  --brand-lavender: #f8f0fb;
+
   --background: oklch(0.145 0.005 260);
   --foreground: oklch(0.985 0.005 260);
   --card: oklch(0.185 0.008 260);
@@ -147,6 +160,12 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-brand-teal: var(--brand-teal);
+  --color-brand-teal-dark: var(--brand-teal-dark);
+  --color-brand-deep: var(--brand-deep);
+  --color-brand-night: var(--brand-night);
+  --color-brand-lavender: var(--brand-lavender);
 
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);

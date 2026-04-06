@@ -11,8 +11,14 @@ import {
 import { Laptop, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 
-const ThemeSwitcher = () => {
+type ThemeSwitcherProps = {
+  /** Merged onto the trigger button (e.g. footer on dark brand background). */
+  className?: string;
+};
+
+const ThemeSwitcher = ({ className }: ThemeSwitcherProps = {}) => {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
 
@@ -32,7 +38,7 @@ const ThemeSwitcher = () => {
       <>
         <Sun
           size={ICON_SIZE}
-          className="text-muted-foreground shrink-0"
+          className="shrink-0 opacity-90"
           aria-hidden
         />
         <span>Light</span>
@@ -41,7 +47,7 @@ const ThemeSwitcher = () => {
       <>
         <Moon
           size={ICON_SIZE}
-          className="text-muted-foreground shrink-0"
+          className="shrink-0 opacity-90"
           aria-hidden
         />
         <span>Dark</span>
@@ -50,7 +56,7 @@ const ThemeSwitcher = () => {
       <>
         <Laptop
           size={ICON_SIZE}
-          className="text-muted-foreground shrink-0"
+          className="shrink-0 opacity-90"
           aria-hidden
         />
         <span>System</span>
@@ -63,7 +69,10 @@ const ThemeSwitcher = () => {
         <Button
           variant="outline"
           size="sm"
-          className="gap-2 font-normal text-foreground"
+          className={cn(
+            "gap-2 font-normal text-foreground [&_svg]:text-current",
+            className,
+          )}
           aria-label={`Theme: ${resolved}. Change theme`}
         >
           {trigger}
