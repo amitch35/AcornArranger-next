@@ -200,18 +200,3 @@ export function formatDateTime(iso: string | null | undefined): string {
     return "—";
   }
 }
-
-/**
- * Check if a datetime is within the next N hours from now.
- */
-export function isWithinHours(iso: string | null | undefined, hours: number): boolean {
-  if (!iso) return false;
-  try {
-    const target = new Date(iso).getTime();
-    const now = Date.now();
-    const diff = target - now;
-    return diff > 0 && diff <= hours * 60 * 60 * 1000;
-  } catch {
-    return false;
-  }
-}

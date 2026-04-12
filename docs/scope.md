@@ -87,30 +87,30 @@ app/
 ### M1 — Supabase Foundations
 - [x] Supabase clients (server/client) configured with @supabase/ssr
 - [x] Asymmetric JWT signing set and verified
-- [ ] Local Supabase running with seeded minimal data
+- [x] Local Supabase running with seeded minimal data
 - [x] Types generated from Supabase schema into `supabase/types.ts`
 
 ### M2 — Auth & Access Control
-- [ ] Email/password auth working end-to-end
+- [x] Email/password auth working end-to-end
 - [x] Protected routes with middleware and session handling
-- [ ] **Role-based access control**: `authenticated` vs `authorized_user` roles
-- [ ] **Non-authorized user experience**: Landing page with activation info, profile access only
+- [x] **Role-based access control**: `authenticated` vs `authorized_user` roles
+- [x] **Non-authorized user experience**: Landing page with activation info, profile access only
 - [ ] **Authorized user experience**: Full dashboard and entity access
 
 ### M3 — Core Entities & UI Foundation
-- [ ] Enhanced list views with modern filtering (status, dates, roles)
-- [ ] **Properties management**: Comprehensive property list with ID, Name, Cleaning Time, Double Units, Status columns
-- [ ] **Property detail pages**: Full property information including address details and scheduling options
-- [ ] **Property editing**: Time picker for cleaning time and dependency selector for double units
-- [ ] **Staff management**: Comprehensive staff list with ID, Name, Role, Status, Can Clean, Can Lead columns
-- [ ] **Staff detail pages**: Full staff information including role capabilities and shift status
-- [ ] Role settings interface for algorithm priority
+- [x] Enhanced list views with modern filtering (status, dates, roles)
+- [x] **Properties management**: Comprehensive property list with ID, Name, Cleaning Time, Double Units, Status columns
+- [x] **Property detail pages**: Full property information including address details and scheduling options
+- [x] **Property editing**: Time picker for cleaning time and dependency selector for double units
+- [x] **Staff management**: Comprehensive staff list with ID, Name, Role, Status, Can Clean, Can Lead columns
+- [x] **Staff detail pages**: Full staff information including role capabilities and shift status
+- [x] Role settings interface for algorithm priority
 
 ### M4 — Appointments & Enhanced UX
-- [ ] Appointments list with comprehensive filters and pagination
-- [ ] **Accurate appointment columns**: ID, Service Time, Property, Staff, T/A, Next Arrival Time, Service, Status
-- [ ] **T/A column**: Turn-around indicator with icon display
-- [ ] **Time columns**: Service Time (primary) and Next Arrival Time (guest check-in deadline)
+- [x] Appointments list with comprehensive filters and pagination
+- [x] **Accurate appointment columns**: ID, Service Time, Property, Staff, T/A, Next Arrival Time, Service, Status
+- [x] **T/A column**: Turn-around indicator with icon display
+- [x] **Time columns**: Service Time (primary) and Next Arrival Time (guest check-in deadline)
 - [ ] "Unscheduled" indicator + check endpoint
 - [ ] Real-time status updates and error indicators
 - [ ] Consistent table layouts and bulk actions

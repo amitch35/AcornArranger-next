@@ -10,7 +10,6 @@ import {
   formatStaffSummary,
   getStatusBadgeVariant,
   formatDateTime,
-  isWithinHours,
 } from "../schemas";
 
 // ============================================================================
@@ -269,26 +268,6 @@ describe("Appointment Helpers", () => {
       const result = formatDateTime("2026-02-15T09:30:00+00:00");
       expect(result).toContain(","); // Should contain comma between date and time
       expect(result).toMatch(/AM|PM/); // Should contain AM or PM
-    });
-  });
-
-  describe("isWithinHours", () => {
-    it("returns false for null", () => {
-      expect(isWithinHours(null, 2)).toBe(false);
-    });
-
-    it("returns false for past dates", () => {
-      expect(isWithinHours("2020-01-01T00:00:00Z", 2)).toBe(false);
-    });
-
-    it("returns true for near-future dates", () => {
-      const oneHourFromNow = new Date(Date.now() + 60 * 60 * 1000).toISOString();
-      expect(isWithinHours(oneHourFromNow, 2)).toBe(true);
-    });
-
-    it("returns false for far-future dates", () => {
-      const tenHoursFromNow = new Date(Date.now() + 10 * 60 * 60 * 1000).toISOString();
-      expect(isWithinHours(tenHoursFromNow, 2)).toBe(false);
     });
   });
 });

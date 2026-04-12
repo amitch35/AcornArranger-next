@@ -20,7 +20,6 @@ import {
   Building2,
   Users,
   RotateCw,
-  Clock,
   AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
@@ -30,7 +29,6 @@ import {
   formatDateTime,
   formatAppointmentStaffName,
   getStatusBadgeVariant,
-  isWithinHours,
 } from "@/src/features/appointments/schemas";
 import { getListUrl } from "@/lib/navigation/listReturnUrl";
 
@@ -137,7 +135,6 @@ export default function AppointmentDetailPage() {
 
   const displayId =
     appointment.appointment_id ?? appointment.id;
-  const urgentArrival = isWithinHours(appointment.next_arrival_time, 2);
 
   return (
     <div className="container py-8 space-y-6">
@@ -225,16 +222,9 @@ export default function AppointmentDetailPage() {
               </p>
               <div className="mt-1">
                 {appointment.next_arrival_time ? (
-                  urgentArrival ? (
-                    <Badge variant="destructive" className="gap-1">
-                      <Clock className="h-3 w-3" />
-                      {formatDateTime(appointment.next_arrival_time)}
-                    </Badge>
-                  ) : (
-                    <span className="text-base">
-                      {formatDateTime(appointment.next_arrival_time)}
-                    </span>
-                  )
+                  <span className="text-base">
+                    {formatDateTime(appointment.next_arrival_time)}
+                  </span>
                 ) : (
                   <span className="text-muted-foreground">—</span>
                 )}

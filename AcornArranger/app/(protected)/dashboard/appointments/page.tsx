@@ -32,9 +32,8 @@ import {
   formatStaffSummary,
   formatAppointmentStaffName,
   getStatusBadgeVariant,
-  isWithinHours,
 } from "@/src/features/appointments/schemas";
-import { RotateCw, Eye, Clock } from "lucide-react";
+import { RotateCw, Eye, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import { saveListUrl } from "@/lib/navigation/listReturnUrl";
@@ -91,7 +90,14 @@ function StaffListPopover({ staff }: { staff: AppointmentStaffMember[] }) {
   const [open, setOpen] = React.useState(false);
 
   if (!staff.length) {
-    return <span className="text-muted-foreground text-sm">—</span>;
+    return (
+      <span title="No staff assigned" className="inline-flex">
+        <AlertTriangle
+          className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-500"
+          aria-label="No staff assigned"
+        />
+      </span>
+    );
   }
 
   const { primary, additionalCount } = formatStaffSummary(staff);
@@ -434,17 +440,11 @@ export default function AppointmentsListPage() {
           if (!value) {
             return <span className="text-muted-foreground text-sm">—</span>;
           }
-          const urgent = isWithinHours(value, 2);
-          const formatted = formatDateTime(value);
-          if (urgent) {
-            return (
-              <Badge variant="destructive" className="gap-1 whitespace-nowrap">
-                <Clock className="h-3 w-3" />
-                {formatted}
-              </Badge>
-            );
-          }
-          return <span className="text-sm whitespace-nowrap">{formatted}</span>;
+          return (
+            <span className="text-sm whitespace-nowrap">
+              {formatDateTime(value)}
+            </span>
+          );
         },
       },
       {
