@@ -33,6 +33,7 @@ import {
   copyPlan,
   addPlan,
   sendPlan,
+  planApiToastProps,
 } from "@/src/features/plans/api";
 import { toastError } from "@/lib/toast";
 import { ScheduleBoard } from "@/src/features/plans/components/ScheduleBoard";
@@ -242,9 +243,8 @@ export default function SchedulePage() {
       setBuildOptionsOpen(false);
     },
     onError: (err) => {
-      toastError(err instanceof Error ? err.message : "Build failed", {
-        code: "Build",
-      });
+      const { message, description } = planApiToastProps(err, "Build failed");
+      toastError(message, { code: "Build", description });
     },
   });
 
@@ -254,9 +254,8 @@ export default function SchedulePage() {
       refetchPlans();
     },
     onError: (err) => {
-      toastError(err instanceof Error ? err.message : "Copy failed", {
-        code: "Copy",
-      });
+      const { message, description } = planApiToastProps(err, "Copy failed");
+      toastError(message, { code: "Copy", description });
     },
   });
 
@@ -266,9 +265,8 @@ export default function SchedulePage() {
       refetchPlans();
     },
     onError: (err) => {
-      toastError(err instanceof Error ? err.message : "Add plan failed", {
-        code: "Add Plan",
-      });
+      const { message, description } = planApiToastProps(err, "Add plan failed");
+      toastError(message, { code: "Add Plan", description });
     },
   });
 
@@ -278,9 +276,8 @@ export default function SchedulePage() {
       refetchPlans();
     },
     onError: (err) => {
-      toastError(err instanceof Error ? err.message : "Send failed", {
-        code: "Send",
-      });
+      const { message, description } = planApiToastProps(err, "Send failed");
+      toastError(message, { code: "Send", description });
     },
   });
 

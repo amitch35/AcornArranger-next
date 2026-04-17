@@ -25,6 +25,7 @@ import {
   removeStaffFromPlan,
   addAppointmentToPlan,
   removeAppointmentFromPlan,
+  planApiToastProps,
 } from "../api";
 import { toastError } from "@/lib/toast";
 import { useStaffOptions } from "@/lib/options/useStaffOptions";
@@ -71,9 +72,11 @@ export function PlanColumn({
         });
         onUpdate();
       } catch (err) {
-        toastError(err instanceof Error ? err.message : "Remove staff failed", {
-          code: "Remove Staff",
-        });
+        const { message, description } = planApiToastProps(
+          err,
+          "Remove staff failed"
+        );
+        toastError(message, { code: "Remove Staff", description });
       } finally {
         setRemoving((prev) => {
           const next = new Set(prev);
@@ -235,9 +238,11 @@ function PlanAppointmentPopover({
         });
         onUpdate();
       } catch (err) {
-        toastError(err instanceof Error ? err.message : "Appointment update failed", {
-          code: "Appointment",
-        });
+        const { message, description } = planApiToastProps(
+          err,
+          "Appointment update failed"
+        );
+        toastError(message, { code: "Appointment", description });
       } finally {
         setPending((prev) => {
           const next = new Set(prev);
@@ -368,9 +373,11 @@ function PlanStaffPopover({ plan, withSentGuard, onUpdate }: PlanStaffPopoverPro
         });
         onUpdate();
       } catch (err) {
-        toastError(err instanceof Error ? err.message : "Staff update failed", {
-          code: "Staff",
-        });
+        const { message, description } = planApiToastProps(
+          err,
+          "Staff update failed"
+        );
+        toastError(message, { code: "Staff", description });
       } finally {
         setPending((prev) => {
           const next = new Set(prev);

@@ -26,6 +26,7 @@ import {
   addStaffToPlan,
   removeStaffFromPlan,
   copyPlan,
+  planApiToastProps,
 } from "../api";
 import { toastError, toastSuccess } from "@/lib/toast";
 
@@ -133,9 +134,11 @@ export function ScheduleBoard({
           });
           onPlansChange();
         } catch (err) {
-          toastError(err instanceof Error ? err.message : "Add appointment failed", {
-            code: "Add Appointment",
-          });
+          const { message, description } = planApiToastProps(
+            err,
+            "Add appointment failed"
+          );
+          toastError(message, { code: "Add Appointment", description });
         }
       }
 
@@ -150,9 +153,11 @@ export function ScheduleBoard({
         });
         onPlansChange();
       } catch (err) {
-        toastError(err instanceof Error ? err.message : "Remove appointment failed", {
-          code: "Remove Appointment",
-        });
+        const { message, description } = planApiToastProps(
+          err,
+          "Remove appointment failed"
+        );
+        toastError(message, { code: "Remove Appointment", description });
       }
 
     // Plan appointment → different plan column (cross-plan move)
@@ -169,9 +174,11 @@ export function ScheduleBoard({
           });
           onPlansChange();
         } catch (err) {
-          toastError(err instanceof Error ? err.message : "Move appointment failed", {
-            code: "Move Appointment",
-          });
+          const { message, description } = planApiToastProps(
+            err,
+            "Move appointment failed"
+          );
+          toastError(message, { code: "Move Appointment", description });
         }
       }
 
@@ -189,9 +196,11 @@ export function ScheduleBoard({
           });
           onPlansChange();
         } catch (err) {
-          toastError(err instanceof Error ? err.message : "Move staff failed", {
-            code: "Move Staff",
-          });
+          const { message, description } = planApiToastProps(
+            err,
+            "Move staff failed"
+          );
+          toastError(message, { code: "Move Staff", description });
         }
       }
     }

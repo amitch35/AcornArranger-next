@@ -34,6 +34,7 @@ export const POST = withMinRole(
             code: "SEND_ERROR",
             message: error.message,
             details: error.details,
+            hint: error.hint,
           },
           { status: 400 }
         );

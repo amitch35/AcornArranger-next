@@ -4,6 +4,36 @@
 
 import type { Plan, PlanBuildOptions, ErrorResponse } from "./schemas";
 
+type ErrorWithHint = Error & { hint?: string };
+
+/** Prefer Postgres `message` over `details` (detail is often a short tag like `build_schedule_plan: failed`). */
+function throwPlanApiError(err: ErrorResponse, fallback: string): never {
+  const message = err.message ?? err.details ?? fallback;
+  const error = new Error(message) as ErrorWithHint;
+  if (err.hint?.trim()) {
+    error.hint = err.hint;
+  }
+  throw error;
+}
+
+/** Message + optional DB hint for schedule/plan RPC error toasts */
+export function planApiToastProps(
+  err: unknown,
+  fallback: string
+): { message: string; description?: string } {
+  if (err instanceof Error) {
+    const hint =
+      "hint" in err && typeof (err as ErrorWithHint).hint === "string"
+        ? (err as ErrorWithHint).hint
+        : undefined;
+    return {
+      message: err.message || fallback,
+      description: hint?.trim() ? hint : undefined,
+    };
+  }
+  return { message: fallback };
+}
+
 export async function fetchPlans(
   fromPlanDate: string,
   toPlanDate?: string
@@ -15,10 +45,12 @@ export async function fetchPlans(
 
   const res = await fetch(`/api/plans?${params}`);
   if (!res.ok) {
-    const err: ErrorResponse = await res.json().catch(() => ({
-      message: res.statusText,
-    }));
-    throw new Error(err.details ?? err.message ?? "Failed to fetch plans");
+    const body = (await res.json().catch(() => ({}))) as ErrorResponse & {
+      error?: string;
+    };
+    throw new Error(
+      body.message ?? body.error ?? body.details ?? "Failed to fetch plans"
+    );
   }
   return res.json();
 }
@@ -36,8 +68,7 @@ export async function buildPlan(
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
-    const err = data as ErrorResponse;
-    throw new Error(err.details ?? err.message ?? "Build failed");
+    throwPlanApiError(data as ErrorResponse, "Build failed");
   }
   return data;
 }
@@ -47,8 +78,7 @@ export async function copyPlan(planDate: string): Promise<void> {
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
-    const err = data as ErrorResponse;
-    throw new Error(err.details ?? err.message ?? "Copy failed");
+    throwPlanApiError(data as ErrorResponse, "Copy failed");
   }
 }
 
@@ -57,8 +87,7 @@ export async function addPlan(planDate: string): Promise<void> {
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
-    const err = data as ErrorResponse;
-    throw new Error(err.details ?? err.message ?? "Add plan failed");
+    throwPlanApiError(data as ErrorResponse, "Add plan failed");
   }
 }
 
@@ -67,8 +96,7 @@ export async function sendPlan(planDate: string): Promise<void> {
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
-    const err = data as ErrorResponse;
-    throw new Error(err.details ?? err.message ?? "Send failed");
+    throwPlanApiError(data as ErrorResponse, "Send failed");
   }
 }
 
@@ -82,8 +110,7 @@ export async function addStaffToPlan(
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
-    const err = data as ErrorResponse;
-    throw new Error(err.details ?? err.message ?? "Add staff failed");
+    throwPlanApiError(data as ErrorResponse, "Add staff failed");
   }
 }
 
@@ -97,8 +124,7 @@ export async function removeStaffFromPlan(
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
-    const err = data as ErrorResponse;
-    throw new Error(err.details ?? err.message ?? "Remove staff failed");
+    throwPlanApiError(data as ErrorResponse, "Remove staff failed");
   }
 }
 
@@ -113,8 +139,7 @@ export async function addAppointmentToPlan(
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
-    const err = data as ErrorResponse;
-    throw new Error(err.details ?? err.message ?? "Add appointment failed");
+    throwPlanApiError(data as ErrorResponse, "Add appointment failed");
   }
 }
 
@@ -129,7 +154,6 @@ export async function removeAppointmentFromPlan(
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
-    const err = data as ErrorResponse;
-    throw new Error(err.details ?? err.message ?? "Remove appointment failed");
+    throwPlanApiError(data as ErrorResponse, "Remove appointment failed");
   }
 }

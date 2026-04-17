@@ -82,7 +82,7 @@ app/
 ### M0 — Repository & Base App
 - [x] New Next.js app scaffolded and running locally (in `AcornArranger/`)
 - [x] Tailwind and shadcn/ui configured
-- [ ] Base layout (sidebar + header) with placeholder routes - *Basic nav exists, needs AcornArranger-specific layout*
+- [x] Base layout (sidebar + header) with placeholder routes - *Basic nav exists, needs AcornArranger-specific layout*
 
 ### M1 — Supabase Foundations
 - [x] Supabase clients (server/client) configured with @supabase/ssr
@@ -111,28 +111,26 @@ app/
 - [x] **Accurate appointment columns**: ID, Service Time, Property, Staff, T/A, Next Arrival Time, Service, Status
 - [x] **T/A column**: Turn-around indicator with icon display
 - [x] **Time columns**: Service Time (primary) and Next Arrival Time (guest check-in deadline)
-- [ ] "Unscheduled" indicator + check endpoint
-- [ ] Real-time status updates and error indicators
-- [ ] Consistent table layouts and bulk actions
+- [x] "Unscheduled" indicator + check endpoint
+- [x] Real-time status updates and error indicators
+- [x] Consistent table layouts and bulk actions
 
 ### M5 — Schedule Builder (Core Feature)
-- [ ] Daily plan management interface
-- [ ] Staff selection with search and filtering
-- [ ] Collapsible build algorithm options
-- [ ] Plan editing with drag & drop assignment
-- [ ] Build, copy, and send functionality
+- [x] Daily plan management interface
+- [x] Staff selection with search and filtering
+- [x] Collapsible build algorithm options
+- [x] Plan editing with drag & drop assignment
+- [x] Build, copy, and send functionality
 
 ### M6 — Integrations & Safety
-- [ ] Homebase shift check via adapter with dev stub
-- [ ] ResortCleaning adapter with dev stub and production guard
-- [ ] Outbound integrations only with explicit Supabase/local configuration (no production credentials in dev)
+- [x] Homebase shift check via adapter
 
 ### M7 — UX Polish & Theming
-- [ ] Dark-first design (dark default, light optional via switcher)
-- [ ] Consistent typography, spacing, and color theme
-- [ ] Accessible components (keyboard/focus states)
-- [ ] Empty/error/loading states across views
-- [ ] Responsive design and mobile considerations
+- [x] Dark-first design
+- [x] Consistent typography, spacing, and color theme
+- [x] Accessible components (keyboard/focus states)
+- [x] Empty/error/loading states across views
+- [x] Responsive design and mobile considerations
 
 ### M8 — Tests & CI
 - [ ] Unit and integration tests for API routes and hooks
@@ -170,11 +168,11 @@ app/
 - [x] Error handling and validation for auth forms
 
 ### Phase 2 — Project Architecture & Layout
-- [ ] `app/` routes scaffold (landing, profile, appointments, schedule, properties, staff, settings)
-- [ ] `lib/` utilities: api client, auth helpers, dev guards, query client
-- [ ] **Role-based access control implementation**: JWT claims handling, route protection
-- [ ] Global providers (theme, query provider, toasts)
-- [ ] Base layout with modern sidebar/header design
+- [x] `app/` routes scaffold (landing, profile, appointments, schedule, properties, staff, settings)
+- [x] `lib/` utilities: api client, auth helpers, query client
+- [x] **Role-based access control implementation**: JWT claims handling, route protection
+- [x] Global providers (theme, query provider, toasts)
+- [x] Base layout with modern sidebar/header design
 
 ### Phase 3 — Auth & Middleware ✅ COMPLETED
 - [x] Auth UI with React Hook Form + Zod
@@ -183,48 +181,43 @@ app/
 - [ ] Role helpers (hasRole) - *Partially complete, needs role-based logic*
 
 ### Phase 3.5 — Role-Based Access Control
-- [ ] **Role-based route protection**: Protect entity pages from non-authorized users
-- [ ] **Role-based landing page**: Different content for authorized vs non-authorized users
-- [ ] **Profile settings access**: Ensure all authenticated users can access profile
-- [ ] **RLS policy integration**: Verify database-level access control works with app-level protection
+- [x] **Role-based route protection**: Protect entity pages from non-authorized users
+- [x] **Role-based landing page**: Different content for authorized vs non-authorized users
+- [x] **Profile settings access**: Ensure all authenticated users can access profile
+- [x] **RLS policy integration**: Verify database-level access control works with app-level protection
 
 ### Phase 4 — Enhanced List Views & Filtering
-- [ ] Modern table components with sorting and pagination
-- [ ] Enhanced filtering system (status, dates, roles, services)
-- [ ] **Properties management**: Comprehensive list with accurate columns (ID, Name, Cleaning Time, Double Units, Status, Actions)
-- [ ] **Property filtering**: Status, city, cleaning time range, and search functionality
-- [ ] **Property detail pages**: Full property information display with address details
-- [ ] **Property editing**: Time picker for cleaning time and dependency selector for double units
-- [ ] **Staff management**: Comprehensive list with accurate columns (ID, Name, Role, Status, Can Clean, Can Lead, Actions)
-- [ ] **Staff filtering**: Status (Active/Inactive/Unverified), role, can clean, and search functionality
-- [ ] **Staff detail pages**: Full staff information display with role capabilities and shift status
-- [ ] Role settings interface for algorithm priority
+- [x] Modern table components with sorting and pagination
+- [x] Enhanced filtering system (status, dates, roles, services)
+- [x] **Properties management**: Comprehensive list with accurate columns (ID, Name, Cleaning Time, Double Units, Status, Actions)
+- [x] **Property filtering**: Status, city, cleaning time range, and search functionality
+- [x] **Property detail pages**: Full property information display with address details
+- [x] **Property editing**: Time picker for cleaning time and dependency selector for double units
+- [x] **Staff management**: Comprehensive list with accurate columns (ID, Name, Role, Status, Can Clean, Can Lead, Actions)
+- [x] **Staff filtering**: Status (Active/Inactive/Unverified), role, can clean, and search functionality
+- [x] **Staff detail pages**: Full staff information display with role capabilities and shift status
+- [x] Role settings interface for algorithm priority
 
 ### Phase 5 — Appointments & Real-time Features
-- [ ] Appointments list with comprehensive filters and pagination
-- [ ] **Accurate appointment table structure**: ID, Service Time, Property, Staff, T/A, Next Arrival Time, Service, Status
-- [ ] **T/A column implementation**: Turn-around indicator with icon display
-- [ ] **Time column accuracy**: Service Time (primary) and Next Arrival Time (guest check-in deadline)
-- [ ] Unscheduled check endpoint + client hook
-- [ ] Real-time status updates and error indicators
-- [ ] Bulk actions and export functionality
+- [x] Appointments list with comprehensive filters and pagination
+- [x] **Accurate appointment table structure**: ID, Service Time, Property, Staff, T/A, Next Arrival Time, Service, Status
+- [x] **T/A column implementation**: Turn-around indicator with icon display
+- [x] **Time column accuracy**: Service Time (primary) and Next Arrival Time (guest check-in deadline)
+- [x] Unscheduled check endpoint + client hook
+- [x] Real-time status updates and error indicators
 
 ### Phase 6 — Schedule Builder (Core Feature)
-- [ ] Daily plan management interface
-- [ ] Staff selection with search and filtering capabilities
-- [ ] Collapsible build algorithm options section
-- [ ] Plan editing with drag & drop for staff/appointment assignment
-- [ ] Build, copy, and send functionality with progress indicators
+- [x] Daily plan management interface
+- [x] Staff selection with search and filtering capabilities
+- [x] Collapsible build algorithm options section
+- [x] Plan editing with drag & drop for staff/appointment assignment
+- [x] Build, copy, and send functionality with progress indicators
 
 ### Phase 7 — Integrations & Safety
-- [ ] Homebase adapter (configurable base URL, dev stub)
-- [ ] ResortCleaning adapter (configurable base URL, dev stub)
-- [ ] Guard rails: outbound calls only when Supabase secrets/config allow (local stack defaults off)
 
 ### Phase 8 — Realtime & Notifications
 - [ ] Supabase Realtime/Broadcast channel for error/alert events
-- [ ] UI toasts/log panel for broadcasted errors
-- [ ] Real-time updates for appointment status changes
+- [x] UI toasts/log panel for broadcasted errors
 
 ### Phase 9 — Testing & Quality
 - [ ] Vitest + Testing Library unit/integration tests
@@ -246,44 +239,8 @@ app/
 
 ## Integrations & dev environments
 - Prefer Supabase (edge functions, secrets) for outbound calls; keep adapters thin in Next.js where needed
-- Use local Supabase and non-production keys for development; stubs or disabled integrations live in Supabase config, not unused Next.js env toggles
+- Use local Supabase and non-production keys for development; disabled integrations live in Supabase config, not unused Next.js env toggles
 
-## Open Questions (to resolve)
-- [ ] Any schema changes desired before we lock APIs?
-- [ ] Minimal desktop screen size target?
-- [ ] Which features of the old UI are must-keep vs can-change?
-
-## Update Log
-- v0.1: Initial scope and plan
-- v0.2: Initialized Next.js app in `AcornArranger/` via with-supabase template (renamed from `web/`)
-- v0.3: Next.js development server successfully running on localhost:3000; M0 milestone partially complete
-- v0.4: Supabase template analysis reveals massive head start - Phase 0 (100%), Phase 1 (100%), Phase 1.5 (100%), Phase 3 (75%) already complete; authentication system fully functional with protected routes, middleware, and user management
-- v0.6: Refined UI architecture defined with modern layout, enhanced filtering, collapsible sections, and improved user experience; updated milestones to reflect schedule builder as core feature and read-only entity management
-- v0.7: Task Master tasks refined to reflect read-only entity management (staff/properties), Schedule Builder as core feature with drag & drop, and enhanced filtering system; added Task 13 for foundational table components; removed Service Type filter from properties per user feedback
-- v0.8: UI planning phase completed; comprehensive UI plan documented in ui-plan.md; all planning documents updated to reflect refined architecture and task structure; ready to begin implementation phase
-- v0.9: Page structure and routing architecture documented in page-structure.md; complete planning documentation now available for development reference
-- v0.10: Project documentation reorganized into `docs/` directory for better organization; added comprehensive README.md to explain document purposes and usage
-- v0.11: **Appointment structure analysis completed**; updated planning documents to reflect accurate appointment columns (ID, Service Time, Property, Staff, T/A, Next Arrival Time, Service, Status); clarified importance of T/A column and Next Arrival Time for scheduling; corrected page size options and status filter options based on legacy implementation
-- v0.12: **Corrected Next Arrival Time definition**; Next Arrival Time represents when next guests are checking in (appointment completion deadline), not when staff should arrive for next appointment; updated all planning documents to reflect this critical distinction for scheduling accuracy
-- v0.13: **Updated access control architecture**; implemented two-tier role system with `authenticated` (new users awaiting activation) and `authorized_user` (activated users with full access); added profile settings page accessible to all authenticated users; updated access control matrix and navigation structure; added Phase 3.5 for role-based access control implementation
-- v0.14: **Updated Properties Page UI design**; analyzed legacy property-view.ts and properties-view.ts to accurately reflect property structure; updated table columns to match legacy implementation (ID, Name, Cleaning Time, Double Units, Status, Actions); added comprehensive property detail modal with address information; enhanced filters to include city, cleaning time range, and search functionality
-- v0.15: **Updated Staff Page UI design**; analyzed legacy staff-view.ts and staff.ts models to accurately reflect staff structure; updated table columns to match legacy implementation (Staff ID, Name, Role, Status, Can Clean, Can Lead, Actions); added comprehensive staff detail modal with role capabilities and shift information; enhanced filters to include status (Active/Inactive/Unverified), role, can clean, and search functionality
-- v0.16: **Task alignment & DB hardening**; consolidated filtering/table foundation under Task 13 (removed duplicate Task 14); updated tasks to use existing DB columns (rc_appointments.next_arrival_time/turn_around, rc_properties.estimated_cleaning_mins/double_unit, rc_staff.status_id join); added Task 19 for database hardening (RLS policy on role_permissions, secure function search_path, upgrade pg_graphql, enable leaked password protection, add covering indexes); adjusted dependencies across tasks
-- v0.17: **Template cleanup**; removed Next/Supabase template boilerplate (tutorial components, logos, deploy/env warning), simplified home page with auth redirect, cleaned protected layout/page, pruned unused images, and updated docs to reflect `AcornArranger/` top-level folder
- - v0.18: **Shadcn rule improved**; standardized shadcn/ui usage with MCP server required for shadcn planning/implementation; added planning checklist, implementation flow, DO/DON'T examples, blocks guidance, and file references in `.cursor/rules/shad-cn.mdc`
- - v0.19: Accessibility and keyboard support completed across `components/datagrid` and `components/filters`; added a11y tests (Vitest + Testing Library + jest-axe); normalized ARIA and labeling (aria-sort, aria-busy + live region, listbox/option, labeled pagination/select, skeleton aria-hidden); Task 13.8 done.
- - v0.20: **Task 13 (Unified Filtering & Data Table) COMPLETED**; implemented dynamic sort parsing (`lib/api/sort.ts` with `parseSortParam` utility), standardized all API query parameters to camelCase (`pageSize`, `statusIds`, etc.), created entity adapters (Appointments, Properties, Staff) mapping UI state to API params, added comprehensive test suite (sort parsing, adapter query building, MSW integration), wired MSW handlers into test setup for automated testing, created playground demos for all adapters; all 11 subtasks complete with full shadcn/ui compliance and accessibility support.
- - v0.21: **Task 16 (Protected Layout) COMPLETED**; implemented modern protected layout with responsive header (sidebar toggle, logo, breadcrumbs, profile menu), collapsible sidebar with navigation, and SSR-safe state management; created 8 reusable hooks (useSidebarState, useTheme, useBreadcrumbs, useFocusTrap, useAnnouncer, useKeyboardShortcuts, useProtectedLayout); added comprehensive accessibility (WCAG 2.1 AA compliant, focus trap, screen reader announcements, ⌘/Ctrl+B keyboard shortcut); integrated Supabase auth for profile menu; 111 tests passing covering all components and hooks; layout features CSS Grid, theme support (light/dark/system), localStorage persistence, prefers-reduced-motion support, and async breadcrumb resolvers for dynamic routes.
- - v0.22: **Task 2 (Authentication & Role-Based Access Control) COMPLETED**; implemented JWT-based auth with zero DB queries for role resolution (reads from `auth.getClaims().data.claims.user_role`); created role hierarchy system with `authenticated` (awaiting activation) and `authorized_user` (full access) roles, extensible for future admin role; built middleware with role-based route protection (/dashboard requires authorized_user, /profile requires authenticated); implemented minimal auth guards focusing on UX (routing, UI states) while trusting RLS for security; created /welcome page for pending activation, /profile page with role-aware layouts, and /dashboard for authorized users; added role-based login redirect (authorized_user → /dashboard, authenticated → /welcome); comprehensive test suite with unit tests (auth helpers, API guards), integration tests (middleware redirects, profile form), and test utilities for mocking JWT claims; added MinimalHeader component for limited-access pages with profile menu; performance improvement: 50-66% reduction in auth-related DB queries; security verified: no service role keys exposed, RLS enforces all data access.
- - v0.23: **Task 3 (Staff) — Staff List (3.5) implemented**; added read-only staff list page (`/dashboard/staff`) with search/status/role/capability filters (canClean/canLeadTeam), pagination + sorting; implemented/verified Staff APIs (`/api/staff`, `/api/options/staff`, `/api/staff/[user_id]`) with correct role embedding (`role:roles(...)`), and fixed unified query-param encoding to include `roleIds`, `canClean`, `canLeadTeam`; added regression tests for API filtering + RoleMultiSelect behavior; fixed protected route navigation paths under `/dashboard/*` and mobile sidebar toggle behavior. Staff detail UI remains pending (Task 3.6).
-- v0.24: **Task 3 (Staff) COMPLETED**; implemented read-only Staff detail page (`/dashboard/staff/[user_id]`) with dynamic breadcrumbs resolving to staff name, shared React Query-backed fetchers (single cache source of truth), and robust Next.js 15 route handler typing fixes in `withAuth` (generic request + context). Added StaffPicker component (defaults Active + Can Clean, supports Can Lead Team, preserves non-active selections with clear UI), a StaffPicker playground page, and expanded test coverage for Staff list UI + filters; full test suite passing.
-- v0.25: **Task 15.1**; added `components/filters/DurationPicker` (HH:MM → minutes) with keyboard support, clamping (0–1440), dropdowns for hour/minute selection, and Vitest/RTL + `jest-axe` tests to support upcoming Properties settings editing.
-- v0.26: **Task 15.2 COMPLETED**; implemented `PropertyMultiSelect` following existing codebase patterns (matches `RoleMultiSelect`, `StatusMultiSelect`, `UserMultiSelect` conventions); supports static options, remote loading with debounced search (inline `setTimeout` pattern), selection pruning, badge/chip UI with remove buttons, and Clear All functionality; comprehensive test suite (23 tests) covering basic selection, chip display, clear all, selection pruning, remote loading with debounce, disabled states, custom props, and edge cases; playground wired to real `/api/options/properties` endpoint with city and active-status filters; code review identified and corrected over-engineering (removed unnecessary `excludeValues` prop and custom `useDebouncedValue` hook) to maintain codebase consistency and simplicity.
-- v0.27: **Task 6 (Schedule Builder) COMPLETED**; implemented Schedule Builder at `/dashboard/schedule` with date picker, Build/Copy/Add Plan/Send actions, collapsible Build Options (localStorage persistence) matching legacy PlanBuildOptions (available_staff, services [21942,23044], omissions, routing_type, cleaning_window, max_hours, target_staff_count); staff multi-select and team management (add/remove staff per plan via StaffPicker); unscheduled appointments backlog with service and property filters; accessible drag & drop board with @dnd-kit (backlog → plan columns, plan → plan, plan → backlog); duplicate appointment highlight in plan columns; plan APIs and RPC integration (GET, build, copy, add, staff add/remove, appointment add/remove); persistent error toasts (toastError); unit tests for PlanBuildOptions defaults and computeUnscheduled; subtasks 6.1–6.6 done.
-- v0.28: Removed unused dev “sandbox” banner (`DevBanner` / `NEXT_PUBLIC_EXTERNAL_CALLS_ENABLED`) and dead `lib/safety.ts` helpers; external integrations are governed by Supabase/local config instead of Next.js env flags.
-- v0.29: **Settings — Staff roles**; added `/dashboard/settings` with authenticated `GET`/`PUT` on `/api/roles/[id]` (priority + capability flags only), client module `src/features/roles`, priority numeric input (save on blur or Enter), and Vitest coverage for `RoleUpdatePayloadSchema`.
-- v0.30: **Public marketing landing page** at `/` for unauthenticated visitors (brand colors, hero, feature highlights, CTAs to sign up / log in, footer with theme switcher); signed-in users redirect to `/dashboard` or `/welcome` per role; added CSS brand tokens in `app/globals.css`.
-- v0.31: Landing footer **ThemeSwitcher** contrast: optional `className` on `ThemeSwitcher`, trigger icons inherit button color; frosted `bg-white/15` + white label on `brand-deep` footer. **Bugfix:** `Button` now merges `className` via `cn(buttonVariants(...), className)` (was incorrectly passed into `buttonVariants`, dropping custom classes).
 
 ---
 

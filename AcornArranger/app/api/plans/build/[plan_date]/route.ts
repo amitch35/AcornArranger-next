@@ -47,7 +47,12 @@ export const POST = withMinRole(
 
       if (error) {
         return NextResponse.json(
-          { code: "BUILD_ERROR", message: error.message, details: error.details },
+          {
+            code: "BUILD_ERROR",
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+          },
           { status: 400 }
         );
       }

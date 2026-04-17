@@ -35,6 +35,7 @@ export const POST = withMinRole(
             code: "STAFF_ADD_ERROR",
             message: error.message,
             details: error.details,
+            hint: error.hint,
           },
           { status: 400 }
         );
@@ -85,6 +86,7 @@ export const DELETE = withMinRole(
             code: "STAFF_REMOVE_ERROR",
             message: error.message,
             details: error.details,
+            hint: error.hint,
           },
           { status: 400 }
         );

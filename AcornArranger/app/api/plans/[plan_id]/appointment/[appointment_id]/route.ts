@@ -35,6 +35,7 @@ export const POST = withMinRole(
             code: "APPOINTMENT_ADD_ERROR",
             message: error.message,
             details: error.details,
+            hint: error.hint,
           },
           { status: 400 }
         );
@@ -85,6 +86,7 @@ export const DELETE = withMinRole(
             code: "APPOINTMENT_REMOVE_ERROR",
             message: error.message,
             details: error.details,
+            hint: error.hint,
           },
           { status: 400 }
         );
