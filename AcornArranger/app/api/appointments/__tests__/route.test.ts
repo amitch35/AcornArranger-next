@@ -242,6 +242,186 @@ describe("/api/appointments", () => {
       expect(data.error).toBe("Database connection failed");
     });
 
+    describe("excludePlanned", () => {
+      /**
+       * Build a Supabase mock that can handle both `rc_appointments` (the main query)
+       * and `planned_appointment_ids` (the view). Each `from()` call returns a fresh
+       * chainable query whose behavior depends on the table name, so we can assert
+       * both what was fetched from the view and which IDs were excluded from the
+       * appointments query.
+       */
+      function createExcludePlannedMock(options: {
+        plannedIds: number[];
+        appointments: any[];
+        appointmentsCount?: number;
+      }) {
+        const { plannedIds, appointments, appointmentsCount } = options;
+
+        const appointmentsQueryRef: { current: any } = { current: null };
+        const plannedQueryRef: { current: any } = { current: null };
+
+        const fromFn = vi.fn((table: string) => {
+          if (table === "planned_appointment_ids") {
+            const q: any = {};
+            // `select` is chained, then the route applies `.gte` and awaits `.lte`.
+            q.select = vi.fn(() => q);
+            q.gte = vi.fn(() => q);
+            q.lte = vi.fn().mockResolvedValue({
+              data: plannedIds.map((id) => ({ appointment_id: id })),
+              error: null,
+            });
+            plannedQueryRef.current = q;
+            return { select: q.select };
+          }
+
+          // rc_appointments query
+          const q: any = {};
+          q.eq = vi.fn(() => q);
+          q.in = vi.fn(() => q);
+          q.not = vi.fn(() => q);
+          q.ilike = vi.fn(() => q);
+          q.gte = vi.fn(() => q);
+          q.lte = vi.fn(() => q);
+          q.filter = vi.fn(() => q);
+          q.order = vi.fn(() => q);
+          q.select = vi.fn(() => q);
+          q.range = vi.fn().mockResolvedValue({
+            data: appointments,
+            error: null,
+            status: 200,
+            count: appointmentsCount ?? appointments.length,
+          });
+          appointmentsQueryRef.current = q;
+          return { select: q.select };
+        });
+
+        return {
+          client: { from: fromFn },
+          getAppointmentsQuery: () => appointmentsQueryRef.current,
+          getPlannedQuery: () => plannedQueryRef.current,
+          fromFn,
+        };
+      }
+
+      it("does not query the planned view when excludePlanned is false", async () => {
+        const mock = createExcludePlannedMock({
+          plannedIds: [],
+          appointments: mockAppointments.slice(0, 5),
+        });
+        vi.mocked(createClient).mockResolvedValue(mock.client as any);
+
+        const req = new NextRequest(
+          "http://localhost:3000/api/appointments?dateFrom=2026-03-23&dateTo=2026-03-29"
+        );
+        const response = await GET(req);
+
+        expect(response.status).toBe(200);
+        expect(mock.fromFn).not.toHaveBeenCalledWith("planned_appointment_ids");
+      });
+
+      it("does not query the planned view when dateFrom is missing", async () => {
+        const mock = createExcludePlannedMock({
+          plannedIds: [],
+          appointments: mockAppointments.slice(0, 5),
+        });
+        vi.mocked(createClient).mockResolvedValue(mock.client as any);
+
+        const req = new NextRequest(
+          "http://localhost:3000/api/appointments?excludePlanned=true"
+        );
+        const response = await GET(req);
+
+        expect(response.status).toBe(200);
+        expect(mock.fromFn).not.toHaveBeenCalledWith("planned_appointment_ids");
+      });
+
+      it("queries the planned view and excludes the returned IDs", async () => {
+        const plannedIds = [100, 101, 102];
+        const mock = createExcludePlannedMock({
+          plannedIds,
+          appointments: mockAppointments.slice(0, 5),
+        });
+        vi.mocked(createClient).mockResolvedValue(mock.client as any);
+
+        const req = new NextRequest(
+          "http://localhost:3000/api/appointments?excludePlanned=true&dateFrom=2026-03-23&dateTo=2026-03-29"
+        );
+        const response = await GET(req);
+
+        expect(response.status).toBe(200);
+        expect(mock.fromFn).toHaveBeenCalledWith("planned_appointment_ids");
+        expect(mock.getPlannedQuery().gte).toHaveBeenCalledWith(
+          "plan_date",
+          "2026-03-23"
+        );
+        expect(mock.getPlannedQuery().lte).toHaveBeenCalledWith(
+          "plan_date",
+          "2026-03-29"
+        );
+        expect(mock.getAppointmentsQuery().not).toHaveBeenCalledWith(
+          "appointment_id",
+          "in",
+          `(${plannedIds.join(",")})`
+        );
+      });
+
+      it("skips the NOT IN filter when no planned IDs are returned", async () => {
+        const mock = createExcludePlannedMock({
+          plannedIds: [],
+          appointments: mockAppointments.slice(0, 5),
+        });
+        vi.mocked(createClient).mockResolvedValue(mock.client as any);
+
+        const req = new NextRequest(
+          "http://localhost:3000/api/appointments?excludePlanned=true&dateFrom=2026-03-23&dateTo=2026-03-29"
+        );
+        const response = await GET(req);
+
+        expect(response.status).toBe(200);
+        expect(mock.fromFn).toHaveBeenCalledWith("planned_appointment_ids");
+        expect(mock.getAppointmentsQuery().not).not.toHaveBeenCalled();
+      });
+
+      it("defaults dateTo to dateFrom when only dateFrom is provided", async () => {
+        const mock = createExcludePlannedMock({
+          plannedIds: [100],
+          appointments: mockAppointments.slice(0, 5),
+        });
+        vi.mocked(createClient).mockResolvedValue(mock.client as any);
+
+        const req = new NextRequest(
+          "http://localhost:3000/api/appointments?excludePlanned=true&dateFrom=2026-03-29"
+        );
+        const response = await GET(req);
+
+        expect(response.status).toBe(200);
+        expect(mock.getPlannedQuery().lte).toHaveBeenCalledWith(
+          "plan_date",
+          "2026-03-29"
+        );
+      });
+
+      it("deduplicates planned IDs before building the NOT IN clause", async () => {
+        const mock = createExcludePlannedMock({
+          plannedIds: [100, 100, 101, 101, 102],
+          appointments: mockAppointments.slice(0, 5),
+        });
+        vi.mocked(createClient).mockResolvedValue(mock.client as any);
+
+        const req = new NextRequest(
+          "http://localhost:3000/api/appointments?excludePlanned=true&dateFrom=2026-03-23&dateTo=2026-03-29"
+        );
+        const response = await GET(req);
+
+        expect(response.status).toBe(200);
+        expect(mock.getAppointmentsQuery().not).toHaveBeenCalledWith(
+          "appointment_id",
+          "in",
+          "(100,101,102)"
+        );
+      });
+    });
+
     it("should default to pageSize=25 when not specified", async () => {
       const mockSupabase = createMockSupabaseClient({
         data: mockAppointments,

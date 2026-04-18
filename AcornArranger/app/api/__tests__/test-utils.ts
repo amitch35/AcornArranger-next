@@ -35,6 +35,7 @@ export function createMockSupabaseQuery(mockData: any[] = [], mockCount: number 
     // Chainable methods
     query.eq = vi.fn(() => query); // Return self for chaining
     query.in = vi.fn(() => query);
+    query.not = vi.fn(() => query); // Negated filter (e.g. appointment_id not in (...))
     query.ilike = vi.fn(() => query);
     query.gte = vi.fn(() => query); // Greater than or equal
     query.lte = vi.fn(() => query); // Less than or equal
@@ -119,6 +120,7 @@ export function createMockSupabaseClient(options: {
       const query: any = {
         eq: vi.fn(() => query),
         in: vi.fn(() => query),
+        not: vi.fn(() => query),
         ilike: vi.fn(() => query),
         gte: vi.fn(() => query),
         lte: vi.fn(() => query),

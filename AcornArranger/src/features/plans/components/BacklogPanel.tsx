@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import type { AppointmentRow } from "@/src/features/appointments/schemas";
-import type { Plan } from "../schemas";
 import { formatDateTime } from "@/src/features/appointments/schemas";
 
 /**
@@ -282,33 +281,16 @@ function BacklogItem({ appointment }: { appointment: BacklogAppointment }) {
 }
 
 /**
- * Compute unscheduled appointments from all appointments and plans.
- * Excludes cancelled (status 5) and filters by service.
+ * Map raw appointment rows to backlog items. The server is expected to already
+ * have excluded planned / cancelled / out-of-scope appointments via query
+ * params (`excludePlanned`, `statusIds`, `serviceIds`), so this helper only
+ * attaches the derived `planAppointmentId` used by drag-and-drop.
  */
-export function computeUnscheduled(
-  allAppointments: AppointmentRow[],
-  plans: Plan[],
-  serviceFilter: string[]
+export function toBacklogAppointments(
+  appointments: AppointmentRow[]
 ): BacklogAppointment[] {
-  const scheduledIds = new Set<number>();
-  for (const plan of plans) {
-    for (const pa of plan.appointments) {
-      scheduledIds.add(pa.appointment_id);
-    }
-  }
-
-  const serviceSet = serviceFilter.length ? new Set(serviceFilter.map(Number)) : null;
-
-  return allAppointments
-    .filter((a) => {
-      if (a.status?.status_id === 5) return false;
-      const planId = a.appointment_id ?? a.id;
-      if (scheduledIds.has(planId)) return false;
-      if (serviceSet && a.service_info && !serviceSet.has(a.service_info.service_id)) return false;
-      return true;
-    })
-    .map((a) => ({
-      ...a,
-      planAppointmentId: a.appointment_id ?? a.id,
-    }));
+  return appointments.map((a) => ({
+    ...a,
+    planAppointmentId: a.appointment_id ?? a.id,
+  }));
 }

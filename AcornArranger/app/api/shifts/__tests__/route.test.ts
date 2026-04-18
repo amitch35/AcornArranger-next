@@ -48,20 +48,40 @@ describe("GET /api/shifts", () => {
     vi.clearAllMocks();
   });
 
-  it("returns 400 when the date query param is missing", async () => {
+  it("returns 400 when dateFrom is missing", async () => {
+    const req = new NextRequest("http://localhost/api/shifts?dateTo=2026-03-29");
+    const res = await GET(req);
+    const body = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(body.error).toMatch(/dateFrom|dateTo/i);
+  });
+
+  it("returns 400 when dateTo is missing", async () => {
+    const req = new NextRequest("http://localhost/api/shifts?dateFrom=2026-03-29");
+    const res = await GET(req);
+    const body = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(body.error).toMatch(/dateFrom|dateTo/i);
+  });
+
+  it("returns 400 when both params are missing", async () => {
     const req = new NextRequest("http://localhost/api/shifts");
     const res = await GET(req);
     const body = await res.json();
 
     expect(res.status).toBe(400);
-    expect(body.error).toMatch(/date/i);
+    expect(body.error).toMatch(/dateFrom|dateTo/i);
   });
 
   it("returns StaffShift[] with status 200 on success", async () => {
     const shifts = [makeShift(1), makeShift(2)];
     vi.mocked(createClient).mockResolvedValue(makeRpcMock({ data: shifts }) as any);
 
-    const req = new NextRequest("http://localhost/api/shifts?date=2026-03-29");
+    const req = new NextRequest(
+      "http://localhost/api/shifts?dateFrom=2026-03-29&dateTo=2026-03-29"
+    );
     const res = await GET(req);
     const body = await res.json();
 
@@ -70,15 +90,32 @@ describe("GET /api/shifts", () => {
     expect(body[0].user_id).toBe(1);
   });
 
-  it("passes date_from and date_to both equal to the provided date", async () => {
+  it("passes dateFrom and dateTo directly to the RPC (single-day range)", async () => {
     const mock = makeRpcMock({ data: [] });
     vi.mocked(createClient).mockResolvedValue(mock as any);
 
-    const req = new NextRequest("http://localhost/api/shifts?date=2026-03-29");
+    const req = new NextRequest(
+      "http://localhost/api/shifts?dateFrom=2026-03-29&dateTo=2026-03-29"
+    );
     await GET(req);
 
     expect(mock.rpc).toHaveBeenCalledWith("get_staff_shifts", {
       date_from: "2026-03-29",
+      date_to: "2026-03-29",
+    });
+  });
+
+  it("passes a multi-day range through to the RPC", async () => {
+    const mock = makeRpcMock({ data: [] });
+    vi.mocked(createClient).mockResolvedValue(mock as any);
+
+    const req = new NextRequest(
+      "http://localhost/api/shifts?dateFrom=2026-03-23&dateTo=2026-03-29"
+    );
+    await GET(req);
+
+    expect(mock.rpc).toHaveBeenCalledWith("get_staff_shifts", {
+      date_from: "2026-03-23",
       date_to: "2026-03-29",
     });
   });
@@ -88,7 +125,9 @@ describe("GET /api/shifts", () => {
       makeRpcMock({ data: null, error: { message: "Homebase API timeout" } }) as any
     );
 
-    const req = new NextRequest("http://localhost/api/shifts?date=2026-03-29");
+    const req = new NextRequest(
+      "http://localhost/api/shifts?dateFrom=2026-03-29&dateTo=2026-03-29"
+    );
     const res = await GET(req);
     const body = await res.json();
 
@@ -101,7 +140,9 @@ describe("GET /api/shifts", () => {
       makeRpcMock({ data: null }) as any
     );
 
-    const req = new NextRequest("http://localhost/api/shifts?date=2026-03-29");
+    const req = new NextRequest(
+      "http://localhost/api/shifts?dateFrom=2026-03-29&dateTo=2026-03-29"
+    );
     const res = await GET(req);
     const body = await res.json();
 
@@ -112,7 +153,9 @@ describe("GET /api/shifts", () => {
   it("returns 500 if createClient throws", async () => {
     vi.mocked(createClient).mockRejectedValue(new Error("Connection refused"));
 
-    const req = new NextRequest("http://localhost/api/shifts?date=2026-03-29");
+    const req = new NextRequest(
+      "http://localhost/api/shifts?dateFrom=2026-03-29&dateTo=2026-03-29"
+    );
     const res = await GET(req);
     const body = await res.json();
 

@@ -37,10 +37,7 @@ import {
 } from "@/src/features/plans/api";
 import { toastError } from "@/lib/toast";
 import { ScheduleBoard } from "@/src/features/plans/components/ScheduleBoard";
-import {
-  computeUnscheduled,
-  type BacklogAppointment,
-} from "@/src/features/plans/components/BacklogPanel";
+import { toBacklogAppointments } from "@/src/features/plans/components/BacklogPanel";
 import { ShiftStatusBar } from "@/src/features/plans/components/ShiftStatusBar";
 import { HomebaseShiftSuggestions } from "@/src/features/plans/components/HomebaseShiftSuggestions";
 import { useShiftStatus } from "@/src/features/plans/hooks/useShiftStatus";
@@ -170,7 +167,9 @@ export default function SchedulePage() {
     if (ids.length > 0) setBacklogServiceFilter(ids);
   }, [serviceOptions]);
 
-  // Fetch appointments for the date (status 1,2 - not cancelled)
+  // Fetch all appointments for the date (status 1,2 - not cancelled). Used by
+  // build-options helpers (OmissionsSelect, the plan-appointment popover) that
+  // need to see every appointment for the day, including ones already planned.
   const { data: appointmentsData, isLoading: appointmentsLoading } = useQuery({
     queryKey: ["appointments", planDate],
     queryFn: async () => {
@@ -187,16 +186,43 @@ export default function SchedulePage() {
   });
 
   const allAppointments = appointmentsData?.items ?? [];
+
+  // Fetch the backlog directly via the server-side `excludePlanned` filter. Kept
+  // separate from `allAppointments` so the service filter can be pushed down to
+  // the API, and so planned appointments stay available to build options.
+  const { data: backlogData, isLoading: backlogLoading } = useQuery({
+    queryKey: ["appointments-backlog", planDate, backlogServiceFilter],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        dateFrom: planDate,
+        dateTo: planDate,
+        statusIds: "1,2",
+        excludePlanned: "true",
+        pageSize: "200",
+      });
+      if (backlogServiceFilter.length > 0) {
+        params.set("serviceIds", backlogServiceFilter.join(","));
+      }
+      const res = await fetch(`/api/appointments?${params}`);
+      if (!res.ok) throw new Error("Failed to load backlog");
+      return res.json() as Promise<{ items: AppointmentRow[]; total: number }>;
+    },
+  });
+
   const backlogAppointments = React.useMemo(
-    () => computeUnscheduled(allAppointments, plans, backlogServiceFilter),
-    [allAppointments, plans, backlogServiceFilter]
+    () => toBacklogAppointments(backlogData?.items ?? []),
+    [backlogData]
   );
 
-  // Fetch Homebase shifts for the selected date
+  // Fetch Homebase shifts for the selected date (single-day range)
   const { data: shifts = [], isLoading: shiftsLoading } = useQuery({
     queryKey: ["shifts", planDate],
     queryFn: async () => {
-      const res = await fetch(`/api/shifts?date=${planDate}`);
+      const params = new URLSearchParams({
+        dateFrom: planDate,
+        dateTo: planDate,
+      });
+      const res = await fetch(`/api/shifts?${params}`);
       if (!res.ok) return [] as StaffShift[];
       return res.json() as Promise<StaffShift[]>;
     },
@@ -521,7 +547,7 @@ export default function SchedulePage() {
           serviceOptions={serviceOptions}
           serviceFilter={backlogServiceFilter}
           onServiceFilterChange={setBacklogServiceFilter}
-          appointmentsLoading={appointmentsLoading}
+          appointmentsLoading={appointmentsLoading || backlogLoading}
           onPlansChange={() => { refetchPlans(); }}
           refetchPlans={refetchPlans}
         />

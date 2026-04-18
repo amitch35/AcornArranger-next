@@ -6,11 +6,12 @@ import type { StaffShift } from "@/src/features/plans/schemas";
 export const GET = withMinRole(
   async (req: NextRequest) => {
     const { searchParams } = new URL(req.url);
-    const date = searchParams.get("date");
+    const dateFrom = searchParams.get("dateFrom");
+    const dateTo = searchParams.get("dateTo");
 
-    if (!date) {
+    if (!dateFrom || !dateTo) {
       return NextResponse.json(
-        { error: "Missing required query param: date" },
+        { error: "Missing required query params: dateFrom, dateTo" },
         { status: 400 }
       );
     }
@@ -19,8 +20,8 @@ export const GET = withMinRole(
       const supabase = await createClient();
 
       const { data, error } = await supabase.rpc("get_staff_shifts", {
-        date_from: date,
-        date_to: date,
+        date_from: dateFrom,
+        date_to: dateTo,
       });
 
       if (error) {

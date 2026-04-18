@@ -48,6 +48,7 @@ export const GET = withAuth(async (req: NextRequest) => {
     const taOnly = searchParams.get("taOnly") === "true";
     const nextArrivalBefore = searchParams.get("nextArrivalBefore");
     const nextArrivalAfter = searchParams.get("nextArrivalAfter");
+    const excludePlanned = searchParams.get("excludePlanned") === "true";
 
     const supabase = await createClient();
 
@@ -116,6 +117,34 @@ export const GET = withAuth(async (req: NextRequest) => {
     }
     if (nextArrivalAfter) {
       query = query.gte("next_arrival_time", nextArrivalAfter);
+    }
+
+    // Exclude appointments that are already on a plan within the same date window.
+    // Requires dateFrom — otherwise there's no bounded window to query the view for.
+    if (excludePlanned && dateFrom) {
+      const { data: planned, error: plannedError } = await supabase
+        .from("planned_appointment_ids")
+        .select("appointment_id")
+        .gte("plan_date", dateFrom)
+        .lte("plan_date", dateTo ?? dateFrom);
+
+      if (plannedError) {
+        return NextResponse.json(
+          { error: plannedError.message },
+          { status: 500 }
+        );
+      }
+
+      const ids = Array.from(
+        new Set(
+          (planned ?? [])
+            .map((p) => p.appointment_id)
+            .filter((id): id is number => id !== null && id !== undefined)
+        )
+      );
+      if (ids.length > 0) {
+        query = query.not("appointment_id", "in", `(${ids.join(",")})`);
+      }
     }
 
     // Text search: search property name via the join

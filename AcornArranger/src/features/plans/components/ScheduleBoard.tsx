@@ -14,7 +14,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { BacklogPanel, BACKLOG_DROPPABLE, computeUnscheduled } from "./BacklogPanel";
+import { BacklogPanel, BACKLOG_DROPPABLE } from "./BacklogPanel";
 import { PlanColumn, STAFF_DRAGGABLE_PREFIX } from "./PlanColumn";
 import type { Plan, PlanAppointment } from "../schemas";
 import { isPlanSent } from "../schemas";

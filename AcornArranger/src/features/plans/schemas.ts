@@ -84,6 +84,10 @@ export type HomebaseShift = {
   first_name: string;
   last_name: string;
   role: string;
+  /** ISO timestamp when the shift starts (Homebase `start_at`). */
+  start_at?: string;
+  /** ISO timestamp when the shift ends (Homebase `end_at`). */
+  end_at?: string;
 };
 
 /**
