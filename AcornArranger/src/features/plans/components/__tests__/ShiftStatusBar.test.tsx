@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ShiftStatusBar } from "../ShiftStatusBar";
+import type { ShiftIssue } from "../../hooks/useShiftStatus";
 import type { StaffShift } from "../../schemas";
 
 // ---------------------------------------------------------------------------
@@ -9,8 +10,8 @@ import type { StaffShift } from "../../schemas";
 // ---------------------------------------------------------------------------
 
 const NO_ISSUES = {
-  staffOnPlansWithoutShifts: [],
-  shiftsNotOnPlans: [],
+  staffOnPlansWithoutShifts: [] as ShiftIssue[],
+  shiftsNotOnPlans: [] as ShiftIssue[],
   unmatchedShifts: [] as StaffShift[],
 };
 

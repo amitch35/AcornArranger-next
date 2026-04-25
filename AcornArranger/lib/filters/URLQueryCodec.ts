@@ -235,8 +235,10 @@ export function validateBaseFilters<T extends z.ZodTypeAny>(
   }
   const result = schema.safeParse(cleaned);
   if (result.success) return result.data as z.infer<T>;
-  // If invalid, coerce with defaults by parsing empty object to get defaults, then merge only defined values
-  const defaults = schema.parse({});
+  // If invalid, coerce with defaults by parsing empty object to get defaults, then merge only defined values.
+  // Cast `defaults` to a record-shaped type so TS lets us spread it; the
+  // outer `as z.infer<T>` preserves the public return type.
+  const defaults = schema.parse({}) as Record<string, unknown>;
   return { ...defaults, ...cleaned } as z.infer<T>;
 }
 

@@ -2,8 +2,23 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 
 vi.mock("@/lib/apiGuard", () => ({
-  withMinRole: (handler: any) => handler,
-  withAuth: (handler: any) => handler,
+  // The real wrappers receive `{ params: Promise<...> }` from Next.js 15 and
+  // hand the inner handler a resolved sync `params`. The test mock mirrors
+  // that contract so callers can pass either Promise<params> or a sync object.
+  withAuth: (handler: any) => async (req: any, ctx: any) => {
+    const params =
+      ctx?.params && typeof ctx.params.then === "function"
+        ? await ctx.params
+        : ctx?.params;
+    return handler(req, { role: "owner", params });
+  },
+  withMinRole: (handler: any) => async (req: any, ctx: any) => {
+    const params =
+      ctx?.params && typeof ctx.params.then === "function"
+        ? await ctx.params
+        : ctx?.params;
+    return handler(req, { role: "owner", params });
+  },
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -34,7 +49,7 @@ describe("POST /api/plans/copy/[plan_date]", () => {
     vi.mocked(createClient).mockResolvedValue(makeRpcClient({ data: copyData }) as any);
 
     const req = new NextRequest("http://localhost/api/plans/copy/2025-01-15", { method: "POST" });
-    const res = await POST(req, { params: { plan_date: "2025-01-15" } });
+    const res = await POST(req, { params: Promise.resolve({ plan_date: "2025-01-15" }) });
     const body = await res.json();
 
     expect(res.status).toBe(200);
@@ -46,7 +61,7 @@ describe("POST /api/plans/copy/[plan_date]", () => {
     vi.mocked(createClient).mockResolvedValue(client as any);
 
     const req = new NextRequest("http://localhost/api/plans/copy/2025-01-15", { method: "POST" });
-    await POST(req, { params: { plan_date: "2025-01-15" } });
+    await POST(req, { params: Promise.resolve({ plan_date: "2025-01-15" }) });
 
     expect(client.rpc).toHaveBeenCalledWith("copy_schedule_plan", {
       schedule_date: "2025-01-15",
@@ -57,7 +72,7 @@ describe("POST /api/plans/copy/[plan_date]", () => {
     vi.mocked(createClient).mockResolvedValue(makeRpcClient({ data: null }) as any);
 
     const req = new NextRequest("http://localhost/api/plans/copy/2025-01-15", { method: "POST" });
-    const res = await POST(req, { params: { plan_date: "2025-01-15" } });
+    const res = await POST(req, { params: Promise.resolve({ plan_date: "2025-01-15" }) });
     const body = await res.json();
 
     expect(res.status).toBe(200);
@@ -70,7 +85,7 @@ describe("POST /api/plans/copy/[plan_date]", () => {
     );
 
     const req = new NextRequest("http://localhost/api/plans/copy/2025-01-15", { method: "POST" });
-    const res = await POST(req, { params: { plan_date: "2025-01-15" } });
+    const res = await POST(req, { params: Promise.resolve({ plan_date: "2025-01-15" }) });
     const body = await res.json();
 
     expect(res.status).toBe(400);
@@ -80,7 +95,7 @@ describe("POST /api/plans/copy/[plan_date]", () => {
 
   it("returns 400 when plan_date param is missing", async () => {
     const req = new NextRequest("http://localhost/api/plans/copy/", { method: "POST" });
-    const res = await POST(req, { params: { plan_date: "" } });
+    const res = await POST(req, { params: Promise.resolve({ plan_date: "" }) });
     const body = await res.json();
 
     expect(res.status).toBe(400);
@@ -91,7 +106,7 @@ describe("POST /api/plans/copy/[plan_date]", () => {
     vi.mocked(createClient).mockRejectedValue(new Error("DB unavailable"));
 
     const req = new NextRequest("http://localhost/api/plans/copy/2025-01-15", { method: "POST" });
-    const res = await POST(req, { params: { plan_date: "2025-01-15" } });
+    const res = await POST(req, { params: Promise.resolve({ plan_date: "2025-01-15" }) });
 
     expect(res.status).toBe(500);
     const body = await res.json();

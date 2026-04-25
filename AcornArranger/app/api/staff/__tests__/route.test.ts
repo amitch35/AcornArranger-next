@@ -7,7 +7,23 @@ import {
 
 // Mock dependencies BEFORE importing the route
 vi.mock("@/lib/apiGuard", () => ({
-  withAuth: (handler: any) => handler, // Bypass auth
+  // The real wrappers receive `{ params: Promise<...> }` from Next.js 15 and
+  // hand the inner handler a resolved sync `params`. The test mock mirrors
+  // that contract so callers can pass either Promise<params> or a sync object.
+  withAuth: (handler: any) => async (req: any, ctx: any) => {
+    const params =
+      ctx?.params && typeof ctx.params.then === "function"
+        ? await ctx.params
+        : ctx?.params;
+    return handler(req, { role: "owner", params });
+  },
+  withMinRole: (handler: any) => async (req: any, ctx: any) => {
+    const params =
+      ctx?.params && typeof ctx.params.then === "function"
+        ? await ctx.params
+        : ctx?.params;
+    return handler(req, { role: "owner", params });
+  },
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -44,7 +60,7 @@ describe("/api/staff", () => {
         "http://localhost:3000/api/staff?page=1&pageSize=10"
       );
 
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -68,7 +84,7 @@ describe("/api/staff", () => {
         "http://localhost:3000/api/staff?statusIds=1"
       );
 
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -91,7 +107,7 @@ describe("/api/staff", () => {
         "http://localhost:3000/api/staff?statusIds=1,2"
       );
 
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -111,7 +127,7 @@ describe("/api/staff", () => {
         "http://localhost:3000/api/staff?roleIds=1,2"
       );
 
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -142,7 +158,7 @@ describe("/api/staff", () => {
         "http://localhost:3000/api/staff?canClean=true"
       );
 
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -170,7 +186,7 @@ describe("/api/staff", () => {
         "http://localhost:3000/api/staff?canLeadTeam=true"
       );
 
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -203,7 +219,7 @@ describe("/api/staff", () => {
         "http://localhost:3000/api/staff?statusIds=1&canClean=true&canLeadTeam=true"
       );
 
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -225,7 +241,7 @@ describe("/api/staff", () => {
         "http://localhost:3000/api/staff?q=staff"
       );
 
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -247,7 +263,7 @@ describe("/api/staff", () => {
         "http://localhost:3000/api/staff?sort=name:asc"
       );
 
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -266,7 +282,7 @@ describe("/api/staff", () => {
         "http://localhost:3000/api/staff?page=1&pageSize=5"
       );
 
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -286,7 +302,7 @@ describe("/api/staff", () => {
         "http://localhost:3000/api/staff?pageSize=1"
       );
 
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -312,7 +328,7 @@ describe("/api/staff", () => {
 
       const req = new NextRequest("http://localhost:3000/api/staff");
 
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(500);

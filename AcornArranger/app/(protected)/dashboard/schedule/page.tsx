@@ -23,8 +23,11 @@ import { ServiceMultiSelect } from "@/components/filters/ServiceMultiSelect";
 import { DatePicker } from "@/components/filters/DatePicker";
 import { OmissionsSelect } from "@/src/features/plans/components/OmissionsSelect";
 import {
+  AFFINITY_LOOKBACK_BOUNDS,
+  ENGINE_LABELS,
   PLAN_BUILD_DEFAULTS,
   ROUTING_TYPE_LABELS,
+  type PlanBuildEngine,
   type PlanBuildOptions,
 } from "@/src/features/plans/schemas";
 import {
@@ -111,6 +114,13 @@ export default function SchedulePage() {
   const [targetStaffCount, setTargetStaffCount] = React.useState<
     number | undefined
   >(PLAN_BUILD_DEFAULTS.target_staff_count);
+  const [engine, setEngine] = React.useState<PlanBuildEngine>(
+    PLAN_BUILD_DEFAULTS.engine
+  );
+  const [propertyAffinityLookback, setPropertyAffinityLookback] =
+    React.useState<number>(PLAN_BUILD_DEFAULTS.property_affinity_lookback_days);
+  const [pairingAffinityLookback, setPairingAffinityLookback] =
+    React.useState<number>(PLAN_BUILD_DEFAULTS.pairing_affinity_lookback_days);
 
   // Sync date to URL
   React.useEffect(() => {
@@ -250,6 +260,9 @@ export default function SchedulePage() {
       cleaning_window: cleaningWindow,
       max_hours: maxHours,
       target_staff_count: targetStaffCount,
+      engine,
+      property_affinity_lookback_days: propertyAffinityLookback,
+      pairing_affinity_lookback_days: pairingAffinityLookback,
     }),
     [
       availableStaff,
@@ -259,6 +272,9 @@ export default function SchedulePage() {
       cleaningWindow,
       maxHours,
       targetStaffCount,
+      engine,
+      propertyAffinityLookback,
+      pairingAffinityLookback,
     ]
   );
 
@@ -405,6 +421,89 @@ export default function SchedulePage() {
                 onChange={setOmissions}
               />
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="engine">Engine</Label>
+              <select
+                id="engine"
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                value={engine}
+                onChange={(e) =>
+                  setEngine(e.target.value as PlanBuildEngine)
+                }
+              >
+                {Object.entries(ENGINE_LABELS).map(([val, label]) => (
+                  <option key={val} value={val}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground">
+                {engine === "vrptw"
+                  ? "OR-Tools sidecar with Tier 2 affinity biasing. Use as the default during rollout."
+                  : "Legacy build_schedule_plan RPC. Use as a one-click fallback if the new engine misbehaves for a specific day."}
+              </p>
+            </div>
+
+            {engine === "vrptw" ? (
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="property-affinity-lookback">
+                    Property Affinity Lookback (days)
+                  </Label>
+                  <Input
+                    id="property-affinity-lookback"
+                    type="number"
+                    min={AFFINITY_LOOKBACK_BOUNDS.property.min}
+                    max={AFFINITY_LOOKBACK_BOUNDS.property.max}
+                    step={1}
+                    value={propertyAffinityLookback}
+                    onChange={(e) => {
+                      const v = Number(e.target.value);
+                      if (!Number.isFinite(v)) return;
+                      setPropertyAffinityLookback(
+                        Math.min(
+                          AFFINITY_LOOKBACK_BOUNDS.property.max,
+                          Math.max(AFFINITY_LOOKBACK_BOUNDS.property.min, Math.round(v))
+                        )
+                      );
+                    }}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    How far back to score staff&lt;-&gt;property assignments.
+                    Wider = more stable signal.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="pairing-affinity-lookback">
+                    Pairing Affinity Lookback (days)
+                  </Label>
+                  <Input
+                    id="pairing-affinity-lookback"
+                    type="number"
+                    min={AFFINITY_LOOKBACK_BOUNDS.pairing.min}
+                    max={AFFINITY_LOOKBACK_BOUNDS.pairing.max}
+                    step={1}
+                    value={pairingAffinityLookback}
+                    onChange={(e) => {
+                      const v = Number(e.target.value);
+                      if (!Number.isFinite(v)) return;
+                      setPairingAffinityLookback(
+                        Math.min(
+                          AFFINITY_LOOKBACK_BOUNDS.pairing.max,
+                          Math.max(AFFINITY_LOOKBACK_BOUNDS.pairing.min, Math.round(v))
+                        )
+                      );
+                    }}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    How far back to score staff pairings for team formation.
+                    Shorter default because staff turnover stales older pairings.
+                  </p>
+                </div>
+              </div>
+            ) : null}
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-2">

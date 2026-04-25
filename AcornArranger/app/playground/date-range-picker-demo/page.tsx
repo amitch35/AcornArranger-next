@@ -4,7 +4,7 @@ import * as React from "react";
 import DateRangePicker, { type DateRange } from "@/components/filters/DateRangePicker";
 
 export default function Page() {
-  const [range, setRange] = React.useState<DateRange>(undefined);
+  const [range, setRange] = React.useState<DateRange | undefined>(undefined);
   return (
     <div className="container mx-auto max-w-3xl space-y-4 p-6">
       <h1 className="text-xl font-semibold">DateRangePicker Demo</h1>

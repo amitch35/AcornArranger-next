@@ -9,13 +9,37 @@ export interface AuthContext {
 
 /**
  * Handler function signature for authenticated API routes
- * Accepts any additional context (like Next.js params) alongside role
- * TReq allows using NextRequest or other Request subtypes
+ * Accepts any additional context (like Next.js params) alongside role.
+ * TReq allows using NextRequest or other Request subtypes.
+ *
+ * NOTE: Inner handlers receive params as a *sync* object. The wrapper
+ * (`withAuth`) awaits the Promise<params> shape that Next.js 15 passes in.
+ * Do not declare `params` as `Promise<...>` on inner handlers.
  */
 export type AuthenticatedHandler<TContext = unknown, TReq extends Request = Request> = (
   req: TReq,
   context: AuthContext & TContext
 ) => Promise<Response>;
+
+/**
+ * Extract the sync `params` shape from a TContext used by inner handlers
+ * (e.g. `{ params: { id: string } }` or `{ params?: { id: string } }`).
+ * Falls back to `Record<string, never>` for non-dynamic routes.
+ */
+type ParamsOf<TContext> = TContext extends { params?: infer P }
+  ? Exclude<P, undefined>
+  : Record<string, never>;
+
+/**
+ * The context shape Next.js 15 passes to the exported route handler.
+ * Next.js 15 always supplies `{ params: Promise<...> }`. Tests that invoke
+ * route handlers directly must wrap params with `Promise.resolve(...)`.
+ *
+ * (We can't widen this to `Promise<P> | P` even though it would help tests:
+ * Next.js's typed-routes validator checks `params` for assignability to
+ * `Promise<any>` directly, not via function-parameter contravariance.)
+ */
+type NextRouteContext<TContext> = { params: Promise<ParamsOf<TContext>> };
 
 /**
  * Minimal authentication wrapper for API routes.
@@ -46,20 +70,22 @@ export type AuthenticatedHandler<TContext = unknown, TReq extends Request = Requ
 export function withAuth<TContext = unknown, TReq extends Request = Request>(
   handler: AuthenticatedHandler<TContext, TReq>
 ) {
-  return async (req: TReq, context?: TContext): Promise<Response> => {
+  return async (
+    req: TReq,
+    context: NextRouteContext<TContext>
+  ): Promise<Response> => {
     try {
       const role = await getCurrentRole();
-      
-      // Await params if it's a Promise (Next.js 15 behavior for dynamic routes)
-      let resolvedContext = context;
-      if (context && typeof context === 'object' && 'params' in context) {
-        const params = (context as any).params;
-        if (params && typeof params === 'object' && 'then' in params) {
-          resolvedContext = { ...context, params: await params } as TContext;
-        }
-      }
-      
-      return handler(req, { role, ...resolvedContext } as AuthContext & TContext);
+
+      // Next.js 15 passes `{ params: Promise<...> }`; tests sometimes pass a
+      // sync object. Normalize both shapes to a resolved sync `params` value
+      // before forwarding to the inner handler.
+      const resolvedParams = await context.params;
+
+      return handler(req, {
+        role,
+        params: resolvedParams,
+      } as unknown as AuthContext & TContext);
     } catch (err) {
       const error = err as Error;
       
@@ -112,11 +138,11 @@ export function withAuth<TContext = unknown, TReq extends Request = Request>(
  *   { minRole: 'authorized_user' }
  * );
  */
-export function withMinRole<TReq extends Request = Request>(
-  handler: AuthenticatedHandler<unknown, TReq>,
+export function withMinRole<TContext = unknown, TReq extends Request = Request>(
+  handler: AuthenticatedHandler<TContext, TReq>,
   options: { minRole: Role }
 ) {
-  return withAuth<unknown, TReq>(async (req, context) => {
+  return withAuth<TContext, TReq>(async (req, context) => {
     const { hasAtLeastRole } = await import('./auth');
     
     if (!hasAtLeastRole(context.role, options.minRole)) {

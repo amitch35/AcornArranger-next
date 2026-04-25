@@ -10,6 +10,7 @@ describe("StaffAdapter.toApiParams", () => {
         pageSize: 50,
         sort: "",
         statusIds: [],
+        roleIds: [],
         serviceIds: [],
         staffIds: [],
         propertyIds: [],

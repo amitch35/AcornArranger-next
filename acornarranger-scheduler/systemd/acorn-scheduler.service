@@ -1,0 +1,43 @@
+; Acorn Arranger scheduler sidecar
+;
+; Sample systemd unit. Copy to /etc/systemd/system/acorn-scheduler.service
+; on the Linode VPS, then:
+;   sudo systemctl daemon-reload
+;   sudo systemctl enable --now acorn-scheduler.service
+;
+; The service binds to 127.0.0.1 so it is only reachable from the Next.js
+; app running on the same host. No firewall rule required.
+
+[Unit]
+Description=Acorn Arranger VRPTW scheduler sidecar
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=acorn
+Group=acorn
+WorkingDirectory=/opt/acornarranger-scheduler
+Environment=PATH=/opt/acornarranger-scheduler/.venv/bin:/usr/bin:/bin
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/acornarranger-scheduler/.venv/bin/uvicorn src.main:app \
+    --host 127.0.0.1 \
+    --port 8001 \
+    --workers 1 \
+    --log-level info
+Restart=on-failure
+RestartSec=2
+# Cap restart storms: stop trying if we crash 5 times within 1 minute.
+StartLimitBurst=5
+StartLimitIntervalSec=60
+
+; Hardening
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/acornarranger-scheduler
+PrivateTmp=yes
+PrivateDevices=yes
+
+[Install]
+WantedBy=multi-user.target

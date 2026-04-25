@@ -4,7 +4,23 @@ import { createMockSupabaseClient } from "../../../__tests__/test-utils";
 
 // Mock dependencies BEFORE importing the route
 vi.mock("@/lib/apiGuard", () => ({
-  withAuth: (handler: any) => handler, // Bypass auth
+  // The real wrappers receive `{ params: Promise<...> }` from Next.js 15 and
+  // hand the inner handler a resolved sync `params`. The test mock mirrors
+  // that contract so callers can pass either Promise<params> or a sync object.
+  withAuth: (handler: any) => async (req: any, ctx: any) => {
+    const params =
+      ctx?.params && typeof ctx.params.then === "function"
+        ? await ctx.params
+        : ctx?.params;
+    return handler(req, { role: "owner", params });
+  },
+  withMinRole: (handler: any) => async (req: any, ctx: any) => {
+    const params =
+      ctx?.params && typeof ctx.params.then === "function"
+        ? await ctx.params
+        : ctx?.params;
+    return handler(req, { role: "owner", params });
+  },
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -53,7 +69,7 @@ describe("/api/properties/[id]", () => {
       vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
 
       const req = new NextRequest("http://localhost:3000/api/properties/1");
-      const response = await GET(req, { params: { id: "1" } });
+      const response = await GET(req, { params: Promise.resolve({ id: "1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -69,7 +85,7 @@ describe("/api/properties/[id]", () => {
       vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
 
       const req = new NextRequest("http://localhost:3000/api/properties/1");
-      const response = await GET(req, { params: { id: "1" } });
+      const response = await GET(req, { params: Promise.resolve({ id: "1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -81,7 +97,7 @@ describe("/api/properties/[id]", () => {
       const req = new NextRequest(
         "http://localhost:3000/api/properties/invalid"
       );
-      const response = await GET(req, { params: { id: "invalid" } });
+      const response = await GET(req, { params: Promise.resolve({ id: "invalid" }) });
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -97,7 +113,7 @@ describe("/api/properties/[id]", () => {
       vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
 
       const req = new NextRequest("http://localhost:3000/api/properties/999");
-      const response = await GET(req, { params: { id: "999" } });
+      const response = await GET(req, { params: Promise.resolve({ id: "999" }) });
       const data = await response.json();
 
       expect(response.status).toBe(404);
@@ -107,14 +123,14 @@ describe("/api/properties/[id]", () => {
 
     it("should handle Supabase errors", async () => {
       const mockSupabase = createMockSupabaseClient({
-        error: { message: "Database error" },
+        error: new Error("Database error"),
         status: 500,
       });
 
       vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
 
       const req = new NextRequest("http://localhost:3000/api/properties/1");
-      const response = await GET(req, { params: { id: "1" } });
+      const response = await GET(req, { params: Promise.resolve({ id: "1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(500);
@@ -140,7 +156,7 @@ describe("/api/properties/[id]", () => {
         body: JSON.stringify({ estimated_cleaning_mins: 120 }),
       });
 
-      const response = await PUT(req, { params: { id: "1" } });
+      const response = await PUT(req, { params: Promise.resolve({ id: "1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -163,7 +179,7 @@ describe("/api/properties/[id]", () => {
         body: JSON.stringify({ estimated_cleaning_mins: null }),
       });
 
-      const response = await PUT(req, { params: { id: "1" } });
+      const response = await PUT(req, { params: Promise.resolve({ id: "1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -186,7 +202,7 @@ describe("/api/properties/[id]", () => {
         body: JSON.stringify({ double_unit: [4, 5, 6] }),
       });
 
-      const response = await PUT(req, { params: { id: "1" } });
+      const response = await PUT(req, { params: Promise.resolve({ id: "1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -209,7 +225,7 @@ describe("/api/properties/[id]", () => {
         body: JSON.stringify({ double_unit: [2, 3, 4, 3, 2] }),
       });
 
-      const response = await PUT(req, { params: { id: "1" } });
+      const response = await PUT(req, { params: Promise.resolve({ id: "1" }) });
 
       expect(response.status).toBe(200);
       // The deduplication happens in the schema, so the API should receive [2,3,4]
@@ -231,7 +247,7 @@ describe("/api/properties/[id]", () => {
         body: JSON.stringify({ double_unit: [1, 2, 3] }), // 1 is self-reference
       });
 
-      const response = await PUT(req, { params: { id: "1" } });
+      const response = await PUT(req, { params: Promise.resolve({ id: "1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -255,7 +271,7 @@ describe("/api/properties/[id]", () => {
         body: JSON.stringify({ double_unit: [] }),
       });
 
-      const response = await PUT(req, { params: { id: "1" } });
+      const response = await PUT(req, { params: Promise.resolve({ id: "1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -278,7 +294,7 @@ describe("/api/properties/[id]", () => {
         body: JSON.stringify({ estimated_cleaning_mins: 0 }),
       });
 
-      const response = await PUT(req, { params: { id: "1" } });
+      const response = await PUT(req, { params: Promise.resolve({ id: "1" }) });
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data.estimated_cleaning_mins).toBe(0);
@@ -300,7 +316,7 @@ describe("/api/properties/[id]", () => {
         body: JSON.stringify({ estimated_cleaning_mins: 1440 }),
       });
 
-      const response = await PUT(req, { params: { id: "1" } });
+      const response = await PUT(req, { params: Promise.resolve({ id: "1" }) });
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data.estimated_cleaning_mins).toBe(1440);
@@ -322,7 +338,7 @@ describe("/api/properties/[id]", () => {
         body: JSON.stringify({ double_unit: null }),
       });
 
-      const response = await PUT(req, { params: { id: "1" } });
+      const response = await PUT(req, { params: Promise.resolve({ id: "1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -346,7 +362,7 @@ describe("/api/properties/[id]", () => {
         body: JSON.stringify({ double_unit: twentyIds }),
       });
 
-      const response = await PUT(req, { params: { id: "1" } });
+      const response = await PUT(req, { params: Promise.resolve({ id: "1" }) });
       expect(response.status).toBe(200);
     });
 
@@ -356,7 +372,7 @@ describe("/api/properties/[id]", () => {
         body: JSON.stringify({ estimated_cleaning_mins: -10 }),
       });
 
-      const response = await PUT(req, { params: { id: "1" } });
+      const response = await PUT(req, { params: Promise.resolve({ id: "1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -370,7 +386,7 @@ describe("/api/properties/[id]", () => {
         body: JSON.stringify({ estimated_cleaning_mins: 1500 }),
       });
 
-      const response = await PUT(req, { params: { id: "1" } });
+      const response = await PUT(req, { params: Promise.resolve({ id: "1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -386,7 +402,7 @@ describe("/api/properties/[id]", () => {
         body: JSON.stringify({ double_unit: tooManyIds }),
       });
 
-      const response = await PUT(req, { params: { id: "1" } });
+      const response = await PUT(req, { params: Promise.resolve({ id: "1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -403,7 +419,7 @@ describe("/api/properties/[id]", () => {
         }
       );
 
-      const response = await PUT(req, { params: { id: "invalid" } });
+      const response = await PUT(req, { params: Promise.resolve({ id: "invalid" }) });
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -423,7 +439,7 @@ describe("/api/properties/[id]", () => {
         body: JSON.stringify({ estimated_cleaning_mins: 90 }),
       });
 
-      const response = await PUT(req, { params: { id: "999" } });
+      const response = await PUT(req, { params: Promise.resolve({ id: "999" }) });
       const data = await response.json();
 
       expect(response.status).toBe(404);
@@ -433,7 +449,7 @@ describe("/api/properties/[id]", () => {
 
     it("should handle Supabase errors", async () => {
       const mockSupabase = createMockSupabaseClient({
-        error: { message: "Database error" },
+        error: new Error("Database error"),
         status: 500,
       });
 
@@ -444,7 +460,7 @@ describe("/api/properties/[id]", () => {
         body: JSON.stringify({ estimated_cleaning_mins: 120 }),
       });
 
-      const response = await PUT(req, { params: { id: "1" } });
+      const response = await PUT(req, { params: Promise.resolve({ id: "1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(500);
@@ -458,7 +474,7 @@ describe("/api/properties/[id]", () => {
         body: "{ invalid json",
       });
 
-      const response = await PUT(req, { params: { id: "1" } });
+      const response = await PUT(req, { params: Promise.resolve({ id: "1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(500);

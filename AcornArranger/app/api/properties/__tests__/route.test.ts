@@ -7,7 +7,23 @@ import {
 
 // Mock dependencies BEFORE importing the route
 vi.mock("@/lib/apiGuard", () => ({
-  withAuth: (handler: any) => handler, // Bypass auth
+  // The real wrappers receive `{ params: Promise<...> }` from Next.js 15 and
+  // hand the inner handler a resolved sync `params`. The test mock mirrors
+  // that contract so callers can pass either Promise<params> or a sync object.
+  withAuth: (handler: any) => async (req: any, ctx: any) => {
+    const params =
+      ctx?.params && typeof ctx.params.then === "function"
+        ? await ctx.params
+        : ctx?.params;
+    return handler(req, { role: "owner", params });
+  },
+  withMinRole: (handler: any) => async (req: any, ctx: any) => {
+    const params =
+      ctx?.params && typeof ctx.params.then === "function"
+        ? await ctx.params
+        : ctx?.params;
+    return handler(req, { role: "owner", params });
+  },
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -44,7 +60,7 @@ describe("/api/properties", () => {
         "http://localhost:3000/api/properties?page=1&pageSize=10"
       );
 
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -70,7 +86,7 @@ describe("/api/properties", () => {
         "http://localhost:3000/api/properties?q=beach"
       );
 
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -100,7 +116,7 @@ describe("/api/properties", () => {
 
       const req = new NextRequest("http://localhost:3000/api/properties");
 
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -129,7 +145,7 @@ describe("/api/properties", () => {
         "http://localhost:3000/api/properties?city=San"
       );
 
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -151,7 +167,7 @@ describe("/api/properties", () => {
         "http://localhost:3000/api/properties?statusIds=1"
       );
 
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -175,7 +191,7 @@ describe("/api/properties", () => {
         "http://localhost:3000/api/properties?cleaningTimeMin=60"
       );
 
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -203,7 +219,7 @@ describe("/api/properties", () => {
         "http://localhost:3000/api/properties?cleaningTimeMax=120"
       );
 
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -232,7 +248,7 @@ describe("/api/properties", () => {
         "http://localhost:3000/api/properties?cleaningTimeMin=60&cleaningTimeMax=120"
       );
 
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -262,7 +278,7 @@ describe("/api/properties", () => {
         "http://localhost:3000/api/properties?cleaningTimeMin=60&cleaningTimeMax=120"
       );
 
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -287,7 +303,7 @@ describe("/api/properties", () => {
         "http://localhost:3000/api/properties?sort=name&page=1&pageSize=10"
       );
 
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -296,7 +312,7 @@ describe("/api/properties", () => {
 
     it("should handle Supabase errors", async () => {
       const mockSupabase = createMockSupabaseClient({
-        error: { message: "Database error" },
+        error: new Error("Database error"),
         status: 500,
       });
 
@@ -304,7 +320,7 @@ describe("/api/properties", () => {
 
       const req = new NextRequest("http://localhost:3000/api/properties");
 
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(500);
@@ -319,7 +335,7 @@ describe("/api/properties", () => {
 
       const req = new NextRequest("http://localhost:3000/api/properties");
 
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(500);

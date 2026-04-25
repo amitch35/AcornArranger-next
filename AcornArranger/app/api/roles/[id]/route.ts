@@ -5,11 +5,10 @@ import { RoleUpdatePayloadSchema } from "@/src/features/roles/schemas";
 
 const ROLE_SELECT = "id,title,description,priority,can_lead_team,can_clean";
 
-export const GET = withAuth<{ params: Promise<{ id: string }> }, NextRequest>(
+export const GET = withAuth<{ params: { id: string } }, NextRequest>(
   async (_req: NextRequest, { params }) => {
     try {
-      const resolved = await params;
-      const id = Number(resolved.id);
+      const id = Number(params.id);
       if (!Number.isInteger(id) || id <= 0) {
         return NextResponse.json({ error: "Invalid id" }, { status: 400 });
       }
@@ -31,11 +30,10 @@ export const GET = withAuth<{ params: Promise<{ id: string }> }, NextRequest>(
   }
 );
 
-export const PUT = withAuth<{ params: Promise<{ id: string }> }, NextRequest>(
+export const PUT = withAuth<{ params: { id: string } }, NextRequest>(
   async (req: NextRequest, { params }) => {
     try {
-      const resolved = await params;
-      const id = Number(resolved.id);
+      const id = Number(params.id);
       if (!Number.isInteger(id) || id <= 0) {
         return NextResponse.json({ error: "Invalid id" }, { status: 400 });
       }

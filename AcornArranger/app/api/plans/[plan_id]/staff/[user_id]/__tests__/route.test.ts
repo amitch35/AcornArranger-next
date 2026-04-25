@@ -2,8 +2,23 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 
 vi.mock("@/lib/apiGuard", () => ({
-  withMinRole: (handler: any) => handler,
-  withAuth: (handler: any) => handler,
+  // The real wrappers receive `{ params: Promise<...> }` from Next.js 15 and
+  // hand the inner handler a resolved sync `params`. The test mock mirrors
+  // that contract so callers can pass either Promise<params> or a sync object.
+  withAuth: (handler: any) => async (req: any, ctx: any) => {
+    const params =
+      ctx?.params && typeof ctx.params.then === "function"
+        ? await ctx.params
+        : ctx?.params;
+    return handler(req, { role: "owner", params });
+  },
+  withMinRole: (handler: any) => async (req: any, ctx: any) => {
+    const params =
+      ctx?.params && typeof ctx.params.then === "function"
+        ? await ctx.params
+        : ctx?.params;
+    return handler(req, { role: "owner", params });
+  },
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -19,7 +34,7 @@ function makeRpcClient(error: { message: string; details?: string } | null = nul
   };
 }
 
-const validContext = { params: { plan_id: "10", user_id: "42" } };
+const validContext = { params: Promise.resolve({ plan_id: "10", user_id: "42" }) };
 
 describe("POST /api/plans/[plan_id]/staff/[user_id]", () => {
   beforeEach(() => vi.clearAllMocks());
@@ -62,7 +77,7 @@ describe("POST /api/plans/[plan_id]/staff/[user_id]", () => {
 
   it("returns 400 when plan_id is missing", async () => {
     const req = new NextRequest("http://localhost/api/plans//staff/42", { method: "POST" });
-    const res = await POST(req, { params: { plan_id: "", user_id: "42" } });
+    const res = await POST(req, { params: Promise.resolve({ plan_id: "", user_id: "42" }) });
 
     expect(res.status).toBe(400);
     const body = await res.json();
@@ -71,14 +86,14 @@ describe("POST /api/plans/[plan_id]/staff/[user_id]", () => {
 
   it("returns 400 when user_id is missing", async () => {
     const req = new NextRequest("http://localhost/api/plans/10/staff/", { method: "POST" });
-    const res = await POST(req, { params: { plan_id: "10", user_id: "" } });
+    const res = await POST(req, { params: Promise.resolve({ plan_id: "10", user_id: "" }) });
 
     expect(res.status).toBe(400);
   });
 
   it("returns 400 for non-integer plan_id", async () => {
     const req = new NextRequest("http://localhost/api/plans/abc/staff/42", { method: "POST" });
-    const res = await POST(req, { params: { plan_id: "abc", user_id: "42" } });
+    const res = await POST(req, { params: Promise.resolve({ plan_id: "abc", user_id: "42" }) });
 
     expect(res.status).toBe(400);
     const body = await res.json();
@@ -135,14 +150,14 @@ describe("DELETE /api/plans/[plan_id]/staff/[user_id]", () => {
 
   it("returns 400 when plan_id is missing", async () => {
     const req = new NextRequest("http://localhost/api/plans//staff/42", { method: "DELETE" });
-    const res = await DELETE(req, { params: { plan_id: "", user_id: "42" } });
+    const res = await DELETE(req, { params: Promise.resolve({ plan_id: "", user_id: "42" }) });
 
     expect(res.status).toBe(400);
   });
 
   it("returns 400 for non-integer user_id", async () => {
     const req = new NextRequest("http://localhost/api/plans/10/staff/xyz", { method: "DELETE" });
-    const res = await DELETE(req, { params: { plan_id: "10", user_id: "xyz" } });
+    const res = await DELETE(req, { params: Promise.resolve({ plan_id: "10", user_id: "xyz" }) });
 
     expect(res.status).toBe(400);
   });

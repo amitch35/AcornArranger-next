@@ -6,6 +6,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarIcon, ChevronDown } from "lucide-react";
 import Calendar, { DateRange } from "@/components/ui/calendar";
 
+export type { DateRange };
+
 type DateRangePickerProps = {
   label?: string;
   value: DateRange | undefined;

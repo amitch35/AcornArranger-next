@@ -4,7 +4,23 @@ import { createMockSupabaseClient } from "../../__tests__/test-utils";
 
 // Mock dependencies BEFORE importing the route
 vi.mock("@/lib/apiGuard", () => ({
-  withAuth: (handler: any) => handler,
+  // The real wrappers receive `{ params: Promise<...> }` from Next.js 15 and
+  // hand the inner handler a resolved sync `params`. The test mock mirrors
+  // that contract so callers can pass either Promise<params> or a sync object.
+  withAuth: (handler: any) => async (req: any, ctx: any) => {
+    const params =
+      ctx?.params && typeof ctx.params.then === "function"
+        ? await ctx.params
+        : ctx?.params;
+    return handler(req, { role: "owner", params });
+  },
+  withMinRole: (handler: any) => async (req: any, ctx: any) => {
+    const params =
+      ctx?.params && typeof ctx.params.then === "function"
+        ? await ctx.params
+        : ctx?.params;
+    return handler(req, { role: "owner", params });
+  },
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -75,7 +91,7 @@ describe("/api/appointments", () => {
       const req = new NextRequest(
         "http://localhost:3000/api/appointments?page=1&pageSize=10"
       );
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -95,7 +111,7 @@ describe("/api/appointments", () => {
       const req = new NextRequest(
         "http://localhost:3000/api/appointments?pageSize=1"
       );
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -132,7 +148,7 @@ describe("/api/appointments", () => {
       const req = new NextRequest(
         "http://localhost:3000/api/appointments?statusIds=1"
       );
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -150,7 +166,7 @@ describe("/api/appointments", () => {
       const req = new NextRequest(
         "http://localhost:3000/api/appointments?taOnly=true"
       );
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -168,7 +184,7 @@ describe("/api/appointments", () => {
       const req = new NextRequest(
         "http://localhost:3000/api/appointments?dateFrom=2025-06-15T00:00:00Z&dateTo=2025-06-15T23:59:59Z"
       );
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -185,7 +201,7 @@ describe("/api/appointments", () => {
       const req = new NextRequest(
         "http://localhost:3000/api/appointments?nextArrivalAfter=2025-06-15T14:00:00Z&nextArrivalBefore=2025-06-15T18:00:00Z"
       );
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -202,7 +218,7 @@ describe("/api/appointments", () => {
       const req = new NextRequest(
         "http://localhost:3000/api/appointments?q=Property"
       );
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -219,7 +235,7 @@ describe("/api/appointments", () => {
       const req = new NextRequest(
         "http://localhost:3000/api/appointments?sort=serviceTime:desc"
       );
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -235,7 +251,7 @@ describe("/api/appointments", () => {
       const req = new NextRequest(
         "http://localhost:3000/api/appointments"
       );
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       const data = await response.json();
 
       expect(response.status).toBe(500);
@@ -313,7 +329,7 @@ describe("/api/appointments", () => {
         const req = new NextRequest(
           "http://localhost:3000/api/appointments?dateFrom=2026-03-23&dateTo=2026-03-29"
         );
-        const response = await GET(req);
+        const response = await GET(req, { params: Promise.resolve({}) });
 
         expect(response.status).toBe(200);
         expect(mock.fromFn).not.toHaveBeenCalledWith("planned_appointment_ids");
@@ -329,7 +345,7 @@ describe("/api/appointments", () => {
         const req = new NextRequest(
           "http://localhost:3000/api/appointments?excludePlanned=true"
         );
-        const response = await GET(req);
+        const response = await GET(req, { params: Promise.resolve({}) });
 
         expect(response.status).toBe(200);
         expect(mock.fromFn).not.toHaveBeenCalledWith("planned_appointment_ids");
@@ -346,7 +362,7 @@ describe("/api/appointments", () => {
         const req = new NextRequest(
           "http://localhost:3000/api/appointments?excludePlanned=true&dateFrom=2026-03-23&dateTo=2026-03-29"
         );
-        const response = await GET(req);
+        const response = await GET(req, { params: Promise.resolve({}) });
 
         expect(response.status).toBe(200);
         expect(mock.fromFn).toHaveBeenCalledWith("planned_appointment_ids");
@@ -375,7 +391,7 @@ describe("/api/appointments", () => {
         const req = new NextRequest(
           "http://localhost:3000/api/appointments?excludePlanned=true&dateFrom=2026-03-23&dateTo=2026-03-29"
         );
-        const response = await GET(req);
+        const response = await GET(req, { params: Promise.resolve({}) });
 
         expect(response.status).toBe(200);
         expect(mock.fromFn).toHaveBeenCalledWith("planned_appointment_ids");
@@ -392,7 +408,7 @@ describe("/api/appointments", () => {
         const req = new NextRequest(
           "http://localhost:3000/api/appointments?excludePlanned=true&dateFrom=2026-03-29"
         );
-        const response = await GET(req);
+        const response = await GET(req, { params: Promise.resolve({}) });
 
         expect(response.status).toBe(200);
         expect(mock.getPlannedQuery().lte).toHaveBeenCalledWith(
@@ -411,7 +427,7 @@ describe("/api/appointments", () => {
         const req = new NextRequest(
           "http://localhost:3000/api/appointments?excludePlanned=true&dateFrom=2026-03-23&dateTo=2026-03-29"
         );
-        const response = await GET(req);
+        const response = await GET(req, { params: Promise.resolve({}) });
 
         expect(response.status).toBe(200);
         expect(mock.getAppointmentsQuery().not).toHaveBeenCalledWith(
@@ -432,7 +448,7 @@ describe("/api/appointments", () => {
       const req = new NextRequest(
         "http://localhost:3000/api/appointments"
       );
-      const response = await GET(req);
+      const response = await GET(req, { params: Promise.resolve({}) });
       expect(response.status).toBe(200);
     });
   });

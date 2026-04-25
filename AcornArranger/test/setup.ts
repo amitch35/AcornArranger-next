@@ -24,8 +24,10 @@ afterAll(() => {
   server.close();
 });
 
-// jest-axe a11y matchers
+// jest-axe a11y matchers.
+// jest-axe ships jest-flavored matcher types; cast to satisfy vitest's
+// CustomMatcher shape (the runtime matcher is identical).
 import { toHaveNoViolations } from 'jest-axe';
-expect.extend({ toHaveNoViolations });
+expect.extend(toHaveNoViolations as unknown as Parameters<typeof expect.extend>[0]);
 
 

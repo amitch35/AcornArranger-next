@@ -14,7 +14,7 @@ export default function StaffAdapterDemo() {
   const [sort, setSort] = React.useState<Array<{ id: string; desc: boolean }>>([]);
 
   const params = React.useMemo(() => StaffAdapter.toApiParams({
-    filters: { q, page, pageSize, sort: "", statusIds: [], serviceIds: [], staffIds: [], propertyIds: [], dateFrom: undefined, dateTo: undefined },
+    filters: { q, page, pageSize, sort: "", statusIds: [], roleIds: [], serviceIds: [], staffIds: [], propertyIds: [], dateFrom: undefined, dateTo: undefined },
     sort,
     pagination: { page, pageSize },
   }), [q, page, pageSize, sort]);

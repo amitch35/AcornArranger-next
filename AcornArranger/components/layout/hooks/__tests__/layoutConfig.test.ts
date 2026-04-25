@@ -68,7 +68,9 @@ describe("layoutConfig utilities", () => {
     });
 
     it("handles named capture groups", () => {
-      const pattern = /^\/(?<entity>[^\/]+)\/(?<id>[^\/]+)$/;
+      // Build via RegExp constructor so the regex literal isn't parsed against
+      // the project's TS target (named groups require ES2018 regex syntax).
+      const pattern = new RegExp("^\\/(?<entity>[^\\/]+)\\/(?<id>[^\\/]+)$");
       const params = extractParams("/properties/789", pattern);
 
       expect(params.entity).toBe("properties");

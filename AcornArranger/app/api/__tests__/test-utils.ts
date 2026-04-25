@@ -28,20 +28,22 @@ export function createMockSupabaseQuery(mockData: any[] = [], mockCount: number 
   // so tests can assert which filters were applied.
   let latestQuery: any | null = null;
 
-  // Create a chainable query object that can be called multiple times
+  // Create a chainable query object that can be called multiple times.
+  // Chainable methods accept arbitrary args (column names, values, etc.) so
+  // we use rest-args signatures to match Supabase's loose runtime contract.
   const createChainableQuery = () => {
     const query: any = {};
 
     // Chainable methods
-    query.eq = vi.fn(() => query); // Return self for chaining
-    query.in = vi.fn(() => query);
-    query.not = vi.fn(() => query); // Negated filter (e.g. appointment_id not in (...))
-    query.ilike = vi.fn(() => query);
-    query.gte = vi.fn(() => query); // Greater than or equal
-    query.lte = vi.fn(() => query); // Less than or equal
-    query.filter = vi.fn(() => query); // Supabase filter
-    query.order = vi.fn(() => query);
-    query.select = vi.fn(() => query); // For chaining after update
+    query.eq = vi.fn((..._args: unknown[]) => query);
+    query.in = vi.fn((..._args: unknown[]) => query);
+    query.not = vi.fn((..._args: unknown[]) => query); // Negated filter (e.g. appointment_id not in (...))
+    query.ilike = vi.fn((..._args: unknown[]) => query);
+    query.gte = vi.fn((..._args: unknown[]) => query); // Greater than or equal
+    query.lte = vi.fn((..._args: unknown[]) => query); // Less than or equal
+    query.filter = vi.fn((..._args: unknown[]) => query); // Supabase filter
+    query.order = vi.fn((..._args: unknown[]) => query);
+    query.select = vi.fn((..._args: unknown[]) => query); // For chaining after update
 
     // Terminal methods
     query.range = mockRange;
@@ -52,10 +54,10 @@ export function createMockSupabaseQuery(mockData: any[] = [], mockCount: number 
     return query;
   };
 
-  const mockSelect = vi.fn(() => createChainableQuery());
-  const mockUpdate = vi.fn(() => createChainableQuery());
+  const mockSelect = vi.fn((..._args: unknown[]) => createChainableQuery());
+  const mockUpdate = vi.fn((..._args: unknown[]) => createChainableQuery());
 
-  const mockFrom = vi.fn(() => ({
+  const mockFrom = vi.fn((..._args: unknown[]) => ({
     select: mockSelect,
     update: mockUpdate,
   }));
@@ -118,25 +120,25 @@ export function createMockSupabaseClient(options: {
 
     const createErrorQuery = () => {
       const query: any = {
-        eq: vi.fn(() => query),
-        in: vi.fn(() => query),
-        not: vi.fn(() => query),
-        ilike: vi.fn(() => query),
-        gte: vi.fn(() => query),
-        lte: vi.fn(() => query),
-        filter: vi.fn(() => query),
-        order: vi.fn(() => query),
+        eq: vi.fn((..._args: unknown[]) => query),
+        in: vi.fn((..._args: unknown[]) => query),
+        not: vi.fn((..._args: unknown[]) => query),
+        ilike: vi.fn((..._args: unknown[]) => query),
+        gte: vi.fn((..._args: unknown[]) => query),
+        lte: vi.fn((..._args: unknown[]) => query),
+        filter: vi.fn((..._args: unknown[]) => query),
+        order: vi.fn((..._args: unknown[]) => query),
         range: mockRange,
         maybeSingle: mockMaybeSingle,
-        select: vi.fn(() => query),
+        select: vi.fn((..._args: unknown[]) => query),
       };
       return query;
     };
 
     return {
-      from: vi.fn(() => ({
-        select: vi.fn(() => createErrorQuery()),
-        update: vi.fn(() => createErrorQuery()),
+      from: vi.fn((..._args: unknown[]) => ({
+        select: vi.fn((..._args: unknown[]) => createErrorQuery()),
+        update: vi.fn((..._args: unknown[]) => createErrorQuery()),
       })),
       auth: {
         getClaims: vi.fn(),
@@ -206,9 +208,25 @@ export function generateMockProperties(count: number = 10) {
  * Call this before running API route tests
  */
 export function setupApiRouteMocks() {
-  // Mock the auth guard to bypass authentication
+  // Mock the auth guard to bypass authentication.
+  // The real wrappers receive `{ params: Promise<...> }` from Next.js 15 and
+  // hand the inner handler a resolved sync `params`. This mock mirrors that
+  // contract so tests can pass either Promise<params> or a sync object.
   vi.mock("@/lib/apiGuard", () => ({
-    withAuth: (handler: any) => handler, // Pass through without auth check
+    withAuth: (handler: any) => async (req: any, ctx: any) => {
+      const params =
+        ctx?.params && typeof ctx.params.then === "function"
+          ? await ctx.params
+          : ctx?.params;
+      return handler(req, { role: "owner", params });
+    },
+    withMinRole: (handler: any) => async (req: any, ctx: any) => {
+      const params =
+        ctx?.params && typeof ctx.params.then === "function"
+          ? await ctx.params
+          : ctx?.params;
+      return handler(req, { role: "owner", params });
+    },
   }));
 
   // Mock Supabase server client

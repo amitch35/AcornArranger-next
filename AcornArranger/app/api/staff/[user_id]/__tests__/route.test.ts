@@ -7,7 +7,23 @@ import {
 
 // Mock dependencies BEFORE importing the route
 vi.mock("@/lib/apiGuard", () => ({
-  withAuth: (handler: any) => handler, // Bypass auth
+  // The real wrappers receive `{ params: Promise<...> }` from Next.js 15 and
+  // hand the inner handler a resolved sync `params`. The test mock mirrors
+  // that contract so callers can pass either Promise<params> or a sync object.
+  withAuth: (handler: any) => async (req: any, ctx: any) => {
+    const params =
+      ctx?.params && typeof ctx.params.then === "function"
+        ? await ctx.params
+        : ctx?.params;
+    return handler(req, { role: "owner", params });
+  },
+  withMinRole: (handler: any) => async (req: any, ctx: any) => {
+    const params =
+      ctx?.params && typeof ctx.params.then === "function"
+        ? await ctx.params
+        : ctx?.params;
+    return handler(req, { role: "owner", params });
+  },
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -42,7 +58,7 @@ describe("/api/staff/[user_id]", () => {
       vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
 
       const req = new NextRequest("http://localhost:3000/api/staff/1");
-      const params = { user_id: "1" };
+      const params = Promise.resolve({ user_id: "1" });
 
       const response = await GET(req, { params });
       const data = await response.json();
@@ -74,7 +90,7 @@ describe("/api/staff/[user_id]", () => {
       vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
 
       const req = new NextRequest("http://localhost:3000/api/staff/2");
-      const params = { user_id: "2" };
+      const params = Promise.resolve({ user_id: "2" });
 
       const response = await GET(req, { params });
       const data = await response.json();
@@ -94,7 +110,7 @@ describe("/api/staff/[user_id]", () => {
       vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
 
       const req = new NextRequest("http://localhost:3000/api/staff/1");
-      const params = { user_id: "1" };
+      const params = Promise.resolve({ user_id: "1" });
 
       const response = await GET(req, { params });
       const data = await response.json();
@@ -119,7 +135,7 @@ describe("/api/staff/[user_id]", () => {
       vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
 
       const req = new NextRequest("http://localhost:3000/api/staff/999999");
-      const params = { user_id: "999999" };
+      const params = Promise.resolve({ user_id: "999999" });
 
       const response = await GET(req, { params });
       const data = await response.json();
@@ -130,7 +146,7 @@ describe("/api/staff/[user_id]", () => {
 
     it("should return 400 for invalid user_id", async () => {
       const req = new NextRequest("http://localhost:3000/api/staff/invalid");
-      const params = { user_id: "invalid" };
+      const params = Promise.resolve({ user_id: "invalid" });
 
       const response = await GET(req, { params });
       const data = await response.json();
@@ -141,7 +157,7 @@ describe("/api/staff/[user_id]", () => {
 
     it("should return 400 for negative user_id", async () => {
       const req = new NextRequest("http://localhost:3000/api/staff/-1");
-      const params = { user_id: "-1" };
+      const params = Promise.resolve({ user_id: "-1" });
 
       const response = await GET(req, { params });
       const data = await response.json();
@@ -152,7 +168,7 @@ describe("/api/staff/[user_id]", () => {
 
     it("should return 400 for zero user_id", async () => {
       const req = new NextRequest("http://localhost:3000/api/staff/0");
-      const params = { user_id: "0" };
+      const params = Promise.resolve({ user_id: "0" });
 
       const response = await GET(req, { params });
       const data = await response.json();
@@ -171,7 +187,7 @@ describe("/api/staff/[user_id]", () => {
       vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
 
       const req = new NextRequest("http://localhost:3000/api/staff/1");
-      const params = { user_id: "1" };
+      const params = Promise.resolve({ user_id: "1" });
 
       const response = await GET(req, { params });
       const data = await response.json();
@@ -197,7 +213,7 @@ describe("/api/staff/[user_id]", () => {
       vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
 
       const req = new NextRequest("http://localhost:3000/api/staff/1");
-      const params = { user_id: "1" };
+      const params = Promise.resolve({ user_id: "1" });
 
       const response = await GET(req, { params });
       const data = await response.json();
@@ -219,7 +235,7 @@ describe("/api/staff/[user_id]", () => {
       vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
 
       const req = new NextRequest("http://localhost:3000/api/staff/1");
-      const params = { user_id: "1" };
+      const params = Promise.resolve({ user_id: "1" });
 
       const response = await GET(req, { params });
       const data = await response.json();
@@ -241,7 +257,7 @@ describe("/api/staff/[user_id]", () => {
       vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
 
       const req = new NextRequest("http://localhost:3000/api/staff/1");
-      const params = { user_id: "1" };
+      const params = Promise.resolve({ user_id: "1" });
 
       const response = await GET(req, { params });
       const data = await response.json();

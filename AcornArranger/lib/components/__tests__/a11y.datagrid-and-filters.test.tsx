@@ -1,8 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import React from 'react';
+import * as React from 'react';
 import { render, screen } from '@testing-library/react';
 import { axe } from 'jest-axe';
-import * as React from 'react';
 
 import { DataTable } from '@/components/datagrid/DataTable';
 import { TableToolbar } from '@/components/datagrid/TableToolbar';

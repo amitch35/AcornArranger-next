@@ -1,0 +1,63 @@
+{
+  "plan_date": "2026-04-15",
+  "engine": "legacy-proxy-python",
+  "teams": [
+    {
+      "team": 1,
+      "staff_ids": [
+        95748,
+        107539,
+        124650
+      ],
+      "appointment_ids": [
+        14553105,
+        14733736,
+        13557774,
+        14074242,
+        14615702,
+        14739393
+      ],
+      "travel_minutes": 7
+    },
+    {
+      "team": 2,
+      "staff_ids": [
+        125799,
+        124048
+      ],
+      "appointment_ids": [
+        14671472,
+        14711060,
+        14567618,
+        14672806,
+        14726747,
+        14415462,
+        14384052
+      ],
+      "travel_minutes": 32
+    },
+    {
+      "team": 3,
+      "staff_ids": [
+        122170,
+        109166,
+        94843
+      ],
+      "appointment_ids": [
+        14589179,
+        14587584
+      ],
+      "travel_minutes": 2
+    },
+    {
+      "team": 4,
+      "staff_ids": [
+        81975
+      ],
+      "appointment_ids": [],
+      "travel_minutes": 0
+    }
+  ],
+  "dropped": [],
+  "total_travel_minutes": 41
+}

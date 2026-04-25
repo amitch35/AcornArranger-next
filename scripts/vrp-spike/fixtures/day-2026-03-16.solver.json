@@ -1,0 +1,52 @@
+{
+  "plan_date": "2026-03-16",
+  "teams": [
+    {
+      "team": 1,
+      "staff_ids": [
+        81975,
+        107539,
+        94843
+      ],
+      "appointment_ids": [
+        14434618,
+        14437362,
+        14386352,
+        14174187,
+        14481511,
+        14323379,
+        14324101,
+        14296944,
+        14368853
+      ],
+      "travel_minutes": 45
+    },
+    {
+      "team": 2,
+      "staff_ids": [
+        80524
+      ],
+      "appointment_ids": [
+        14443887
+      ],
+      "travel_minutes": 72
+    },
+    {
+      "team": 3,
+      "staff_ids": [
+        122170,
+        116808
+      ],
+      "appointment_ids": [
+        14415460,
+        14341525,
+        14464433,
+        14443890
+      ],
+      "travel_minutes": 24
+    }
+  ],
+  "dropped": [],
+  "total_travel_minutes": 141,
+  "objective": 141
+}

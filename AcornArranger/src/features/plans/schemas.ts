@@ -3,6 +3,15 @@
  * Aligned with legacy PlanBuildOptions and schedule_plans structure
  */
 
+/**
+ * Which scheduler engine a Build request targets.
+ * - `vrptw`: the new OR-Tools sidecar path (staged via get_build_problem_payload,
+ *   biased by Tier 2 affinity, committed via commit_schedule_plan).
+ * - `legacy`: the original `build_schedule_plan` Postgres RPC, preserved as a
+ *   one-click fallback during rollout.
+ */
+export type PlanBuildEngine = "vrptw" | "legacy";
+
 export type PlanBuildOptions = {
   available_staff: number[];
   services: number[];
@@ -11,6 +20,21 @@ export type PlanBuildOptions = {
   cleaning_window: number;
   max_hours: number;
   target_staff_count?: number;
+  /** Engine toggle. Defaults to `vrptw`. Ignored by the legacy RPC path. */
+  engine: PlanBuildEngine;
+  /**
+   * Window (days) used by `get_staff_property_affinity` to compute the
+   * routing-stage Tier 2 soft cost. Wider windows surface more stable
+   * staff<->property relationships; narrower windows react faster to
+   * recent preference changes. Default 180.
+   */
+  property_affinity_lookback_days: number;
+  /**
+   * Window (days) used by `get_staff_pairing_affinity` to compute the
+   * team-formation Tier 2 soft cost. Shorter default than property affinity
+   * because staff turnover makes older pairings stale quickly. Default 90.
+   */
+  pairing_affinity_lookback_days: number;
 };
 
 export const PLAN_BUILD_DEFAULTS: PlanBuildOptions = {
@@ -20,7 +44,20 @@ export const PLAN_BUILD_DEFAULTS: PlanBuildOptions = {
   routing_type: 1,
   cleaning_window: 6.0,
   max_hours: 6.5,
+  engine: "vrptw",
+  property_affinity_lookback_days: 180,
+  pairing_affinity_lookback_days: 90,
 };
+
+export const ENGINE_LABELS: Record<PlanBuildEngine, string> = {
+  vrptw: "VRPTW (new)",
+  legacy: "Legacy RPC",
+};
+
+export const AFFINITY_LOOKBACK_BOUNDS = {
+  property: { min: 30, max: 730 },
+  pairing: { min: 30, max: 365 },
+} as const;
 
 export const ROUTING_TYPE_LABELS: Record<number, string> = {
   1: "Farthest to Office (Recommended)",

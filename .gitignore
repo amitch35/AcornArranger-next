@@ -3,6 +3,7 @@ AcornArranger-legacy/
 .cursor/mcp.json
 node_modules
 .env*.local
+.venv
 
 # Logs
 logs

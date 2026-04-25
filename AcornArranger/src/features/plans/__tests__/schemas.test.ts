@@ -18,7 +18,22 @@ describe("Plan Schemas", () => {
         routing_type: 1,
         cleaning_window: 6.0,
         max_hours: 6.5,
+        engine: "vrptw",
+        property_affinity_lookback_days: 180,
+        pairing_affinity_lookback_days: 90,
       });
+    });
+
+    it("defaults engine to the new VRPTW sidecar", () => {
+      expect(PLAN_BUILD_DEFAULTS.engine).toBe("vrptw");
+    });
+
+    it("has property affinity lookback default 180 days", () => {
+      expect(PLAN_BUILD_DEFAULTS.property_affinity_lookback_days).toBe(180);
+    });
+
+    it("has pairing affinity lookback default 90 days", () => {
+      expect(PLAN_BUILD_DEFAULTS.pairing_affinity_lookback_days).toBe(90);
     });
 
     it("has services default [21942, 23044]", () => {

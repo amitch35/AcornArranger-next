@@ -23,10 +23,13 @@ describe('apiGuard', () => {
 
       const wrappedHandler = withAuth(mockHandler);
       const req = new Request('http://localhost/api/test');
-      const response = await wrappedHandler(req);
+      const response = await wrappedHandler(req, { params: Promise.resolve({}) });
 
       expect(getCurrentRole).toHaveBeenCalled();
-      expect(mockHandler).toHaveBeenCalledWith(req, { role: 'authenticated' });
+      expect(mockHandler).toHaveBeenCalledWith(req, {
+        role: 'authenticated',
+        params: {},
+      });
       expect(response.status).toBe(200);
     });
 
@@ -37,7 +40,7 @@ describe('apiGuard', () => {
       const mockHandler = vi.fn();
       const wrappedHandler = withAuth(mockHandler);
       const req = new Request('http://localhost/api/test');
-      const response = await wrappedHandler(req);
+      const response = await wrappedHandler(req, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(401);
       expect(mockHandler).not.toHaveBeenCalled();
@@ -56,7 +59,7 @@ describe('apiGuard', () => {
 
       const wrappedHandler = withAuth(mockHandler);
       const req = new Request('http://localhost/api/test');
-      const response = await wrappedHandler(req);
+      const response = await wrappedHandler(req, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       const body = await response.json();
@@ -76,7 +79,7 @@ describe('apiGuard', () => {
 
       const wrappedHandler = withMinRole(mockHandler, { minRole: 'authorized_user' });
       const req = new Request('http://localhost/api/test');
-      const response = await wrappedHandler(req);
+      const response = await wrappedHandler(req, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(200);
       expect(mockHandler).toHaveBeenCalled();
@@ -90,7 +93,7 @@ describe('apiGuard', () => {
       const mockHandler = vi.fn();
       const wrappedHandler = withMinRole(mockHandler, { minRole: 'authorized_user' });
       const req = new Request('http://localhost/api/test');
-      const response = await wrappedHandler(req);
+      const response = await wrappedHandler(req, { params: Promise.resolve({}) });
 
       expect(response.status).toBe(403);
       expect(mockHandler).not.toHaveBeenCalled();

@@ -2,8 +2,23 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 
 vi.mock("@/lib/apiGuard", () => ({
-  withMinRole: (handler: any) => handler,
-  withAuth: (handler: any) => handler,
+  // The real wrappers receive `{ params: Promise<...> }` from Next.js 15 and
+  // hand the inner handler a resolved sync `params`. The test mock mirrors
+  // that contract so callers can pass either Promise<params> or a sync object.
+  withAuth: (handler: any) => async (req: any, ctx: any) => {
+    const params =
+      ctx?.params && typeof ctx.params.then === "function"
+        ? await ctx.params
+        : ctx?.params;
+    return handler(req, { role: "owner", params });
+  },
+  withMinRole: (handler: any) => async (req: any, ctx: any) => {
+    const params =
+      ctx?.params && typeof ctx.params.then === "function"
+        ? await ctx.params
+        : ctx?.params;
+    return handler(req, { role: "owner", params });
+  },
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -58,7 +73,7 @@ describe("GET /api/plans", () => {
     vi.mocked(createClient).mockResolvedValue({ from: vi.fn(() => ({ select: vi.fn(() => q) })) } as any);
 
     const req = new NextRequest("http://localhost/api/plans?from_plan_date=2025-01-15");
-    const res = await GET(req);
+    const res = await GET(req, { params: Promise.resolve({}) });
     const body = await res.json();
 
     expect(res.status).toBe(200);
@@ -72,7 +87,7 @@ describe("GET /api/plans", () => {
     vi.mocked(createClient).mockResolvedValue({ from: vi.fn(() => ({ select: vi.fn(() => q) })) } as any);
 
     const req = new NextRequest("http://localhost/api/plans?from_plan_date=2025-01-15");
-    const res = await GET(req);
+    const res = await GET(req, { params: Promise.resolve({}) });
 
     expect(res.headers.get("Content-Range")).toMatch(/^plans /);
   });
@@ -83,7 +98,7 @@ describe("GET /api/plans", () => {
     vi.mocked(createClient).mockResolvedValue({ from: mockFrom } as any);
 
     const req = new NextRequest("http://localhost/api/plans");
-    await GET(req);
+    await GET(req, { params: Promise.resolve({}) });
 
     // range(0, 49) should be called for default per_page=50, page=0
     expect(q.range).toHaveBeenCalledWith(0, 49);
@@ -94,7 +109,7 @@ describe("GET /api/plans", () => {
     vi.mocked(createClient).mockResolvedValue({ from: vi.fn(() => ({ select: vi.fn(() => q) })) } as any);
 
     const req = new NextRequest("http://localhost/api/plans?page=2&per_page=10");
-    await GET(req);
+    await GET(req, { params: Promise.resolve({}) });
 
     expect(q.range).toHaveBeenCalledWith(20, 29);
   });
@@ -104,7 +119,7 @@ describe("GET /api/plans", () => {
     vi.mocked(createClient).mockResolvedValue({ from: vi.fn(() => ({ select: vi.fn(() => q) })) } as any);
 
     const req = new NextRequest("http://localhost/api/plans?from_plan_date=2099-01-01");
-    const res = await GET(req);
+    const res = await GET(req, { params: Promise.resolve({}) });
     const body = await res.json();
 
     expect(res.status).toBe(200);
@@ -116,7 +131,7 @@ describe("GET /api/plans", () => {
     vi.mocked(createClient).mockResolvedValue({ from: vi.fn(() => ({ select: vi.fn(() => q) })) } as any);
 
     const req = new NextRequest("http://localhost/api/plans?from_plan_date=2025-01-15");
-    await GET(req);
+    await GET(req, { params: Promise.resolve({}) });
 
     expect(q.gte).toHaveBeenCalledWith("plan_date", "2025-01-15");
     expect(q.lte).toHaveBeenCalledWith("plan_date", "2025-01-15");
@@ -129,7 +144,7 @@ describe("GET /api/plans", () => {
     const req = new NextRequest(
       "http://localhost/api/plans?from_plan_date=2025-01-01&to_plan_date=2025-01-31"
     );
-    await GET(req);
+    await GET(req, { params: Promise.resolve({}) });
 
     expect(q.gte).toHaveBeenCalledWith("plan_date", "2025-01-01");
     expect(q.lte).toHaveBeenCalledWith("plan_date", "2025-01-31");
@@ -144,7 +159,7 @@ describe("GET /api/plans", () => {
     vi.mocked(createClient).mockResolvedValue({ from: vi.fn(() => ({ select: vi.fn(() => q) })) } as any);
 
     const req = new NextRequest("http://localhost/api/plans");
-    const res = await GET(req);
+    const res = await GET(req, { params: Promise.resolve({}) });
     const body = await res.json();
 
     expect(res.status).toBe(500);
@@ -155,7 +170,7 @@ describe("GET /api/plans", () => {
     vi.mocked(createClient).mockRejectedValue(new Error("Connection refused"));
 
     const req = new NextRequest("http://localhost/api/plans");
-    const res = await GET(req);
+    const res = await GET(req, { params: Promise.resolve({}) });
     const body = await res.json();
 
     expect(res.status).toBe(500);

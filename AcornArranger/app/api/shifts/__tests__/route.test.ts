@@ -2,8 +2,23 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 
 vi.mock("@/lib/apiGuard", () => ({
-  withMinRole: (handler: any) => handler,
-  withAuth: (handler: any) => handler,
+  // The real wrappers receive `{ params: Promise<...> }` from Next.js 15 and
+  // hand the inner handler a resolved sync `params`. The test mock mirrors
+  // that contract so callers can pass either Promise<params> or a sync object.
+  withAuth: (handler: any) => async (req: any, ctx: any) => {
+    const params =
+      ctx?.params && typeof ctx.params.then === "function"
+        ? await ctx.params
+        : ctx?.params;
+    return handler(req, { role: "owner", params });
+  },
+  withMinRole: (handler: any) => async (req: any, ctx: any) => {
+    const params =
+      ctx?.params && typeof ctx.params.then === "function"
+        ? await ctx.params
+        : ctx?.params;
+    return handler(req, { role: "owner", params });
+  },
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -50,7 +65,7 @@ describe("GET /api/shifts", () => {
 
   it("returns 400 when dateFrom is missing", async () => {
     const req = new NextRequest("http://localhost/api/shifts?dateTo=2026-03-29");
-    const res = await GET(req);
+    const res = await GET(req, { params: Promise.resolve({}) });
     const body = await res.json();
 
     expect(res.status).toBe(400);
@@ -59,7 +74,7 @@ describe("GET /api/shifts", () => {
 
   it("returns 400 when dateTo is missing", async () => {
     const req = new NextRequest("http://localhost/api/shifts?dateFrom=2026-03-29");
-    const res = await GET(req);
+    const res = await GET(req, { params: Promise.resolve({}) });
     const body = await res.json();
 
     expect(res.status).toBe(400);
@@ -68,7 +83,7 @@ describe("GET /api/shifts", () => {
 
   it("returns 400 when both params are missing", async () => {
     const req = new NextRequest("http://localhost/api/shifts");
-    const res = await GET(req);
+    const res = await GET(req, { params: Promise.resolve({}) });
     const body = await res.json();
 
     expect(res.status).toBe(400);
@@ -82,7 +97,7 @@ describe("GET /api/shifts", () => {
     const req = new NextRequest(
       "http://localhost/api/shifts?dateFrom=2026-03-29&dateTo=2026-03-29"
     );
-    const res = await GET(req);
+    const res = await GET(req, { params: Promise.resolve({}) });
     const body = await res.json();
 
     expect(res.status).toBe(200);
@@ -97,7 +112,7 @@ describe("GET /api/shifts", () => {
     const req = new NextRequest(
       "http://localhost/api/shifts?dateFrom=2026-03-29&dateTo=2026-03-29"
     );
-    await GET(req);
+    await GET(req, { params: Promise.resolve({}) });
 
     expect(mock.rpc).toHaveBeenCalledWith("get_staff_shifts", {
       date_from: "2026-03-29",
@@ -112,7 +127,7 @@ describe("GET /api/shifts", () => {
     const req = new NextRequest(
       "http://localhost/api/shifts?dateFrom=2026-03-23&dateTo=2026-03-29"
     );
-    await GET(req);
+    await GET(req, { params: Promise.resolve({}) });
 
     expect(mock.rpc).toHaveBeenCalledWith("get_staff_shifts", {
       date_from: "2026-03-23",
@@ -128,7 +143,7 @@ describe("GET /api/shifts", () => {
     const req = new NextRequest(
       "http://localhost/api/shifts?dateFrom=2026-03-29&dateTo=2026-03-29"
     );
-    const res = await GET(req);
+    const res = await GET(req, { params: Promise.resolve({}) });
     const body = await res.json();
 
     expect(res.status).toBe(200);
@@ -143,7 +158,7 @@ describe("GET /api/shifts", () => {
     const req = new NextRequest(
       "http://localhost/api/shifts?dateFrom=2026-03-29&dateTo=2026-03-29"
     );
-    const res = await GET(req);
+    const res = await GET(req, { params: Promise.resolve({}) });
     const body = await res.json();
 
     expect(res.status).toBe(200);
@@ -156,7 +171,7 @@ describe("GET /api/shifts", () => {
     const req = new NextRequest(
       "http://localhost/api/shifts?dateFrom=2026-03-29&dateTo=2026-03-29"
     );
-    const res = await GET(req);
+    const res = await GET(req, { params: Promise.resolve({}) });
     const body = await res.json();
 
     expect(res.status).toBe(500);
