@@ -101,10 +101,10 @@ curl -sS -X POST http://127.0.0.1:8001/solve \
   -d @path/to/request.json | jq
 ```
 
-The spike fixtures in `../scripts/vrp-spike/fixtures/` can be adapted to
-the new HTTP contract for parity testing - the problem shape is
-intentionally similar, the wrapping `{problem, property_affinity,
-pairing_affinity, solver_opts}` envelope is new.
+A live request body can be captured from the Next.js route by logging the
+payload it `fetch`es into `/solve` (see
+`AcornArranger/app/api/plans/build/[plan_date]/route.ts`). The spike's
+original fixtures were retired with the spike code;
 
 ## Linode deployment
 

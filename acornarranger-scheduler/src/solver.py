@@ -1,6 +1,6 @@
 """Stage B: VRPTW routing over the teams produced by Stage A.
 
-Grown from scripts/vrp-spike/solve.py with production-grade changes:
+Grown from the April 2026 spike with production-grade changes:
 
 - Teams are passed in from Stage A (team_formation.form_teams). Vehicles map
   1:1 to teams. Unlike the spike we do NOT pin teams from ground truth.
