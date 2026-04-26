@@ -75,14 +75,23 @@ Response:
 
 ## Local development
 
+The `Makefile` wraps the most common workflows. Run `make` (or `make help`)
+for the full list. Cheat sheet:
+
 ```bash
 cd acornarranger-scheduler
-python -m venv .venv
-source .venv/bin/activate
-pip install --upgrade pip
-pip install -e .[dev]
-uvicorn src.main:app --reload --host 127.0.0.1 --port 8001
+make install       # one-time: create .venv and install package + dev deps
+make dev           # foreground uvicorn with --reload (recommended)
+make start         # detached uvicorn; logs at /tmp/acorn-scheduler.log
+make restart       # restart the detached process
+make stop          # kill whatever is bound to :8001
+make status        # is anything listening on :8001?
+make health        # curl http://127.0.0.1:8001/health
+make logs          # tail the detached log
 ```
+
+Override host, port, or log path via env vars:
+`make start PORT=9001 LOG=/tmp/scheduler-9001.log`.
 
 Then POST a fixture at it:
 
@@ -133,6 +142,9 @@ pairing_affinity, solver_opts}` envelope is new.
     curl -sS http://127.0.0.1:8001/health
     ```
 
+Once running, the Makefile's systemd targets are convenient on the VPS:
+`make systemd-status`, `make systemd-restart`, `make systemd-logs`.
+
 The sidecar binds to `127.0.0.1` so it is unreachable from the public
 internet; the Next.js server is the only intended client.
 
@@ -150,9 +162,14 @@ internet; the Next.js server is the only intended client.
   chemistry. If the user consistently re-pairs staff post-build,
   consider implementing the matheuristic candidate search documented in
   the `## Future extensions` section of the architectural plan.
-- **Unused vehicles.** The solver may leave a team with no stops. Those
-  empty teams are removed from the committed plan so we don't write
-  idle rows to `schedule_plans`.
+- **Unused vehicles.** The solver may leave a team with no stops. By
+  default those empty teams are dropped from the committed plan so we
+  don't write idle rows to `schedule_plans`. **Override:** when the
+  Build UI sets `num_teams` or `target_team_size`, every formed team is
+  preserved (lead + members are written with zero appointments) so the
+  operator can manually drag stops onto a trainee-led team. The
+  diagnostics note `preserving N empty team(s)` makes the override
+  visible.
 
 ## Failure modes
 

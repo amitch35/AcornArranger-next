@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,6 +27,7 @@ import {
   ENGINE_LABELS,
   PLAN_BUILD_DEFAULTS,
   ROUTING_TYPE_LABELS,
+  TEAM_SHAPE_BOUNDS,
   type PlanBuildEngine,
   type PlanBuildOptions,
 } from "@/src/features/plans/schemas";
@@ -72,6 +73,22 @@ function formatDateToLocal(date: Date): string {
 export default function SchedulePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
+
+  // Invalidate the backlog whenever a mutation changes which appointments are
+  // planned. The backlog query keys off (planDate, serviceFilter) and uses the
+  // server-side `excludePlanned=true` flag, which reads from
+  // `planned_appointment_ids`. After build/copy/add, that view's rows change,
+  // so any stale cache must be dropped to keep the unscheduled list in sync
+  // with the schedule board.
+  const invalidateBacklog = React.useCallback(
+    (date: string) => {
+      queryClient.invalidateQueries({
+        queryKey: ["appointments-backlog", date],
+      });
+    },
+    [queryClient]
+  );
 
   const [planDate, setPlanDate] = React.useState(
     searchParams.get("date") ?? getTodayDateString()
@@ -121,6 +138,17 @@ export default function SchedulePage() {
     React.useState<number>(PLAN_BUILD_DEFAULTS.property_affinity_lookback_days);
   const [pairingAffinityLookback, setPairingAffinityLookback] =
     React.useState<number>(PLAN_BUILD_DEFAULTS.pairing_affinity_lookback_days);
+  // Optional team-shape overrides. `undefined` lets the sidecar auto-derive
+  // (work-minutes / cleaning_window, capped by leads) for legacy parity.
+  // Setting either bypasses the lead cap and lets the heuristic promote
+  // senior housekeepers to ad-hoc leads for days where leads-in-training
+  // are scheduled but their `can_lead_team` flag has not flipped yet.
+  const [numTeams, setNumTeams] = React.useState<number | undefined>(
+    PLAN_BUILD_DEFAULTS.num_teams
+  );
+  const [targetTeamSize, setTargetTeamSize] = React.useState<number | undefined>(
+    PLAN_BUILD_DEFAULTS.target_team_size
+  );
 
   // Sync date to URL
   React.useEffect(() => {
@@ -263,6 +291,8 @@ export default function SchedulePage() {
       engine,
       property_affinity_lookback_days: propertyAffinityLookback,
       pairing_affinity_lookback_days: pairingAffinityLookback,
+      num_teams: numTeams,
+      target_team_size: targetTeamSize,
     }),
     [
       availableStaff,
@@ -275,6 +305,8 @@ export default function SchedulePage() {
       engine,
       propertyAffinityLookback,
       pairingAffinityLookback,
+      numTeams,
+      targetTeamSize,
     ]
   );
 
@@ -282,6 +314,7 @@ export default function SchedulePage() {
     mutationFn: () => buildPlan(planDate, buildOptions),
     onSuccess: () => {
       refetchPlans();
+      invalidateBacklog(planDate);
       setBuildOptionsOpen(false);
     },
     onError: (err) => {
@@ -294,6 +327,7 @@ export default function SchedulePage() {
     mutationFn: () => copyPlan(planDate),
     onSuccess: () => {
       refetchPlans();
+      invalidateBacklog(planDate);
     },
     onError: (err) => {
       const { message, description } = planApiToastProps(err, "Copy failed");
@@ -305,6 +339,7 @@ export default function SchedulePage() {
     mutationFn: () => addPlan(planDate),
     onSuccess: () => {
       refetchPlans();
+      invalidateBacklog(planDate);
     },
     onError: (err) => {
       const { message, description } = planApiToastProps(err, "Add plan failed");
@@ -440,8 +475,8 @@ export default function SchedulePage() {
               </select>
               <p className="text-xs text-muted-foreground">
                 {engine === "vrptw"
-                  ? "OR-Tools sidecar with Tier 2 affinity biasing. Use as the default during rollout."
-                  : "Legacy build_schedule_plan RPC. Use as a one-click fallback if the new engine misbehaves for a specific day."}
+                  ? "OR-Tools sidecar with Tier 2 affinity biasing."
+                  : "Legacy build_schedule_plan procedure."}
               </p>
             </div>
 
@@ -499,7 +534,78 @@ export default function SchedulePage() {
                   />
                   <p className="text-xs text-muted-foreground">
                     How far back to score staff pairings for team formation.
-                    Shorter default because staff turnover stales older pairings.
+                    Shorter default because staff turnover makes older pairings stale.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="num-teams">Number of Teams (optional)</Label>
+                  <Input
+                    id="num-teams"
+                    type="number"
+                    min={TEAM_SHAPE_BOUNDS.num_teams.min}
+                    max={TEAM_SHAPE_BOUNDS.num_teams.max}
+                    step={1}
+                    placeholder="Auto"
+                    value={numTeams ?? ""}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      if (raw === "") {
+                        setNumTeams(undefined);
+                        return;
+                      }
+                      const v = Number(raw);
+                      if (!Number.isFinite(v)) return;
+                      setNumTeams(
+                        Math.min(
+                          TEAM_SHAPE_BOUNDS.num_teams.max,
+                          Math.max(TEAM_SHAPE_BOUNDS.num_teams.min, Math.round(v))
+                        )
+                      );
+                    }}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Force an exact team count. Bypasses the lead cap and
+                    promotes housekeepers to ad-hoc leads if needed.
+                    Wins over Target Team Size.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="target-team-size">
+                    Target Team Size (optional)
+                  </Label>
+                  <Input
+                    id="target-team-size"
+                    type="number"
+                    min={TEAM_SHAPE_BOUNDS.target_team_size.min}
+                    max={TEAM_SHAPE_BOUNDS.target_team_size.max}
+                    step={1}
+                    placeholder="Auto"
+                    value={targetTeamSize ?? ""}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      if (raw === "") {
+                        setTargetTeamSize(undefined);
+                        return;
+                      }
+                      const v = Number(raw);
+                      if (!Number.isFinite(v)) return;
+                      setTargetTeamSize(
+                        Math.min(
+                          TEAM_SHAPE_BOUNDS.target_team_size.max,
+                          Math.max(
+                            TEAM_SHAPE_BOUNDS.target_team_size.min,
+                            Math.round(v)
+                          )
+                        )
+                      );
+                    }}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Soft staff-per-team target. Sidecar derives
+                    team count from available cleaners and bypasses the lead
+                    cap. Ignored when Number of Teams is set.
                   </p>
                 </div>
               </div>
@@ -647,7 +753,10 @@ export default function SchedulePage() {
           serviceFilter={backlogServiceFilter}
           onServiceFilterChange={setBacklogServiceFilter}
           appointmentsLoading={appointmentsLoading || backlogLoading}
-          onPlansChange={() => { refetchPlans(); }}
+          onPlansChange={() => {
+            refetchPlans();
+            invalidateBacklog(planDate);
+          }}
           refetchPlans={refetchPlans}
         />
       </div>

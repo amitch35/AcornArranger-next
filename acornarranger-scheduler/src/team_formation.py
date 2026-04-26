@@ -10,10 +10,17 @@ Algorithm (deterministic, greedy):
 2. Pick leads in descending `can_lead_team` then ascending `priority`, breaking
    ties by `user_id` for reproducibility.
 3. Determine the number of teams (k):
-   - caller-provided `num_teams`, if set, wins.
+   - caller-provided `num_teams`, if set, wins. The lead cap is intentionally
+     dropped here so operators can model days where leads-in-training are
+     working but their `can_lead_team` flag has not been flipped yet.
+   - else if caller provides `target_team_size`, derive k from
+     `ceil(len(cleaners) / target_team_size)` (also bypasses the lead cap;
+     same rationale).
    - else derive from total expected minutes vs cleaning_window, capped by the
-     number of viable leads and by the available staff count.
-4. Seed each team with its lead, in the same priority order.
+     number of viable leads and by the available staff count (legacy parity).
+4. Seed each team with its lead, in the same priority order. When k exceeds
+   the number of `can_lead_team` staff (only possible on the override paths),
+   promote the next-highest-priority cleaners to ad-hoc leads.
 5. Pool the remaining members (non-lead staff). For each member, assign them to
    the team whose current chemistry-weighted score gains the most by adding
    them. Break ties by running-team-size (smallest first) so teams stay
@@ -76,11 +83,22 @@ def _derive_num_teams(
     cleaning_window_hours: float,
     target_staff_count: int | None,
     num_teams_override: int | None,
+    target_team_size: int | None,
 ) -> int:
+    # Explicit team-count override: trust the operator. Only the
+    # cleaner-count cap applies; ad-hoc leads will be promoted downstream
+    # if num_leads_available is too small.
     if num_teams_override is not None and num_teams_override > 0:
-        return max(1, min(num_teams_override, num_leads_available, len(staff)))
+        return max(1, min(num_teams_override, len(staff)))
 
-    # Total minutes of work to distribute. Matches `get_total_time` in SQL.
+    # Operator-supplied desired team size: derive k from the cleaner pool.
+    # Same lead-cap bypass rationale as `num_teams_override`.
+    if target_team_size is not None and target_team_size > 0:
+        derived = max(1, math.ceil(len(staff) / target_team_size))
+        return max(1, min(derived, len(staff)))
+
+    # Auto-derive (legacy parity). Total minutes of work to distribute.
+    # Matches `get_total_time` in the legacy SQL RPC.
     total_mins = sum(
         int(a.estimated_cleaning_mins or 60) for a in appts
     )
@@ -103,22 +121,44 @@ def form_teams(
     chemistry_weight: float,
 ) -> list[Team]:
     cleaners = [s for s in staff if s.can_clean]
-    leads = sorted([s for s in cleaners if s.can_lead_team], key=_lead_sort_key)
-    if not leads or not cleaners:
+    if not cleaners:
         return []
+
+    real_leads = sorted(
+        [s for s in cleaners if s.can_lead_team], key=_lead_sort_key
+    )
 
     k = _derive_num_teams(
         appts=appts,
         staff=cleaners,
-        num_leads_available=len(leads),
+        num_leads_available=len(real_leads),
         cleaning_window_hours=cleaning_window_hours,
         target_staff_count=target_staff_count,
         num_teams_override=num_teams_override,
+        target_team_size=target_team_size,
     )
-    k = max(1, min(k, len(leads), len(cleaners)))
+    # Final cap is the cleaner pool. Lead-count is intentionally not a cap
+    # here when an override pushed k past len(real_leads); ad-hoc leads
+    # cover the gap.
+    k = max(1, min(k, len(cleaners)))
+
+    if len(real_leads) >= k:
+        leads_for_teams: list[Staff] = real_leads[:k]
+    else:
+        # Promote ad-hoc leads from non-lead cleaners by priority order so
+        # leads-in-training (who are typically the senior housekeepers) get
+        # captain duty before the rest.
+        non_leads = sorted(
+            [s for s in cleaners if not s.can_lead_team],
+            key=_member_sort_key,
+        )
+        leads_for_teams = real_leads + non_leads[: k - len(real_leads)]
+
+    if not leads_for_teams:
+        return []
 
     teams: list[Team] = []
-    for idx, lead in enumerate(leads[:k]):
+    for idx, lead in enumerate(leads_for_teams):
         teams.append(Team(team=idx + 1, lead_id=lead.user_id))
 
     members_pool = sorted(

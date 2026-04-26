@@ -184,13 +184,15 @@ export function buildSolveRequest(args: {
 
 /**
  * Convert a solved SolvePlan into the shape `commit_schedule_plan` expects.
- * Empty teams are dropped upstream by the sidecar; we still filter here
- * defensively so accidental empty teams never land in `schedule_plans`.
+ * The sidecar decides whether to drop solver-empty teams (default) or keep
+ * them when an explicit team-shape override was supplied. We trust that
+ * decision and only defensively drop teams with no staff at all - those would
+ * be a real bug because Stage A always seats at least one staffer per team.
  */
 export function toCommitInput(plan: SolvePlan): CommitSchedulePlanInput {
   return {
     teams: plan.teams
-      .filter((t) => t.appointment_ids.length > 0)
+      .filter((t) => t.staff_ids.length > 0)
       .map((t) => ({
         team: t.team,
         staff_ids: t.staff_ids,
@@ -200,14 +202,25 @@ export function toCommitInput(plan: SolvePlan): CommitSchedulePlanInput {
 }
 
 /**
- * Extract the SolverOptions subset from PlanBuildOptions. Currently only
- * lookback-days are used for the affinity RPCs; the sidecar gets its own
- * defaults from `SolverOptions` pydantic model. If the user starts tuning
- * `affinity_weight_minutes` or `chemistry_weight` from the UI, surface them
- * here.
+ * Extract the SolverOptions subset from PlanBuildOptions. The lookback-day
+ * fields drive the affinity RPCs in the route, not the sidecar, so they are
+ * intentionally not forwarded here. Team-shape overrides (`num_teams`,
+ * `target_team_size`) and any future tuning knobs (`affinity_weight_minutes`,
+ * `chemistry_weight`) are passed through; unset values fall back to the
+ * sidecar's pydantic defaults.
  */
 export function solverOptsFromBuildOptions(
-  _options: PlanBuildOptions
+  options: PlanBuildOptions
 ): SolverOptions | undefined {
-  return undefined;
+  const opts: SolverOptions = {};
+  if (typeof options.num_teams === "number" && options.num_teams > 0) {
+    opts.num_teams = options.num_teams;
+  }
+  if (
+    typeof options.target_team_size === "number" &&
+    options.target_team_size > 0
+  ) {
+    opts.target_team_size = options.target_team_size;
+  }
+  return Object.keys(opts).length > 0 ? opts : undefined;
 }

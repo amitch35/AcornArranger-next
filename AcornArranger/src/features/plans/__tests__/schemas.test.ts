@@ -55,6 +55,14 @@ describe("Plan Schemas", () => {
     it("has target_staff_count undefined by default", () => {
       expect(PLAN_BUILD_DEFAULTS.target_staff_count).toBeUndefined();
     });
+
+    it("has num_teams undefined by default (auto-derive)", () => {
+      expect(PLAN_BUILD_DEFAULTS.num_teams).toBeUndefined();
+    });
+
+    it("has target_team_size undefined by default (auto-derive)", () => {
+      expect(PLAN_BUILD_DEFAULTS.target_team_size).toBeUndefined();
+    });
   });
 
   describe("isPlanSent", () => {

@@ -35,6 +35,25 @@ export type PlanBuildOptions = {
    * because staff turnover makes older pairings stale quickly. Default 90.
    */
   pairing_affinity_lookback_days: number;
+  /**
+   * Optional explicit number of teams. When set, the sidecar's team-formation
+   * heuristic uses this value verbatim (capped only by total cleaner count)
+   * and will promote senior housekeepers to ad-hoc leads if more teams are
+   * requested than there are `can_lead_team` staff. Use this to handle days
+   * where leads-in-training are working but their `can_lead_team` flag has
+   * not been flipped yet. Leaving this unset auto-derives the team count
+   * (work-minutes / cleaning_window, capped by available leads) for parity
+   * with the legacy RPC.
+   */
+  num_teams?: number;
+  /**
+   * Optional soft target for staff-per-team. Used as the team-formation
+   * sizing knob when `num_teams` is unset: the sidecar derives
+   * `num_teams = ceil(available_cleaners / target_team_size)` and bypasses
+   * the lead cap, again promoting ad-hoc leads if needed. When both fields
+   * are set, `num_teams` wins.
+   */
+  target_team_size?: number;
 };
 
 export const PLAN_BUILD_DEFAULTS: PlanBuildOptions = {
@@ -50,13 +69,18 @@ export const PLAN_BUILD_DEFAULTS: PlanBuildOptions = {
 };
 
 export const ENGINE_LABELS: Record<PlanBuildEngine, string> = {
-  vrptw: "VRPTW (new)",
+  vrptw: "Sidecar (new)",
   legacy: "Legacy RPC",
 };
 
 export const AFFINITY_LOOKBACK_BOUNDS = {
   property: { min: 30, max: 730 },
   pairing: { min: 30, max: 365 },
+} as const;
+
+export const TEAM_SHAPE_BOUNDS = {
+  num_teams: { min: 1, max: 30 },
+  target_team_size: { min: 1, max: 12 },
 } as const;
 
 export const ROUTING_TYPE_LABELS: Record<number, string> = {

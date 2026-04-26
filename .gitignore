@@ -4,6 +4,7 @@ AcornArranger-legacy/
 node_modules
 .env*.local
 .venv
+__pycache__/
 
 # Logs
 logs

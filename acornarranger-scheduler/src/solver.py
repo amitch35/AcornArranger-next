@@ -335,12 +335,28 @@ def solve(
             "consider widening cleaning_window or adding staff"
         )
 
-    # Only keep teams that were actually used in the committed plan. Empty teams
-    # are dropped so we never write idle plan rows to the DB.
-    committed_teams = [t for t in teams_out if t["appointment_ids"]]
-    # Renumber to keep `team` sequential after any empty teams are dropped.
-    for new_idx, t in enumerate(committed_teams, start=1):
-        t["team"] = new_idx
+    # Decide whether to keep solver-empty teams in the committed plan.
+    # When the operator explicitly sets `num_teams` or `target_team_size` the
+    # team-shape is the goal (e.g. modelling trainees-as-leads), so we preserve
+    # every formed team. Otherwise we drop empties to avoid the spike-era
+    # "lone Liz padded stops" artifact and keep idle rows out of the DB.
+    preserve_empty_teams = bool(
+        (opts.num_teams is not None and opts.num_teams > 0)
+        or (opts.target_team_size is not None and opts.target_team_size > 0)
+    )
+    if preserve_empty_teams:
+        committed_teams = teams_out
+        empty_count = sum(1 for t in teams_out if not t["appointment_ids"])
+        if empty_count:
+            notes.append(
+                f"preserving {empty_count} empty team(s) because num_teams/target_team_size was set; "
+                "drag stops onto them manually if needed"
+            )
+    else:
+        committed_teams = [t for t in teams_out if t["appointment_ids"]]
+        # Renumber to keep `team` sequential after any empty teams are dropped.
+        for new_idx, t in enumerate(committed_teams, start=1):
+            t["team"] = new_idx
 
     diagnostics = SolveDiagnostics(
         plan_date=plan_date,
