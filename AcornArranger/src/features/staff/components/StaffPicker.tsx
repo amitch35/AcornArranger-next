@@ -1,7 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { useQueries } from "@tanstack/react-query";
 import { useStaffOptions } from "@/lib/options/useStaffOptions";
+import { fetchStaffDetail, getStaffDisplayName } from "@/src/features/staff/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -73,9 +75,10 @@ export function StaffPicker({
 
   // Cache labels for any id we have ever seen in the options list. This lets
   // selected staff that scroll out of the current 50-row page (e.g. because the
-  // user typed a search term) keep their human-readable label without firing a
-  // detail request per selection. Names are stable enough that revalidating on
-  // every keystroke isn't worth the network cost.
+  // user typed a search term, or because the active-status filter excludes
+  // them) keep their human-readable label without firing a detail request per
+  // selection. Names are stable enough that revalidating on every keystroke
+  // isn't worth the network cost.
   //
   // Populated during render so the same render that introduces a new option
   // can also use its label for chips. Idempotent ref mutation is a documented
@@ -85,15 +88,53 @@ export function StaffPicker({
     labelCacheRef.current.set(o.id, o.label);
   }
 
+  // Mount-time / page-reload safety net: if `value` includes ids that have
+  // never appeared in any options payload (e.g. an inactive staff member that
+  // is still selected while the picker filters to Active only), fetch their
+  // detail in parallel so the chip can show a name instead of a bare user_id.
+  //
+  // The `!labelCacheRef.current.has(id)` guard means in-session selections
+  // picked from the visible list never trigger a network request — the loop
+  // above has already cached them. React Query's per-id cache also dedupes
+  // across mounts so navigating back to a page with the same selection is
+  // free.
+  const missingSelectedIds = React.useMemo(
+    () => selectedIds.filter((id) => !labelCacheRef.current.has(id)),
+    // baseOptions is intentionally a dep: it triggers re-evaluation right
+    // after the cache loop above has populated newly-arrived labels.
+    [selectedIds, baseOptions]
+  );
+
+  const detailQueries = useQueries({
+    queries: missingSelectedIds.map((id) => ({
+      queryKey: ["staff", id],
+      queryFn: () => fetchStaffDetail(id),
+      enabled: Boolean(id),
+      staleTime: 5 * 60 * 1000,
+    })),
+  });
+
+  for (let i = 0; i < detailQueries.length; i++) {
+    const id = missingSelectedIds[i];
+    const result = detailQueries[i];
+    const staff = result?.data as
+      | { user_id?: number | string; name?: string | null; first_name?: string | null; last_name?: string | null }
+      | undefined;
+    if (!id || !staff) continue;
+    const resolved = getStaffDisplayName(staff) || String(staff.user_id ?? id);
+    if (resolved) labelCacheRef.current.set(id, resolved);
+  }
+
   const getLabel = React.useCallback(
     (id: string) => labelCacheRef.current.get(id) ?? id,
     []
   );
 
-  const selectedLabels = React.useMemo(
-    () => selectedIds.map((id) => getLabel(id)),
-    [selectedIds, getLabel]
-  );
+  // Recomputed every render rather than memoized: the cache is mutated in
+  // place during render (above), so a stable dep array would leave chip
+  // labels stale after a detail query resolves. The work is O(value.length)
+  // over short string lookups — negligible compared to the popover render.
+  const selectedLabels = selectedIds.map((id) => getLabel(id));
 
   const toggle = (id: string) => {
     const next = selectedSet.has(id)

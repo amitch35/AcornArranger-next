@@ -182,4 +182,3 @@ describe("StaffPicker", () => {
     expect(screen.getByRole("button", { name: /select all/i })).toBeDisabled();
   });
 });
-
