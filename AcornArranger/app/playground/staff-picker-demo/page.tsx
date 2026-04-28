@@ -22,7 +22,7 @@ export default function Page() {
       <div className="space-y-1">
         <h1 className="text-xl font-semibold">StaffPicker Demo</h1>
         <p className="text-sm text-muted-foreground">
-          Defaults to Active + Can Clean. Toggle filters to confirm behavior and how inactive selections are shown.
+          Defaults to Active + Can Clean. Toggle filters to confirm behavior across status and capability combinations.
         </p>
       </div>
 

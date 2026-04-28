@@ -22,6 +22,8 @@ import { StaffPicker } from "@/src/features/staff/components/StaffPicker";
 import { ServiceMultiSelect } from "@/components/filters/ServiceMultiSelect";
 import { DatePicker } from "@/components/filters/DatePicker";
 import { OmissionsSelect } from "@/src/features/plans/components/OmissionsSelect";
+import { InfoTooltip } from "@/components/InfoTooltip";
+import { useNumericInput } from "@/lib/hooks/useNumericInput";
 import {
   AFFINITY_LOOKBACK_BOUNDS,
   ENGINE_LABELS,
@@ -124,31 +126,57 @@ export default function SchedulePage() {
   const [routingType, setRoutingType] = React.useState<1 | 2 | 3 | 4 | 5>(
     PLAN_BUILD_DEFAULTS.routing_type
   );
-  const [cleaningWindow, setCleaningWindow] = React.useState(
-    PLAN_BUILD_DEFAULTS.cleaning_window
-  );
-  const [maxHours, setMaxHours] = React.useState(PLAN_BUILD_DEFAULTS.max_hours);
-  const [targetStaffCount, setTargetStaffCount] = React.useState<
-    number | undefined
-  >(PLAN_BUILD_DEFAULTS.target_staff_count);
   const [engine, setEngine] = React.useState<PlanBuildEngine>(
     PLAN_BUILD_DEFAULTS.engine
   );
-  const [propertyAffinityLookback, setPropertyAffinityLookback] =
-    React.useState<number>(PLAN_BUILD_DEFAULTS.property_affinity_lookback_days);
-  const [pairingAffinityLookback, setPairingAffinityLookback] =
-    React.useState<number>(PLAN_BUILD_DEFAULTS.pairing_affinity_lookback_days);
-  // Optional team-shape overrides. `undefined` lets the sidecar auto-derive
-  // (work-minutes / cleaning_window, capped by leads) for legacy parity.
-  // Setting either bypasses the lead cap and lets the heuristic promote
-  // senior housekeepers to ad-hoc leads for days where leads-in-training
-  // are scheduled but their `can_lead_team` flag has not flipped yet.
-  const [numTeams, setNumTeams] = React.useState<number | undefined>(
-    PLAN_BUILD_DEFAULTS.num_teams
-  );
-  const [targetTeamSize, setTargetTeamSize] = React.useState<number | undefined>(
-    PLAN_BUILD_DEFAULTS.target_team_size
-  );
+
+  // All numeric build options live in `useNumericInput` so the user can
+  // freely clear and retype values without the field snapping back to the
+  // default mid-edit. Required fields (cleaning window, max hours, both
+  // affinity lookbacks) revert to the default on blur if left empty;
+  // optional fields (target staff count, num teams, target team size) leave
+  // the field empty when blurred (which the build options serialize as
+  // `undefined`, i.e. "auto/default").
+  const cleaningWindow = useNumericInput({
+    initialValue: PLAN_BUILD_DEFAULTS.cleaning_window,
+    fallback: PLAN_BUILD_DEFAULTS.cleaning_window,
+  });
+  const maxHours = useNumericInput({
+    initialValue: PLAN_BUILD_DEFAULTS.max_hours,
+    fallback: PLAN_BUILD_DEFAULTS.max_hours,
+  });
+  const targetStaffCount = useNumericInput({
+    initialValue: PLAN_BUILD_DEFAULTS.target_staff_count,
+    integer: true,
+  });
+  const propertyAffinityLookback = useNumericInput({
+    initialValue: PLAN_BUILD_DEFAULTS.property_affinity_lookback_days,
+    fallback: PLAN_BUILD_DEFAULTS.property_affinity_lookback_days,
+    bounds: AFFINITY_LOOKBACK_BOUNDS.property,
+    integer: true,
+  });
+  const pairingAffinityLookback = useNumericInput({
+    initialValue: PLAN_BUILD_DEFAULTS.pairing_affinity_lookback_days,
+    fallback: PLAN_BUILD_DEFAULTS.pairing_affinity_lookback_days,
+    bounds: AFFINITY_LOOKBACK_BOUNDS.pairing,
+    integer: true,
+  });
+  // Optional team-shape overrides. Empty (undefined) lets the sidecar
+  // auto-derive (work-minutes / cleaning_window, capped by leads) for legacy
+  // parity. Setting either bypasses the lead cap and lets the heuristic
+  // promote senior housekeepers to ad-hoc leads for days where
+  // leads-in-training are scheduled but their `can_lead_team` flag has not
+  // flipped yet.
+  const numTeams = useNumericInput({
+    initialValue: PLAN_BUILD_DEFAULTS.num_teams,
+    bounds: TEAM_SHAPE_BOUNDS.num_teams,
+    integer: true,
+  });
+  const targetTeamSize = useNumericInput({
+    initialValue: PLAN_BUILD_DEFAULTS.target_team_size,
+    bounds: TEAM_SHAPE_BOUNDS.target_team_size,
+    integer: true,
+  });
 
   // Sync date to URL
   React.useEffect(() => {
@@ -285,28 +313,35 @@ export default function SchedulePage() {
       services: services.length > 0 ? services : PLAN_BUILD_DEFAULTS.services,
       omissions,
       routing_type: routingType,
-      cleaning_window: cleaningWindow,
-      max_hours: maxHours,
-      target_staff_count: targetStaffCount,
+      // Required numeric fields fall back to the default if the user has
+      // mid-edit-cleared the input (the field will also snap back on blur).
+      cleaning_window:
+        cleaningWindow.value ?? PLAN_BUILD_DEFAULTS.cleaning_window,
+      max_hours: maxHours.value ?? PLAN_BUILD_DEFAULTS.max_hours,
+      target_staff_count: targetStaffCount.value,
       engine,
-      property_affinity_lookback_days: propertyAffinityLookback,
-      pairing_affinity_lookback_days: pairingAffinityLookback,
-      num_teams: numTeams,
-      target_team_size: targetTeamSize,
+      property_affinity_lookback_days:
+        propertyAffinityLookback.value ??
+        PLAN_BUILD_DEFAULTS.property_affinity_lookback_days,
+      pairing_affinity_lookback_days:
+        pairingAffinityLookback.value ??
+        PLAN_BUILD_DEFAULTS.pairing_affinity_lookback_days,
+      num_teams: numTeams.value,
+      target_team_size: targetTeamSize.value,
     }),
     [
       availableStaff,
       services,
       omissions,
       routingType,
-      cleaningWindow,
-      maxHours,
-      targetStaffCount,
+      cleaningWindow.value,
+      maxHours.value,
+      targetStaffCount.value,
       engine,
-      propertyAffinityLookback,
-      pairingAffinityLookback,
-      numTeams,
-      targetTeamSize,
+      propertyAffinityLookback.value,
+      pairingAffinityLookback.value,
+      numTeams.value,
+      targetTeamSize.value,
     ]
   );
 
@@ -458,7 +493,19 @@ export default function SchedulePage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="engine">Engine</Label>
+              <Label htmlFor="engine" className="flex items-center gap-1.5">
+                Engine
+                <InfoTooltip label="Engine info">
+                  <p>
+                    <strong>VRPTW:</strong> OR-Tools sidecar with Tier 2
+                    affinity biasing.
+                  </p>
+                  <p>
+                    <strong>Legacy:</strong> the original{" "}
+                    <code>build_schedule_plan</code> procedure.
+                  </p>
+                </InfoTooltip>
+              </Label>
               <select
                 id="engine"
                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
@@ -473,18 +520,22 @@ export default function SchedulePage() {
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-muted-foreground">
-                {engine === "vrptw"
-                  ? "OR-Tools sidecar with Tier 2 affinity biasing."
-                  : "Legacy build_schedule_plan procedure."}
-              </p>
             </div>
 
             {engine === "vrptw" ? (
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="property-affinity-lookback">
+                  <Label
+                    htmlFor="property-affinity-lookback"
+                    className="flex items-center gap-1.5"
+                  >
                     Property Affinity Lookback (days)
+                    <InfoTooltip label="Property Affinity Lookback info">
+                      <p>
+                        How far back to score staff ↔ property assignments.
+                      </p>
+                      <p>Wider window = more stable signal.</p>
+                    </InfoTooltip>
                   </Label>
                   <Input
                     id="property-affinity-lookback"
@@ -492,27 +543,28 @@ export default function SchedulePage() {
                     min={AFFINITY_LOOKBACK_BOUNDS.property.min}
                     max={AFFINITY_LOOKBACK_BOUNDS.property.max}
                     step={1}
-                    value={propertyAffinityLookback}
-                    onChange={(e) => {
-                      const v = Number(e.target.value);
-                      if (!Number.isFinite(v)) return;
-                      setPropertyAffinityLookback(
-                        Math.min(
-                          AFFINITY_LOOKBACK_BOUNDS.property.max,
-                          Math.max(AFFINITY_LOOKBACK_BOUNDS.property.min, Math.round(v))
-                        )
-                      );
-                    }}
+                    value={propertyAffinityLookback.text}
+                    onChange={propertyAffinityLookback.onChange}
+                    onBlur={propertyAffinityLookback.onBlur}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    How far back to score staff&lt;-&gt;property assignments.
-                    Wider = more stable signal.
-                  </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="pairing-affinity-lookback">
+                  <Label
+                    htmlFor="pairing-affinity-lookback"
+                    className="flex items-center gap-1.5"
+                  >
                     Pairing Affinity Lookback (days)
+                    <InfoTooltip label="Pairing Affinity Lookback info">
+                      <p>
+                        How far back to score staff pairings for team
+                        formation.
+                      </p>
+                      <p>
+                        Shorter default than property affinity because staff
+                        turnover makes older pairings stale.
+                      </p>
+                    </InfoTooltip>
                   </Label>
                   <Input
                     id="pairing-affinity-lookback"
@@ -520,26 +572,27 @@ export default function SchedulePage() {
                     min={AFFINITY_LOOKBACK_BOUNDS.pairing.min}
                     max={AFFINITY_LOOKBACK_BOUNDS.pairing.max}
                     step={1}
-                    value={pairingAffinityLookback}
-                    onChange={(e) => {
-                      const v = Number(e.target.value);
-                      if (!Number.isFinite(v)) return;
-                      setPairingAffinityLookback(
-                        Math.min(
-                          AFFINITY_LOOKBACK_BOUNDS.pairing.max,
-                          Math.max(AFFINITY_LOOKBACK_BOUNDS.pairing.min, Math.round(v))
-                        )
-                      );
-                    }}
+                    value={pairingAffinityLookback.text}
+                    onChange={pairingAffinityLookback.onChange}
+                    onBlur={pairingAffinityLookback.onBlur}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    How far back to score staff pairings for team formation.
-                    Shorter default because staff turnover makes older pairings stale.
-                  </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="num-teams">Number of Teams (optional)</Label>
+                  <Label
+                    htmlFor="num-teams"
+                    className="flex items-center gap-1.5"
+                  >
+                    Number of Teams (optional)
+                    <InfoTooltip label="Number of Teams info">
+                      <p>Force an exact team count.</p>
+                      <p>
+                        Bypasses the lead cap and promotes housekeepers to
+                        ad-hoc leads if needed.
+                      </p>
+                      <p>Wins over Target Team Size when both are set.</p>
+                    </InfoTooltip>
+                  </Label>
                   <Input
                     id="num-teams"
                     type="number"
@@ -547,33 +600,26 @@ export default function SchedulePage() {
                     max={TEAM_SHAPE_BOUNDS.num_teams.max}
                     step={1}
                     placeholder="Auto"
-                    value={numTeams ?? ""}
-                    onChange={(e) => {
-                      const raw = e.target.value;
-                      if (raw === "") {
-                        setNumTeams(undefined);
-                        return;
-                      }
-                      const v = Number(raw);
-                      if (!Number.isFinite(v)) return;
-                      setNumTeams(
-                        Math.min(
-                          TEAM_SHAPE_BOUNDS.num_teams.max,
-                          Math.max(TEAM_SHAPE_BOUNDS.num_teams.min, Math.round(v))
-                        )
-                      );
-                    }}
+                    value={numTeams.text}
+                    onChange={numTeams.onChange}
+                    onBlur={numTeams.onBlur}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Force an exact team count. Bypasses the lead cap and
-                    promotes housekeepers to ad-hoc leads if needed.
-                    Wins over Target Team Size.
-                  </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="target-team-size">
+                  <Label
+                    htmlFor="target-team-size"
+                    className="flex items-center gap-1.5"
+                  >
                     Target Team Size (optional)
+                    <InfoTooltip label="Target Team Size info">
+                      <p>Soft staff-per-team target.</p>
+                      <p>
+                        The sidecar derives the team count from available
+                        cleaners and bypasses the lead cap to honor it.
+                      </p>
+                      <p>Ignored when Number of Teams is set.</p>
+                    </InfoTooltip>
                   </Label>
                   <Input
                     id="target-team-size"
@@ -582,38 +628,28 @@ export default function SchedulePage() {
                     max={TEAM_SHAPE_BOUNDS.target_team_size.max}
                     step={1}
                     placeholder="Auto"
-                    value={targetTeamSize ?? ""}
-                    onChange={(e) => {
-                      const raw = e.target.value;
-                      if (raw === "") {
-                        setTargetTeamSize(undefined);
-                        return;
-                      }
-                      const v = Number(raw);
-                      if (!Number.isFinite(v)) return;
-                      setTargetTeamSize(
-                        Math.min(
-                          TEAM_SHAPE_BOUNDS.target_team_size.max,
-                          Math.max(
-                            TEAM_SHAPE_BOUNDS.target_team_size.min,
-                            Math.round(v)
-                          )
-                        )
-                      );
-                    }}
+                    value={targetTeamSize.text}
+                    onChange={targetTeamSize.onChange}
+                    onBlur={targetTeamSize.onBlur}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Soft staff-per-team target. Sidecar derives
-                    team count from available cleaners and bypasses the lead
-                    cap. Ignored when Number of Teams is set.
-                  </p>
                 </div>
               </div>
             ) : null}
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-2">
-                <Label htmlFor="routing-type">Routing Type</Label>
+                <Label
+                  htmlFor="routing-type"
+                  className="flex items-center gap-1.5"
+                >
+                  Routing Type
+                  <InfoTooltip label="Routing Type info">
+                    <p>
+                      Determines the start and end nodes used in the
+                      Traveling Salesperson routing algorithm.
+                    </p>
+                  </InfoTooltip>
+                </Label>
                 <select
                   id="routing-type"
                   className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
@@ -631,40 +667,81 @@ export default function SchedulePage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="cleaning-window">Cleaning Window</Label>
+                <Label
+                  htmlFor="cleaning-window"
+                  className="flex items-center gap-1.5"
+                >
+                  Cleaning Window
+                  <InfoTooltip label="Cleaning Window info">
+                    <p>
+                      Assumed cleaning window (in hours) used to estimate
+                      how many cleaners are needed for the day.
+                    </p>
+                    <p>Lower the value to schedule more housekeepers.</p>
+                    <p>
+                      Increase to be more optimistic and potentially schedule
+                      fewer housekeepers.
+                    </p>
+                  </InfoTooltip>
+                </Label>
                 <Input
                   id="cleaning-window"
                   type="number"
                   step={0.5}
-                  value={cleaningWindow}
-                  onChange={(e) =>
-                    setCleaningWindow(Number(e.target.value) || 6)
-                  }
+                  value={cleaningWindow.text}
+                  onChange={cleaningWindow.onChange}
+                  onBlur={cleaningWindow.onBlur}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="max-hours">Max Hours</Label>
+                <Label
+                  htmlFor="max-hours"
+                  className="flex items-center gap-1.5"
+                >
+                  Max Hours
+                  <InfoTooltip label="Max Hours info">
+                    <p>
+                      Max total field hours before a team times out (does
+                      not include travel to/from the office).
+                    </p>
+                    <p>
+                      Lower this value if teams are getting too much to
+                      handle.
+                    </p>
+                  </InfoTooltip>
+                </Label>
                 <Input
                   id="max-hours"
                   type="number"
                   step={0.5}
-                  value={maxHours}
-                  onChange={(e) => setMaxHours(Number(e.target.value) || 6.5)}
+                  value={maxHours.text}
+                  onChange={maxHours.onChange}
+                  onBlur={maxHours.onBlur}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="target-staff">Target Staff Count</Label>
+                <Label
+                  htmlFor="target-staff"
+                  className="flex items-center gap-1.5"
+                >
+                  Target Staff Count
+                  <InfoTooltip label="Target Staff Count info">
+                    <p>Target number of staff to schedule.</p>
+                    <p>
+                      Takes effect only if larger than the calculated
+                      required number of staff.
+                    </p>
+                  </InfoTooltip>
+                </Label>
                 <Input
                   id="target-staff"
                   type="number"
                   placeholder="Optional"
-                  value={targetStaffCount ?? ""}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setTargetStaffCount(v ? Number(v) : undefined);
-                  }}
+                  value={targetStaffCount.text}
+                  onChange={targetStaffCount.onChange}
+                  onBlur={targetStaffCount.onBlur}
                 />
               </div>
             </div>

@@ -97,6 +97,13 @@ export const navigationConfig: NavigationItem[] = [
     group: "main",
   },
   {
+    label: "Schedule",
+    href: "/dashboard/schedule",
+    icon: CalendarRange,
+    group: "main",
+    visible: (user) => user.isAuthenticated,
+  },
+  {
     label: "Appointments",
     href: "/dashboard/appointments",
     icon: Calendar,
@@ -114,13 +121,6 @@ export const navigationConfig: NavigationItem[] = [
     label: "Staff",
     href: "/dashboard/staff",
     icon: Users,
-    group: "main",
-    visible: (user) => user.isAuthenticated,
-  },
-  {
-    label: "Schedule",
-    href: "/dashboard/schedule",
-    icon: CalendarRange,
     group: "main",
     visible: (user) => user.isAuthenticated,
   },

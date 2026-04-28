@@ -1,16 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { useQueries } from "@tanstack/react-query";
 import { useStaffOptions } from "@/lib/options/useStaffOptions";
-import { fetchStaffDetail, getStaffDisplayName } from "@/src/features/staff/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { ChevronDown, Check, X } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 type StaffPickerValue = number[];
 
@@ -32,21 +29,7 @@ type StaffPickerProps = {
 type StaffOption = {
   id: string; // user_id
   label: string;
-  status?: "Active" | "Inactive" | "Unverified";
 };
-
-function getStatusBadgeVariant(status: StaffOption["status"]) {
-  switch (status) {
-    case "Active":
-      return "default";
-    case "Inactive":
-      return "secondary";
-    case "Unverified":
-      return "outline";
-    default:
-      return "outline";
-  }
-}
 
 export function StaffPicker({
   label = "Staff",
@@ -83,60 +66,33 @@ export function StaffPicker({
     page: 1,
   });
 
-  // Convert option list to strings for UI
   const baseOptions: StaffOption[] = React.useMemo(() => {
     const raw = data?.options ?? [];
-    return raw.map((o) => ({
-      id: String(o.id),
-      label: String(o.label),
-    }));
+    return raw.map((o) => ({ id: String(o.id), label: String(o.label) }));
   }, [data]);
 
-  // If any selected staff are non-active (or simply missing from active-filtered options),
-  // fetch their details and show them distinctly rather than dropping selection.
-  const baseIdSet = React.useMemo(() => new Set(baseOptions.map((o) => o.id)), [baseOptions]);
-  const missingSelected = React.useMemo(
-    () => selectedIds.filter((id) => !baseIdSet.has(id)),
-    [selectedIds, baseIdSet]
+  // Cache labels for any id we have ever seen in the options list. This lets
+  // selected staff that scroll out of the current 50-row page (e.g. because the
+  // user typed a search term) keep their human-readable label without firing a
+  // detail request per selection. Names are stable enough that revalidating on
+  // every keystroke isn't worth the network cost.
+  //
+  // Populated during render so the same render that introduces a new option
+  // can also use its label for chips. Idempotent ref mutation is a documented
+  // pattern for derived caches.
+  const labelCacheRef = React.useRef<Map<string, string>>(new Map());
+  for (const o of baseOptions) {
+    labelCacheRef.current.set(o.id, o.label);
+  }
+
+  const getLabel = React.useCallback(
+    (id: string) => labelCacheRef.current.get(id) ?? id,
+    []
   );
 
-  const missingQueries = useQueries({
-    queries: missingSelected.map((id) => ({
-      queryKey: ["staff", id],
-      queryFn: () => fetchStaffDetail(id),
-      enabled: Boolean(id),
-    })),
-  });
-
-  const missingOptions: StaffOption[] = React.useMemo(() => {
-    return missingQueries
-      .map((q, idx) => {
-        const id = missingSelected[idx];
-        if (!id) return null;
-        const staff = q.data as any | undefined;
-        if (!staff) {
-          // Still show the ID so the selection remains visible
-          return { id, label: id, status: undefined };
-        }
-        const name = getStaffDisplayName(staff) || String(staff.user_id ?? id);
-        const status = staff?.status?.status as StaffOption["status"] | undefined;
-        return { id, label: name, status };
-      })
-      .filter(Boolean) as StaffOption[];
-  }, [missingQueries, missingSelected]);
-
-  const options: StaffOption[] = React.useMemo(() => {
-    if (missingOptions.length === 0) return baseOptions;
-    // Put missing (often non-active) selections at the top so they remain obvious.
-    const merged = [...missingOptions, ...baseOptions];
-    // De-dupe by id
-    const seen = new Set<string>();
-    return merged.filter((o) => (seen.has(o.id) ? false : (seen.add(o.id), true)));
-  }, [baseOptions, missingOptions]);
-
   const selectedLabels = React.useMemo(
-    () => options.filter((o) => selectedSet.has(o.id)).map((o) => o.label),
-    [options, selectedSet]
+    () => selectedIds.map((id) => getLabel(id)),
+    [selectedIds, getLabel]
   );
 
   const toggle = (id: string) => {
@@ -149,13 +105,13 @@ export function StaffPicker({
   const clearAll = () => onChange([]);
 
   const selectAll = () => {
-    const allIds = options.map((o) => Number(o.id));
+    const allIds = baseOptions.map((o) => Number(o.id));
     const merged = Array.from(new Set([...value, ...allIds]));
     onChange(merged);
   };
 
   const allSelected =
-    options.length > 0 && options.every((o) => selectedSet.has(o.id));
+    baseOptions.length > 0 && baseOptions.every((o) => selectedSet.has(o.id));
 
   const summary =
     selectedLabels.length === 0
@@ -187,7 +143,7 @@ export function StaffPicker({
                   variant="secondary"
                   size="sm"
                   className="h-6 px-2 text-xs"
-                  disabled={isLoading || options.length === 0 || allSelected}
+                  disabled={isLoading || baseOptions.length === 0 || allSelected}
                   onClick={(e) => {
                     e.preventDefault();
                     selectAll();
@@ -220,9 +176,8 @@ export function StaffPicker({
                   )}
                 </CommandEmpty>
                 <CommandGroup>
-                  {options.map((opt) => {
+                  {baseOptions.map((opt) => {
                     const checked = selectedSet.has(opt.id);
-                    const isNonActive = opt.status && opt.status !== "Active";
 
                     return (
                       <CommandItem
@@ -231,20 +186,11 @@ export function StaffPicker({
                         onSelect={() => toggle(opt.id)}
                         aria-selected={checked}
                         role="option"
-                        className={cn(isNonActive && "opacity-70")}
                       >
                         <div className="mr-2 flex h-4 w-4 items-center justify-center">
                           {checked ? <Check className="h-4 w-4" /> : <Checkbox checked={checked} aria-hidden />}
                         </div>
                         <span className="truncate">{opt.label}</span>
-                        {opt.status && (
-                          <Badge
-                            variant={getStatusBadgeVariant(opt.status)}
-                            className={cn("ml-auto", isNonActive && "border-muted-foreground/30")}
-                          >
-                            {opt.status}
-                          </Badge>
-                        )}
                       </CommandItem>
                     );
                   })}
@@ -267,23 +213,11 @@ export function StaffPicker({
       {value.length > 0 && (
         <div className="mt-2 flex flex-wrap items-center gap-2">
           {selectedIds.map((id) => {
-            const opt = options.find((o) => o.id === id);
-            const labelText = opt?.label ?? id;
-            const status = opt?.status;
-            const isNonActive = status && status !== "Active";
+            const labelText = getLabel(id);
 
             return (
-              <Badge
-                key={id}
-                variant={isNonActive ? "outline" : "secondary"}
-                className={cn("gap-1", isNonActive && "text-muted-foreground")}
-              >
+              <Badge key={id} variant="secondary" className="gap-1">
                 {labelText}
-                {status && (
-                  <span className="ml-1 text-[10px] uppercase tracking-wide">
-                    {status}
-                  </span>
-                )}
                 <button
                   aria-label={`Remove staff ${labelText}`}
                   className="inline-flex items-center"
@@ -301,4 +235,3 @@ export function StaffPicker({
 }
 
 export default StaffPicker;
-

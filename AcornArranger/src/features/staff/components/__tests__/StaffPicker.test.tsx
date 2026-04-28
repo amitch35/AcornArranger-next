@@ -12,7 +12,10 @@ import { useStaffOptions } from "@/lib/options/useStaffOptions";
 
 function renderWithQueryClient(ui: React.ReactElement) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 0 } } });
-  return render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>);
+  const utils = render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>);
+  const rerender = (next: React.ReactElement) =>
+    utils.rerender(<QueryClientProvider client={qc}>{next}</QueryClientProvider>);
+  return { ...utils, rerender };
 }
 
 describe("StaffPicker", () => {
@@ -34,7 +37,8 @@ describe("StaffPicker", () => {
     );
   });
 
-  it("keeps and visually marks non-active selected staff (via detail fetch)", async () => {
+  it("keeps selected staff visible after a search narrows the option list (label cache)", async () => {
+    // First render: Alice is in the list, gets cached as label for id=1.
     vi.mocked(useStaffOptions).mockReturnValue({
       data: { options: [{ id: 1, label: "Alice" }], total: 1 },
       isLoading: false,
@@ -42,35 +46,37 @@ describe("StaffPicker", () => {
       refetch: vi.fn(),
     } as any);
 
-    // Selected user_id=2 is not in options (likely inactive). Breadcrumb/page cache uses fetch,
-    // so we mock the staff detail fetch endpoint.
-    globalThis.fetch = vi.fn(async (input: RequestInfo | URL) => {
-      const url = String(input);
-      if (url.includes("/api/staff/2")) {
-        return new Response(
-          JSON.stringify({
-            user_id: 2,
-            name: "Bob Inactive",
-            first_name: "Bob",
-            last_name: "Inactive",
-            hb_user_id: null,
-            role: null,
-            status: { status_id: 2, status: "Inactive" },
-            capabilities: [],
-          }),
-          { status: 200, headers: { "Content-Type": "application/json" } }
-        );
-      }
-      return new Response(JSON.stringify({ error: "not found" }), { status: 404 });
-    }) as any;
+    const fetchSpy = vi.fn(async () => new Response("{}", { status: 200 }));
+    globalThis.fetch = fetchSpy as any;
 
-    renderWithQueryClient(<StaffPicker value={[2]} onChange={() => {}} />);
+    const { rerender } = renderWithQueryClient(
+      <StaffPicker value={[1]} onChange={() => {}} />
+    );
 
-    // The selected badge should show the staff name and an INACTIVE marker
+    // Trigger button shows the cached label.
+    expect(
+      screen.getByRole("button", { name: /Staff: Alice/i })
+    ).toBeInTheDocument();
+
+    // Now simulate a search that narrows the visible options so id=1 is no
+    // longer present. The cached label should still be used for the chip.
+    vi.mocked(useStaffOptions).mockReturnValue({
+      data: { options: [], total: 0 },
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    } as any);
+
+    rerender(<StaffPicker value={[1]} onChange={() => {}} />);
+
     await waitFor(() => {
-      expect(screen.getByText("Bob Inactive")).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Staff: Alice/i })
+      ).toBeInTheDocument();
     });
-    expect(screen.getByText(/^Inactive$/i)).toBeInTheDocument();
+
+    // No detail fetch should ever have been issued.
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 
   it("emits selected user_id numbers", async () => {
