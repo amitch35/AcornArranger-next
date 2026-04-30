@@ -36,6 +36,20 @@ export type PlanBuildOptions = {
    */
   pairing_affinity_lookback_days: number;
   /**
+   * How strongly the staff<->property affinity score discounts a routing
+   * arc into a stop. Expressed in minutes so the trade-off vs travel time
+   * stays legible. Set to 0 to disable property affinity entirely without
+   * leaving the VRPTW engine.
+   */
+  property_affinity_weight_minutes: number;
+  /**
+   * How strongly lead<->member chemistry biases team formation. Expressed
+   * in synthetic minutes - the per-pair bonus (in seat-pair score) of
+   * placing two staff who frequently teamed up together. Set to 0 to
+   * disable pair chemistry entirely.
+   */
+  chemistry_weight: number;
+  /**
    * Optional explicit number of teams. When set, the sidecar's team-formation
    * heuristic uses this value verbatim (capped only by total cleaner count)
    * and will promote senior housekeepers to ad-hoc leads if more teams are
@@ -64,8 +78,12 @@ export const PLAN_BUILD_DEFAULTS: PlanBuildOptions = {
   cleaning_window: 6.0,
   max_hours: 6.5,
   engine: "vrptw",
-  property_affinity_lookback_days: 180,
-  pairing_affinity_lookback_days: 90,
+  property_affinity_lookback_days: 90,
+  pairing_affinity_lookback_days: 45,
+  // Mirrors the sidecar pydantic defaults in
+  // acornarranger-scheduler/src/types.py::SolverOptions. Keep in sync.
+  property_affinity_weight_minutes: 2.0,
+  chemistry_weight: 2.0,
 };
 
 export const ENGINE_LABELS: Record<PlanBuildEngine, string> = {
@@ -75,12 +93,23 @@ export const ENGINE_LABELS: Record<PlanBuildEngine, string> = {
 
 export const AFFINITY_LOOKBACK_BOUNDS = {
   property: { min: 30, max: 730 },
-  pairing: { min: 30, max: 365 },
+  pairing: { min: 14, max: 365 },
+} as const;
+
+/**
+ * Bounds on the affinity weight knobs. Min = 0 so an operator can fully
+ * disable a Tier 2 signal from the UI without dropping the lookback to a
+ * no-op value. Upper bounds are a sanity ceiling; values above ~30 minutes
+ * start dwarfing actual travel costs and rarely produce useful plans.
+ */
+export const AFFINITY_WEIGHT_BOUNDS = {
+  property_minutes: { min: 0, max: 15 },
+  chemistry: { min: 0, max: 15 },
 } as const;
 
 export const TEAM_SHAPE_BOUNDS = {
-  num_teams: { min: 1, max: 30 },
-  target_team_size: { min: 1, max: 12 },
+  num_teams: { min: 1, max: 15 },
+  target_team_size: { min: 1, max: 7 },
 } as const;
 
 export const ROUTING_TYPE_LABELS: Record<number, string> = {

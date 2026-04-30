@@ -102,7 +102,7 @@ export function PlanColumn({
     >
       {/* Plan metadata header: ID, date, sent indicator */}
       <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-        <span>#{plan.plan_id} · {plan.plan_date}</span>
+        <span>ID: {plan.plan_id} · {plan.plan_date}</span>
         {isSent && (
           <Badge variant="secondary" className="gap-1 text-xs">
             <Upload className="h-3 w-3" />

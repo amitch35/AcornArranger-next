@@ -19,8 +19,10 @@ describe("Plan Schemas", () => {
         cleaning_window: 6.0,
         max_hours: 6.5,
         engine: "vrptw",
-        property_affinity_lookback_days: 180,
-        pairing_affinity_lookback_days: 90,
+        property_affinity_lookback_days: 90,
+        pairing_affinity_lookback_days: 45,
+        property_affinity_weight_minutes: 2.0,
+        chemistry_weight: 2.0,
       });
     });
 
@@ -28,12 +30,20 @@ describe("Plan Schemas", () => {
       expect(PLAN_BUILD_DEFAULTS.engine).toBe("vrptw");
     });
 
-    it("has property affinity lookback default 180 days", () => {
-      expect(PLAN_BUILD_DEFAULTS.property_affinity_lookback_days).toBe(180);
+    it("has property affinity lookback default 90 days", () => {
+      expect(PLAN_BUILD_DEFAULTS.property_affinity_lookback_days).toBe(90);
     });
 
-    it("has pairing affinity lookback default 90 days", () => {
-      expect(PLAN_BUILD_DEFAULTS.pairing_affinity_lookback_days).toBe(90);
+    it("has pairing affinity lookback default 45 days", () => {
+      expect(PLAN_BUILD_DEFAULTS.pairing_affinity_lookback_days).toBe(45);
+    });
+
+    it("matches the sidecar pydantic property_affinity_weight_minutes default", () => {
+      expect(PLAN_BUILD_DEFAULTS.property_affinity_weight_minutes).toBe(2.0);
+    });
+
+    it("matches the sidecar pydantic chemistry_weight default", () => {
+      expect(PLAN_BUILD_DEFAULTS.chemistry_weight).toBe(2.0);
     });
 
     it("has services default [21942, 23044]", () => {

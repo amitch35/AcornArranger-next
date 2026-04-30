@@ -90,12 +90,12 @@ class SolverOptions(BaseModel):
     # Property affinity contributes to routing cost: per-stop reward equals
     # `property_affinity_weight_minutes * max_over_team_of_scores`. Expressed in
     # minutes so the trade-off vs travel time is legible.
-    property_affinity_weight_minutes: float = 5.0
+    property_affinity_weight_minutes: float = 2.0
     # Chemistry contributes to team-formation cost (pre-VRPTW). Weight is the
     # number of "synthetic minutes" worth of team-formation benefit a perfect
     # (score = 1.0) pair contributes. Default deliberately small so chemistry
     # biases composition without dominating travel-time routing.
-    chemistry_weight: float = 3.0
+    chemistry_weight: float = 2.0
     # When null, the number of teams is inferred from available staff and
     # target_staff_count. When set, it overrides that inference.
     num_teams: int | None = None

@@ -204,15 +204,23 @@ export function toCommitInput(plan: SolvePlan): CommitSchedulePlanInput {
 /**
  * Extract the SolverOptions subset from PlanBuildOptions. The lookback-day
  * fields drive the affinity RPCs in the route, not the sidecar, so they are
- * intentionally not forwarded here. Team-shape overrides (`num_teams`,
- * `target_team_size`) and any future tuning knobs (`affinity_weight_minutes`,
- * `chemistry_weight`) are passed through; unset values fall back to the
- * sidecar's pydantic defaults.
+ * intentionally not forwarded here. The two affinity weights and team-shape
+ * overrides (`num_teams`, `target_team_size`) are forwarded so the sidecar
+ * sees the operator's tuning. A weight of exactly 0 is meaningful (it
+ * disables the corresponding Tier 2 bias) so we forward 0 explicitly rather
+ * than treating it as "unset".
  */
 export function solverOptsFromBuildOptions(
   options: PlanBuildOptions
 ): SolverOptions | undefined {
   const opts: SolverOptions = {};
+  if (typeof options.property_affinity_weight_minutes === "number") {
+    opts.property_affinity_weight_minutes =
+      options.property_affinity_weight_minutes;
+  }
+  if (typeof options.chemistry_weight === "number") {
+    opts.chemistry_weight = options.chemistry_weight;
+  }
   if (typeof options.num_teams === "number" && options.num_teams > 0) {
     opts.num_teams = options.num_teams;
   }

@@ -26,6 +26,7 @@ import { InfoTooltip } from "@/components/InfoTooltip";
 import { useNumericInput } from "@/lib/hooks/useNumericInput";
 import {
   AFFINITY_LOOKBACK_BOUNDS,
+  AFFINITY_WEIGHT_BOUNDS,
   ENGINE_LABELS,
   PLAN_BUILD_DEFAULTS,
   ROUTING_TYPE_LABELS,
@@ -160,6 +161,20 @@ export default function SchedulePage() {
     fallback: PLAN_BUILD_DEFAULTS.pairing_affinity_lookback_days,
     bounds: AFFINITY_LOOKBACK_BOUNDS.pairing,
     integer: true,
+  });
+  // Affinity weight knobs. Min = 0 disables the corresponding Tier 2 signal
+  // entirely; we let the user clear the field while editing but blur snaps
+  // back to the project default rather than to 0 so disabling stays
+  // intentional. Allowing decimals so the user can fine-tune (e.g. 2.5).
+  const propertyAffinityWeight = useNumericInput({
+    initialValue: PLAN_BUILD_DEFAULTS.property_affinity_weight_minutes,
+    fallback: PLAN_BUILD_DEFAULTS.property_affinity_weight_minutes,
+    bounds: AFFINITY_WEIGHT_BOUNDS.property_minutes,
+  });
+  const chemistryWeight = useNumericInput({
+    initialValue: PLAN_BUILD_DEFAULTS.chemistry_weight,
+    fallback: PLAN_BUILD_DEFAULTS.chemistry_weight,
+    bounds: AFFINITY_WEIGHT_BOUNDS.chemistry,
   });
   // Optional team-shape overrides. Empty (undefined) lets the sidecar
   // auto-derive (work-minutes / cleaning_window, capped by leads) for legacy
@@ -326,6 +341,11 @@ export default function SchedulePage() {
       pairing_affinity_lookback_days:
         pairingAffinityLookback.value ??
         PLAN_BUILD_DEFAULTS.pairing_affinity_lookback_days,
+      property_affinity_weight_minutes:
+        propertyAffinityWeight.value ??
+        PLAN_BUILD_DEFAULTS.property_affinity_weight_minutes,
+      chemistry_weight:
+        chemistryWeight.value ?? PLAN_BUILD_DEFAULTS.chemistry_weight,
       num_teams: numTeams.value,
       target_team_size: targetTeamSize.value,
     }),
@@ -340,6 +360,8 @@ export default function SchedulePage() {
       engine,
       propertyAffinityLookback.value,
       pairingAffinityLookback.value,
+      propertyAffinityWeight.value,
+      chemistryWeight.value,
       numTeams.value,
       targetTeamSize.value,
     ]
@@ -497,8 +519,11 @@ export default function SchedulePage() {
                 Engine
                 <InfoTooltip label="Engine info">
                   <p>
-                    <strong>VRPTW:</strong> OR-Tools sidecar with Tier 2
-                    affinity biasing.
+                    Both engines essentially operate in two stages: team formation and routing.
+                  </p>
+                  <p>
+                    <strong>Sidecar:</strong> VRPTW OR-Tools sidecar with configurable
+                    affinity biasing in both stages.
                   </p>
                   <p>
                     <strong>Legacy:</strong> the original{" "}
@@ -508,7 +533,7 @@ export default function SchedulePage() {
               </Label>
               <select
                 id="engine"
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                className="flex h-9 w-full max-w-sm rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
                 value={engine}
                 onChange={(e) =>
                   setEngine(e.target.value as PlanBuildEngine)
@@ -523,7 +548,7 @@ export default function SchedulePage() {
             </div>
 
             {engine === "vrptw" ? (
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <div className="space-y-2">
                   <Label
                     htmlFor="property-affinity-lookback"
@@ -546,6 +571,40 @@ export default function SchedulePage() {
                     value={propertyAffinityLookback.text}
                     onChange={propertyAffinityLookback.onChange}
                     onBlur={propertyAffinityLookback.onBlur}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="property-affinity-weight"
+                    className="flex items-center gap-1.5"
+                  >
+                    Property Affinity Weight (min)
+                    <InfoTooltip label="Property Affinity Weight info">
+                      <p>
+                        How strongly staff ↔ property history discounts a
+                        teams route time, in synthetic minutes.
+                      </p>
+                      <p>
+                        Higher = the solver is more likely to send a
+                        "specialist team" to their most commonly assigned properties even if
+                        travel is a bit longer.
+                      </p>
+                      <p>
+                        <strong>Set to 0 to disable</strong> property
+                        affinity entirely.
+                      </p>
+                    </InfoTooltip>
+                  </Label>
+                  <Input
+                    id="property-affinity-weight"
+                    type="number"
+                    min={AFFINITY_WEIGHT_BOUNDS.property_minutes.min}
+                    max={AFFINITY_WEIGHT_BOUNDS.property_minutes.max}
+                    step={0.5}
+                    value={propertyAffinityWeight.text}
+                    onChange={propertyAffinityWeight.onChange}
+                    onBlur={propertyAffinityWeight.onBlur}
                   />
                 </div>
 
@@ -575,6 +634,41 @@ export default function SchedulePage() {
                     value={pairingAffinityLookback.text}
                     onChange={pairingAffinityLookback.onChange}
                     onBlur={pairingAffinityLookback.onBlur}
+                  />
+                </div>
+
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="chemistry-weight"
+                    className="flex items-center gap-1.5"
+                  >
+                    Chemistry Weight
+                    <InfoTooltip label="Chemistry Weight info">
+                      <p>
+                        How strongly historical lead ↔ member co-team
+                        chemistry biases team formation.
+                      </p>
+                      <p>
+                        Higher = prefers pairing staff who
+                        worked together more within the lookback window; team composition stays close
+                        to recent precedents.
+                      </p>
+                      <p>
+                        <strong>Set to 0 to disable</strong> pair chemistry
+                        entirely.
+                      </p>
+                    </InfoTooltip>
+                  </Label>
+                  <Input
+                    id="chemistry-weight"
+                    type="number"
+                    min={AFFINITY_WEIGHT_BOUNDS.chemistry.min}
+                    max={AFFINITY_WEIGHT_BOUNDS.chemistry.max}
+                    step={0.5}
+                    value={chemistryWeight.text}
+                    onChange={chemistryWeight.onChange}
+                    onBlur={chemistryWeight.onBlur}
                   />
                 </div>
 
@@ -637,34 +731,39 @@ export default function SchedulePage() {
             ) : null}
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <div className="space-y-2">
-                <Label
-                  htmlFor="routing-type"
-                  className="flex items-center gap-1.5"
-                >
-                  Routing Type
-                  <InfoTooltip label="Routing Type info">
-                    <p>
-                      Determines the start and end nodes used in the
-                      Traveling Salesperson routing algorithm.
-                    </p>
-                  </InfoTooltip>
-                </Label>
-                <select
-                  id="routing-type"
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
-                  value={routingType}
-                  onChange={(e) =>
-                    setRoutingType(Number(e.target.value) as 1 | 2 | 3 | 4 | 5)
-                  }
-                >
-                  {Object.entries(ROUTING_TYPE_LABELS).map(([val, label]) => (
-                    <option key={val} value={val}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* Routing Type only feeds the legacy build_schedule_plan
+                  RPC. The VRPTW sidecar pins start = end = office, so the
+                  field is hidden when the sidecar engine is selected. */}
+              {engine === "legacy" ? (
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="routing-type"
+                    className="flex items-center gap-1.5"
+                  >
+                    Routing Type
+                    <InfoTooltip label="Routing Type info">
+                      <p>
+                        Determines the start and end nodes used in the
+                        Traveling Salesperson routing algorithm.
+                      </p>
+                    </InfoTooltip>
+                  </Label>
+                  <select
+                    id="routing-type"
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                    value={routingType}
+                    onChange={(e) =>
+                      setRoutingType(Number(e.target.value) as 1 | 2 | 3 | 4 | 5)
+                    }
+                  >
+                    {Object.entries(ROUTING_TYPE_LABELS).map(([val, label]) => (
+                      <option key={val} value={val}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : null}
 
               <div className="space-y-2">
                 <Label
