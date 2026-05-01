@@ -7,6 +7,7 @@ import {
   Calendar,
   Home,
   Inbox,
+  ListChecks,
   Users,
 } from "lucide-react";
 import {
@@ -19,6 +20,11 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { WeeklyChart, type WeeklyChartPoint } from "./WeeklyChart";
+import { LifetimeMetricsCharts } from "./LifetimeMetricsCharts";
+import {
+  DashboardLifetimeMetricsSchema,
+  type DashboardLifetimeMetrics,
+} from "./schemas";
 import {
   eachDayInWeek,
   formatLocalDate,
@@ -30,6 +36,7 @@ import type { AppointmentRow } from "@/src/features/appointments/schemas";
 import type { StaffShift } from "@/src/features/plans/schemas";
 
 const DASHBOARD_STALE_TIME = 30 * 60 * 1000; // 30 minutes
+const LIFETIME_STALE_TIME = 24 * 60 * 60 * 1000; // 24 hours
 /** Statuses we treat as "live" workload on the dashboard — excludes Cancelled (5). */
 const ACTIVE_STATUSES = "1,2,3,4";
 
@@ -57,6 +64,13 @@ async function fetchShifts(dateFrom: string, dateTo: string): Promise<StaffShift
   const res = await fetch(`/api/shifts?${params}`);
   if (!res.ok) return [];
   return res.json();
+}
+
+async function fetchLifetimeMetrics(): Promise<DashboardLifetimeMetrics> {
+  const res = await fetch("/api/dashboard/metrics");
+  if (!res.ok) throw new Error("Failed to load lifetime metrics");
+  const body = await res.json();
+  return DashboardLifetimeMetricsSchema.parse(body);
 }
 
 /** Extract the local `YYYY-MM-DD` date for a Homebase shift. */
@@ -123,6 +137,16 @@ export function DashboardContent() {
     queryKey: ["dashboard-active-properties"],
     queryFn: () => fetchCount("/api/properties?statusIds=1&pageSize=1"),
     staleTime: DASHBOARD_STALE_TIME,
+  });
+
+  // ---- Lifetime / program-wide totals ----
+  // Lifetime numbers move at most ~once per day, so we let the query stay
+  // fresh for 24h and skip the focus-refetch.
+  const lifetimeMetricsQuery = useQuery({
+    queryKey: ["dashboard-lifetime-metrics"],
+    queryFn: fetchLifetimeMetrics,
+    staleTime: LIFETIME_STALE_TIME,
+    refetchOnWindowFocus: false,
   });
 
   const weekAppointments = weekAppointmentsQuery.data?.items ?? [];
@@ -238,8 +262,103 @@ export function DashboardContent() {
           loading={unscheduledQuery.isLoading}
         />
       </div>
+
+      <LifetimeSection query={lifetimeMetricsQuery} />
     </div>
   );
+}
+
+type LifetimeSectionProps = {
+  query: ReturnType<typeof useQuery<DashboardLifetimeMetrics, Error>>;
+};
+
+function LifetimeSection({ query }: LifetimeSectionProps) {
+  const data = query.data;
+  const isLoading = query.isLoading;
+  const isError = query.isError;
+
+  const totals = data?.totals;
+  const caption = describeLifetimeRange(totals);
+
+  return (
+    <section className="space-y-4">
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight">
+          Program-wide totals
+        </h2>
+        <p className="text-muted-foreground mt-1 text-sm">{caption}</p>
+      </div>
+
+      {isError ? (
+        <Card>
+          <CardContent className="py-6 text-sm text-muted-foreground">
+            Couldn&apos;t load lifetime metrics right now. Try refreshing.
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <KpiCard
+              title="Properties cleaned"
+              icon={<Home className="h-4 w-4 text-muted-foreground" />}
+              value={totals?.distinct_properties_cleaned ?? 0}
+              loading={isLoading}
+              description="Properties cleaned via AcornArranger"
+            />
+            <KpiCard
+              title="Staff who served"
+              icon={<Users className="h-4 w-4 text-muted-foreground" />}
+              value={totals?.distinct_staff_used ?? 0}
+              loading={isLoading}
+              description="Total Number of Staff AcornArranger has scheduled"
+            />
+            <KpiCard
+              title="Days planned"
+              icon={<Calendar className="h-4 w-4 text-muted-foreground" />}
+              value={totals?.days_with_sent_plan ?? 0}
+              loading={isLoading}
+              description="Number of days where a schedule was sent"
+            />
+            <KpiCard
+              title="Appointments serviced"
+              icon={<ListChecks className="h-4 w-4 text-muted-foreground" />}
+              value={totals?.distinct_day_appointment_pairs ?? 0}
+              loading={isLoading}
+              description="Total number of appointments serviced"
+            />
+          </div>
+
+          {isLoading || !data ? (
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              <Skeleton className="aspect-[16/9] w-full rounded-xl" />
+              <Skeleton className="aspect-[16/9] w-full rounded-xl" />
+              <Skeleton className="aspect-[16/9] w-full rounded-xl" />
+            </div>
+          ) : (
+            <LifetimeMetricsCharts
+              appointmentsPerDay={data.appointments_per_day}
+              teamSize={data.team_size_distribution}
+              teamsPerDay={data.teams_per_day_distribution}
+            />
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+
+function describeLifetimeRange(
+  totals: DashboardLifetimeMetrics["totals"] | undefined
+): string {
+  if (!totals) return "Loading lifetime usage…";
+  const { earliest_plan_date, latest_plan_date, days_with_sent_plan } = totals;
+  if (!earliest_plan_date || !latest_plan_date || days_with_sent_plan === 0) {
+    return "Send your first plan to start tracking program-wide totals.";
+  }
+  if (earliest_plan_date === latest_plan_date) {
+    return `Since ${earliest_plan_date} AcornArranger has scheduled ${days_with_sent_plan.toLocaleString()} day.`;
+  }
+  return `From ${earliest_plan_date} to ${latest_plan_date} AcornArranger was used to schedule ${days_with_sent_plan.toLocaleString()} days.`;
 }
 
 function describeDelta(delta: number, loading: boolean): string {

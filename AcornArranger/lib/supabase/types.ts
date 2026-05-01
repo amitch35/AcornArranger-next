@@ -871,17 +871,51 @@ export type Database = {
         }
         Returns: undefined
       }
+      commit_schedule_plan: {
+        Args: { p_plan: Json; p_plan_date: string }
+        Returns: Json
+      }
       copy_schedule_plan: {
         Args: { schedule_date: string }
         Returns: undefined
       }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      get_build_problem_payload: {
+        Args: {
+          p_available_staff: number[]
+          p_cleaning_window?: number
+          p_max_hours?: number
+          p_office_location?: unknown
+          p_omissions?: number[]
+          p_plan_date: string
+          p_services: number[]
+          p_target_staff_count?: number
+        }
+        Returns: Json
+      }
+      get_dashboard_lifetime_metrics: { Args: never; Returns: Json }
       get_geom_and_placeid_from_address: {
         Args: { address: string }
         Returns: Record<string, unknown>
       }
       get_geom_from_address: { Args: { address: string }; Returns: unknown }
       get_rc_token: { Args: never; Returns: string }
+      get_staff_pairing_affinity: {
+        Args: { p_lookback_days?: number }
+        Returns: {
+          score: number
+          staff_a_id: number
+          staff_b_id: number
+        }[]
+      }
+      get_staff_property_affinity: {
+        Args: { p_lookback_days?: number }
+        Returns: {
+          property_id: number
+          score: number
+          staff_id: number
+        }[]
+      }
       get_staff_shifts: {
         Args: { date_from: string; date_to: string }
         Returns: Json
