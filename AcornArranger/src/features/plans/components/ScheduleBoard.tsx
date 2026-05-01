@@ -4,8 +4,6 @@ import * as React from "react";
 import {
   DndContext,
   DragOverlay,
-  useDroppable,
-  useDraggable,
   type DragEndEvent,
   type DragStartEvent,
   PointerSensor,
@@ -13,7 +11,6 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
 import { BacklogPanel, BACKLOG_DROPPABLE } from "./BacklogPanel";
 import { PlanColumn, STAFF_DRAGGABLE_PREFIX } from "./PlanColumn";
 import type { Plan, PlanAppointment } from "../schemas";

@@ -29,13 +29,12 @@ export function Sidebar() {
   // the persisted desktop "rail collapsed" preference.
   const effectiveCollapsed = sidebarCollapsed && !mobileSidebarOpen;
 
-  // TODO: Get real user context from auth when available
-  // For now, assume all users are authenticated
+  // The sidebar only renders inside the protected shell; middleware already
+  // blocks unauthenticated users from reaching these routes. `UserContext`
+  // stays wired in so future role-gated nav items can set `visible` predicates
+  // without reshaping the component.
   const userContext: UserContext = React.useMemo(
-    () => ({
-      isAuthenticated: true,
-      // Add roles here when auth system provides them
-    }),
+    () => ({ isAuthenticated: true }),
     []
   );
 

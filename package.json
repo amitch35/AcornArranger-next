@@ -1,4 +1,7 @@
 {
+  "name": "acornarranger-next",
+  "description": "AcornArranger monorepo: Next.js web app plus Python VRPTW scheduler sidecar. See README.md for the quick start.",
+  "private": true,
   "dependencies": {
     "task-master-ai": "^0.25.1"
   }

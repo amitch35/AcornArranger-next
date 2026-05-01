@@ -49,6 +49,7 @@ max_client_conn = 100
 
 [db.vault]
 HB_API_KEY = "env(HB_API_KEY)"
+HB_location_uuid = "env(HB_LOCATION_UUID)
 # secret_key = "env(SECRET_VALUE)"
 
 [db.migrations]

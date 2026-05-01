@@ -3,7 +3,6 @@ import {
   AppointmentStatusSchema,
   AppointmentPropertyInfoSchema,
   AppointmentStaffMemberSchema,
-  AppointmentServiceInfoSchema,
   AppointmentRowSchema,
   AppointmentListResponseSchema,
   formatAppointmentStaffName,

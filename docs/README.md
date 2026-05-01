@@ -1,82 +1,22 @@
-# AcornArranger Next.js Rebuild - Documentation
+# `docs/`
 
-This directory contains the comprehensive planning and design documentation for the AcornArranger Next.js rebuild project.
+Supplementary product and design notes for AcornArranger. For the live architecture, always prefer the code and the package READMEs:
 
-## 📚 **Documentation Overview**
+- [`README.md`](../README.md) — monorepo quick start and production deploy.
+- [`AcornArranger/README.md`](../AcornArranger/README.md) — Next.js app architecture.
+- [`acornarranger-scheduler/README.md`](../acornarranger-scheduler/README.md) — Python VRPTW sidecar.
+- [`.taskmaster/docs/acornarranger-rebuild-prd.txt`](../.taskmaster/docs/acornarranger-rebuild-prd.txt) — rebuild PRD.
 
-### **Core Planning Documents**
+## Current documents
 
-#### **`scope.md`**
-- **Purpose**: Project scope, milestones, and implementation phases
-- **Use Case**: High-level project planning and progress tracking
-- **Audience**: Project managers, developers, stakeholders
-- **Key Content**: 
-  - Technology choices and architecture decisions
-  - Milestone definitions and acceptance criteria
-  - Implementation phases and dependencies
-  - Task Master AI integration and task structure
+None at the moment. This directory exists to hold living documents that supplement (not duplicate) the READMEs. Add one here whenever a topic outgrows a README section and is expected to stay current.
 
-#### **`ui-plan.md`**
-- **Purpose**: Comprehensive UI design and component architecture
-- **Use Case**: UI/UX design decisions and component planning
-- **Audience**: Frontend developers, designers, product managers
-- **Key Content**:
-  - Layout architecture (header, sidebar, main content)
-  - Page-by-page UI design specifications
-  - Component library and design patterns
-  - User experience improvements and interactions
+## Archive
 
-#### **`page-structure.md`**
-- **Purpose**: Complete page structure, routing, and navigation architecture
-- **Use Case**: Application routing and page organization
-- **Audience**: Full-stack developers, architects
-- **Key Content**:
-  - Next.js App Router structure and layouts
-  - Page routes and access control matrix
-  - Navigation patterns and breadcrumbs
-  - File organization and component structure
+[`archive/`](archive/) holds early design-era documents that shaped the rebuild. They are preserved for context and may not reflect the current implementation — in particular, none of them describe the Python VRPTW sidecar that was added later, and path references use `app/protected/` rather than the actual `app/(protected)/` route group.
 
-### **Supporting Documents**
+- [`archive/scope.md`](archive/scope.md) — rebuild vision, tech choices, milestones, and phase checklists.
+- [`archive/ui-plan.md`](archive/ui-plan.md) — wireframes and UX layout spec.
+- [`archive/page-structure.md`](archive/page-structure.md) — App Router route matrix and navigation blueprint.
 
-#### **`.taskmaster/docs/acornarranger-rebuild-prd.txt`**
-- **Purpose**: Product Requirements Document for Task Master AI
-- **Use Case**: AI-powered task generation and project management
-- **Audience**: Task Master AI system, project managers
-- **Key Content**: 
-  - Product requirements and feature specifications
-  - User personas and workflows
-  - Technical requirements and constraints
-
-## 🚀 **How to Use These Documents**
-
-### **For New Developers**
-1. Start with `scope.md` to understand the project overview
-2. Review `ui-plan.md` for UI/UX design decisions
-3. Use `page-structure.md` for routing and architecture implementation
-
-### **For Project Planning**
-1. Use `scope.md` for milestone tracking and phase planning
-2. Reference `ui-plan.md` for design decisions and user experience
-3. Consult `page-structure.md` for technical implementation details
-
-### **For Development**
-1. Follow `page-structure.md` for file organization and routing
-2. Implement UI components according to `ui-plan.md`
-3. Track progress using `scope.md` milestones
-
-## 📋 **Document Maintenance**
-
-- **Update Frequency**: These documents should be updated as the project evolves
-- **Version Control**: All changes are tracked in the update log within each document
-- **Cross-References**: Documents reference each other for consistency
-- **Living Documents**: These are working documents, not static specifications
-
-## 🔗 **Related Resources**
-
-- **Project Root**: Contains the actual Next.js application code
-- **Task Master**: AI-powered project management and task generation
-- **Legacy System**: Reference implementation in `AcornArranger-legacy/`
-
----
-
-*This documentation serves as the single source of truth for the AcornArranger Next.js rebuild project. Keep it updated and accurate as the project progresses.*
+Treat anything in `archive/` as a historical snapshot. If you need to rely on a claim, verify it against the code or the package READMEs first.

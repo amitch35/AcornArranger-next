@@ -1,0 +1,45 @@
+; Acorn Arranger Next.js web server
+;
+; Sample systemd unit. Copy to /etc/systemd/system/acorn-web.service on the
+; Linode VPS, then:
+;   sudo systemctl daemon-reload
+;   sudo systemctl enable --now acorn-web.service
+;
+; Deliberately does NOT declare Requires=acorn-scheduler.service. The scheduler
+; sidecar is only needed by the VRPTW build path; the legacy RPC engine is a
+; full fallback. A dead sidecar must not take this process down.
+;
+; If you want boot ordering when both units are started as part of the same
+; transaction (e.g. at host boot), uncomment the Wants=/After= lines below.
+; They are advisory: scheduler failure still will not block the web unit.
+
+[Unit]
+Description=Acorn Arranger Next.js
+After=network.target
+Wants=network.target
+; Wants=acorn-scheduler.service
+; After=acorn-scheduler.service
+
+[Service]
+Type=simple
+User=acorn
+Group=acorn
+WorkingDirectory=/opt/acornarranger-web
+EnvironmentFile=/opt/acornarranger-web/.env.production
+Environment=PORT=3000
+ExecStart=/usr/bin/npm run start
+Restart=on-failure
+RestartSec=2
+StartLimitBurst=5
+StartLimitIntervalSec=60
+
+; Hardening
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/acornarranger-web
+PrivateTmp=yes
+PrivateDevices=yes
+
+[Install]
+WantedBy=multi-user.target

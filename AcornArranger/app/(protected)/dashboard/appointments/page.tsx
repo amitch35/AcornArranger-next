@@ -50,7 +50,6 @@ import { saveListUrl } from "@/lib/navigation/listReturnUrl";
  * - Sort: departure_time ASC, next_arrival_time ASC
  */
 
-// Helper to get today's date in YYYY-MM-DD format
 function getTodayDateString(): string {
   const today = new Date();
   const year = today.getFullYear();
@@ -59,7 +58,8 @@ function getTodayDateString(): string {
   return `${year}-${month}-${day}`;
 }
 
-// Helper to format Date object as YYYY-MM-DD in local timezone (no UTC conversion)
+// Formats a Date as YYYY-MM-DD in local time so the URL and API stay in the
+// operator's timezone rather than silently shifting to UTC.
 function formatDateToLocal(date: Date | undefined): string | undefined {
   if (!date) return undefined;
   const year = date.getFullYear();
@@ -67,10 +67,6 @@ function formatDateToLocal(date: Date | undefined): string | undefined {
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
-
-// ============================================================================
-// Status Badge (mirrors Staff page approach)
-// ============================================================================
 
 function AppointmentStatusBadge({
   status,
@@ -81,10 +77,6 @@ function AppointmentStatusBadge({
   const variant = getStatusBadgeVariant(status.status);
   return <Badge variant={variant}>{status.status ?? "Unknown"}</Badge>;
 }
-
-// ============================================================================
-// Staff List Popover (shows all staff members for an appointment)
-// ============================================================================
 
 function StaffListPopover({ staff }: { staff: AppointmentStaffMember[] }) {
   const [open, setOpen] = React.useState(false);
@@ -138,10 +130,6 @@ function StaffListPopover({ staff }: { staff: AppointmentStaffMember[] }) {
   );
 }
 
-// ============================================================================
-// T/A Indicator (simple boolean icon with aria-label)
-// ============================================================================
-
 function TurnAroundIndicator({ value }: { value: boolean | null | undefined }) {
   if (!value) return <span className="text-muted-foreground text-sm">—</span>;
   return (
@@ -151,10 +139,6 @@ function TurnAroundIndicator({ value }: { value: boolean | null | undefined }) {
     />
   );
 }
-
-// ============================================================================
-// Main Page Component
-// ============================================================================
 
 export default function AppointmentsListPage() {
   const router = useRouter();

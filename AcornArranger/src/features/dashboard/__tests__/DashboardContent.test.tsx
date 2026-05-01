@@ -76,14 +76,14 @@ describe("DashboardContent — lifetime metrics section", () => {
   });
 
   it("renders the 'Program-wide totals' heading", () => {
-    globalThis.fetch = mockFetchImplementation() as any;
+    globalThis.fetch = mockFetchImplementation() as unknown as typeof fetch;
     renderWithQueryClient(<DashboardContent />);
 
     expect(screen.getByText("Program-wide totals")).toBeInTheDocument();
   });
 
   it("populates lifetime KPI tiles after the metrics fetch resolves", async () => {
-    globalThis.fetch = mockFetchImplementation() as any;
+    globalThis.fetch = mockFetchImplementation() as unknown as typeof fetch;
     renderWithQueryClient(<DashboardContent />);
 
     await waitFor(() => {
@@ -102,7 +102,7 @@ describe("DashboardContent — lifetime metrics section", () => {
   });
 
   it("shows the since/until caption derived from the totals", async () => {
-    globalThis.fetch = mockFetchImplementation() as any;
+    globalThis.fetch = mockFetchImplementation() as unknown as typeof fetch;
     renderWithQueryClient(<DashboardContent />);
 
     await waitFor(() => {

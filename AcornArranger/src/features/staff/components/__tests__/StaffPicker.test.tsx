@@ -25,7 +25,7 @@ describe("StaffPicker", () => {
       isLoading: false,
       isError: false,
       refetch: vi.fn(),
-    } as any);
+    } as unknown as ReturnType<typeof useStaffOptions>);
 
     renderWithQueryClient(<StaffPicker value={[]} onChange={() => {}} />);
 
@@ -44,10 +44,10 @@ describe("StaffPicker", () => {
       isLoading: false,
       isError: false,
       refetch: vi.fn(),
-    } as any);
+    } as unknown as ReturnType<typeof useStaffOptions>);
 
     const fetchSpy = vi.fn(async () => new Response("{}", { status: 200 }));
-    globalThis.fetch = fetchSpy as any;
+    globalThis.fetch = fetchSpy as unknown as typeof fetch;
 
     const { rerender } = renderWithQueryClient(
       <StaffPicker value={[1]} onChange={() => {}} />
@@ -65,7 +65,7 @@ describe("StaffPicker", () => {
       isLoading: false,
       isError: false,
       refetch: vi.fn(),
-    } as any);
+    } as unknown as ReturnType<typeof useStaffOptions>);
 
     rerender(<StaffPicker value={[1]} onChange={() => {}} />);
 
@@ -85,7 +85,7 @@ describe("StaffPicker", () => {
       isLoading: false,
       isError: false,
       refetch: vi.fn(),
-    } as any);
+    } as unknown as ReturnType<typeof useStaffOptions>);
 
     const onChange = vi.fn();
     renderWithQueryClient(<StaffPicker value={[]} onChange={onChange} />);
@@ -111,7 +111,7 @@ describe("StaffPicker", () => {
       isLoading: false,
       isError: false,
       refetch: vi.fn(),
-    } as any);
+    } as unknown as ReturnType<typeof useStaffOptions>);
 
     const onChange = vi.fn();
     renderWithQueryClient(<StaffPicker value={[]} onChange={onChange} />);
@@ -136,7 +136,7 @@ describe("StaffPicker", () => {
       isLoading: false,
       isError: false,
       refetch: vi.fn(),
-    } as any);
+    } as unknown as ReturnType<typeof useStaffOptions>);
 
     const onChange = vi.fn();
     // Alice (id=1) is already selected
@@ -158,7 +158,7 @@ describe("StaffPicker", () => {
       isLoading: false,
       isError: false,
       refetch: vi.fn(),
-    } as any);
+    } as unknown as ReturnType<typeof useStaffOptions>);
 
     renderWithQueryClient(<StaffPicker value={[1]} onChange={() => {}} />);
 
@@ -173,7 +173,7 @@ describe("StaffPicker", () => {
       isLoading: true,
       isError: false,
       refetch: vi.fn(),
-    } as any);
+    } as unknown as ReturnType<typeof useStaffOptions>);
 
     renderWithQueryClient(<StaffPicker value={[]} onChange={() => {}} />);
 

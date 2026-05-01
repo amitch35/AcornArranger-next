@@ -113,26 +113,6 @@ export async function solveWithSidecar(
   return parsed;
 }
 
-/** Liveness probe; optional - used by the route to short-circuit on outage. */
-export async function pingSidecar(opts?: { timeoutMs?: number }): Promise<boolean> {
-  const url = `${schedulerBaseUrl()}/health`;
-  const controller = new AbortController();
-  const timeoutMs = opts?.timeoutMs ?? 2_000;
-  const timeout = setTimeout(() => controller.abort("timeout"), timeoutMs);
-  try {
-    const res = await fetch(url, { method: "GET", signal: controller.signal });
-    return res.ok;
-  } catch {
-    return false;
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-// -----------------------------------------------------------------------------
-// Runtime validation helpers (intentionally structural - keep dependencies low)
-// -----------------------------------------------------------------------------
-
 function isSolveResponse(value: unknown): value is SolveResponse {
   if (!value || typeof value !== "object") return false;
   const v = value as Record<string, unknown>;

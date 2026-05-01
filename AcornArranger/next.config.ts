@@ -11,6 +11,12 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: appDir,
   },
+  // Lint runs as its own CI gate via `npm run lint`; we do not want
+  // accumulated `any` / `no-unescaped-entities` issues in tests and legacy
+  // components to block production builds on the VPS. TODO: remove this once we have a proper ESLint config or tests are fixed.
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 export default nextConfig;

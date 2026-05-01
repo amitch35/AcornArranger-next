@@ -43,17 +43,16 @@ export const GET = withAuth(async (req: NextRequest) => {
 
     let query = base.select(select, { count: "exact" });
 
-    // Apply filters
     if (q) query = query.ilike("property_name", `%${q}%`);
     if (statusIds && statusIds.length) query = query.in("status_id", statusIds);
-    
-    // City filter - use inner join to filter properties by address city
+
+    // City filter uses an inner join on rc_addresses to restrict parent rows.
     const cityTrim = city ? city.trim() : undefined;
     if (cityTrim) {
       query = query.ilike("rc_addresses.city", `${cityTrim}%`);
     }
 
-    // Apply cleaning time range filters (inclusive, excludes nulls)
+    // Cleaning-time range is inclusive on both ends and excludes null rows.
     if (cleaningTimeMin !== undefined && Number.isFinite(cleaningTimeMin)) {
       query = query.gte("estimated_cleaning_mins", cleaningTimeMin);
     }
@@ -61,7 +60,7 @@ export const GET = withAuth(async (req: NextRequest) => {
       query = query.lte("estimated_cleaning_mins", cleaningTimeMax);
     }
 
-    // Apply dynamic sort (fallback to status_id asc, then property_name asc - matches legacy)
+    // Fallback sort (status_id asc, property_name asc) matches legacy behavior.
     const { parseSortParam } = await import("@/lib/api/sort");
     const rules = parseSortParam(sort, {
       id: "properties_id",
