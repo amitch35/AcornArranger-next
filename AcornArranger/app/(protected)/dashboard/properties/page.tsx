@@ -465,8 +465,6 @@ export default function PropertiesListPage() {
       <DataTable
         columns={columns}
         data={data?.items || []}
-        total={data?.total}
-        page={page}
         pageSize={pageSize}
         manualSorting
         loading={isLoading}

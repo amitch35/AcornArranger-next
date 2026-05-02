@@ -610,8 +610,6 @@ export default function AppointmentsListPage() {
       <DataTable
         columns={columns}
         data={data?.items || []}
-        total={data?.total}
-        page={page}
         pageSize={pageSize}
         manualSorting
         loading={isLoading}

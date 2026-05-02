@@ -23,8 +23,6 @@ describe('a11y - datagrid and filters', () => {
       <DataTable<Item, unknown>
         columns={columns}
         data={[]}
-        total={0}
-        page={1}
         pageSize={10}
         loading
       />
@@ -36,8 +34,6 @@ describe('a11y - datagrid and filters', () => {
       <DataTable<Item, unknown>
         columns={columns}
         data={[]}
-        total={0}
-        page={1}
         pageSize={10}
         loading={false}
         error={null}
@@ -50,8 +46,6 @@ describe('a11y - datagrid and filters', () => {
       <DataTable<Item, unknown>
         columns={columns}
         data={[{ id: 1, name: 'A' }]}
-        total={1}
-        page={1}
         pageSize={10}
         loading={false}
       />
