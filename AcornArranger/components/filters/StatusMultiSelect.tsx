@@ -57,7 +57,11 @@ export function StatusMultiSelect({
     onClearNotice?.(value.length, selectedLabels.slice(0, 3));
   };
 
-  // Prune selections no longer present in options
+  // Prune selections no longer present in options.
+  // Intentionally only re-runs when `options` change: `value`/`onChange`/
+  // `onClearNotice` are excluded to avoid an infinite loop when parents pass
+  // unmemoized callbacks (the effect itself calls `onChange`, which would
+  // re-run the effect on the next render with a new function reference).
   React.useEffect(() => {
     if (value.length === 0) return;
     const validSet = new Set(options.map((o) => o.value));
@@ -70,6 +74,7 @@ export function StatusMultiSelect({
         .map((o) => o.label);
       onClearNotice?.(invalid.length, removedLabels.slice(0, 3));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options]);
 
   const selectedSummary = selectedLabels.length === 0

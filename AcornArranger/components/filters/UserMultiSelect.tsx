@@ -68,7 +68,11 @@ export function UserMultiSelect({
     onClearNotice?.(value.length, selectedLabels.slice(0, 3));
   };
 
-  // Prune selections no longer present in options
+  // Prune selections no longer present in options.
+  // Intentionally only re-runs when `options` change: `value`/`onChange`/
+  // `onClearNotice` are excluded to avoid an infinite loop when parents pass
+  // unmemoized callbacks (the effect itself calls `onChange`, which would
+  // re-run the effect on the next render with a new function reference).
   React.useEffect(() => {
     if (value.length === 0) return;
     const validSet = new Set(options.map((o) => o.value));
@@ -81,16 +85,24 @@ export function UserMultiSelect({
         .map((o) => o.label);
       onClearNotice?.(invalid.length, removedLabels.slice(0, 3));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options]);
 
-  // Remote search support: debounce and call loadOptions
+  // Stable key for statusIds array contents (avoids resubscribing on each
+  // parent render when the array reference changes but contents don't).
+  const statusIdsKey = statusIds.join(",");
+
+  // Remote search support: debounce and call loadOptions.
+  // `loadOptions` is intentionally omitted to avoid resetting the debounce on
+  // every parent render when the callback isn't memoized.
   React.useEffect(() => {
     if (!loadOptions) return;
     const controller = setTimeout(() => {
       loadOptions({ q: searchValue || undefined, canClean, statusIds, excludePlanId });
     }, 300);
     return () => clearTimeout(controller);
-  }, [searchValue, canClean, statusIds.join(","), excludePlanId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchValue, canClean, statusIdsKey, excludePlanId]);
 
   const selectedSummary = selectedLabels.length === 0
     ? label

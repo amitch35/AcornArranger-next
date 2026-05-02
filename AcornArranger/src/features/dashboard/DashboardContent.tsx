@@ -149,9 +149,21 @@ export function DashboardContent() {
     refetchOnWindowFocus: false,
   });
 
-  const weekAppointments = weekAppointmentsQuery.data?.items ?? [];
-  const unscheduledAppointments = unscheduledQuery.data?.items ?? [];
-  const shifts = shiftsQuery.data ?? [];
+  // Memoize the empty-array fallbacks so the `?? []` doesn't allocate a fresh
+  // reference on every render — without this, every downstream useMemo that
+  // depends on these arrays invalidates each render, defeating memoization.
+  const weekAppointments = React.useMemo(
+    () => weekAppointmentsQuery.data?.items ?? [],
+    [weekAppointmentsQuery.data]
+  );
+  const unscheduledAppointments = React.useMemo(
+    () => unscheduledQuery.data?.items ?? [],
+    [unscheduledQuery.data]
+  );
+  const shifts = React.useMemo(
+    () => shiftsQuery.data ?? [],
+    [shiftsQuery.data]
+  );
 
   // ---- Per-day buckets for the chart ----
   const chartData: WeeklyChartPoint[] = React.useMemo(() => {

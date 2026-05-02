@@ -5,6 +5,9 @@ import { FlatCompat } from "@eslint/eslintrc";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Bridge legacy eslintrc configs (eslint-config-next 15.x ships them) into
+// ESLint 9 flat config. Once eslint-config-next exposes flat config natively,
+// this can be replaced with direct imports.
 const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
@@ -39,6 +42,9 @@ const eslintConfig = [
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
     },
+  },
+  {
+    ignores: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts"],
   },
 ];
 

@@ -71,6 +71,10 @@ export function ServiceMultiSelect({
   // Prune selections no longer present in options.
   // Guard: skip when options haven't loaded yet — an empty list means "not ready",
   // not "all options removed", and we must not wipe pre-initialized defaults.
+  // Intentionally only re-runs when `options` change: `value`/`onChange`/
+  // `onClearNotice` are excluded to avoid an infinite loop when parents pass
+  // unmemoized callbacks (the effect itself calls `onChange`, which would
+  // re-run the effect on the next render with a new function reference).
   React.useEffect(() => {
     if (value.length === 0) return;
     if (options.length === 0) return;
@@ -84,6 +88,7 @@ export function ServiceMultiSelect({
         .map((o) => o.label);
       onClearNotice?.(invalid.length, removedLabels.slice(0, 3));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options]);
 
   const selectedSummary =

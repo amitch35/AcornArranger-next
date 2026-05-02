@@ -83,8 +83,11 @@ export function PropertyMultiSelect({
     onClearNotice?.(value.length, selectedLabels.slice(0, 3));
   };
 
-  // Prune selections no longer present in options
-  // Skip in remote loading mode - options are filtered by search, not actually deleted
+  // Prune selections no longer present in options.
+  // Intentionally only re-runs when `options` change: `value`/`onChange`/
+  // `onClearNotice` are excluded to avoid an infinite loop when parents pass
+  // unmemoized callbacks (the effect itself calls `onChange`, which would
+  // re-run the effect on the next render with a new function reference).
   React.useEffect(() => {
     if (loadOptions) return; // Remote mode: don't prune during search filtering
     if (value.length === 0) return;
@@ -98,9 +101,16 @@ export function PropertyMultiSelect({
         .map((o) => o.label);
       onClearNotice?.(invalid.length, removedLabels.slice(0, 3));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options, loadOptions]);
 
-  // Remote search support: debounce and call loadOptions
+  // Stable key for statusIds array contents (avoids resubscribing on each
+  // parent render when the array reference changes but contents don't).
+  const statusIdsKey = statusIds?.join(",");
+
+  // Remote search support: debounce and call loadOptions.
+  // `loadOptions` is intentionally omitted to avoid resetting the debounce on
+  // every parent render when the callback isn't memoized.
   React.useEffect(() => {
     if (!loadOptions) return;
     const controller = setTimeout(() => {
@@ -108,7 +118,8 @@ export function PropertyMultiSelect({
       loadOptions({ q: searchValue || undefined, city, statusIds: effectiveStatusIds });
     }, 300);
     return () => clearTimeout(controller);
-  }, [searchValue, city, statusIds?.join(","), onlyActive]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchValue, city, statusIdsKey, onlyActive]);
 
   const selectedSummary = selectedLabels.length === 0
     ? label

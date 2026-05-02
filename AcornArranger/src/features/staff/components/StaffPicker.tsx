@@ -101,7 +101,9 @@ export function StaffPicker({
   const missingSelectedIds = React.useMemo(
     () => selectedIds.filter((id) => !labelCacheRef.current.has(id)),
     // baseOptions is intentionally a dep: it triggers re-evaluation right
-    // after the cache loop above has populated newly-arrived labels.
+    // after the cache loop above has populated newly-arrived labels. ESLint
+    // can't see that dependency through the ref, so it flags it as unnecessary.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [selectedIds, baseOptions]
   );
 
