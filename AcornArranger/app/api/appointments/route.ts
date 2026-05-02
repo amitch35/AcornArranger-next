@@ -186,7 +186,21 @@ export const GET = withAuth(async (req: NextRequest) => {
     }
 
     // Flatten the nested staff join into a clean array
-    const items = (data ?? []).map((row: any) => ({
+    type AppointmentRow = {
+      id: number;
+      appointment_id: number;
+      departure_time: string | null;
+      arrival_time: string | null;
+      next_arrival_time: string | null;
+      turn_around: number | null;
+      cancelled_date: string | null;
+      created_at: string;
+      status: unknown;
+      property_info: unknown;
+      service_info: unknown;
+      staff?: Array<{ staff_detail: unknown }>;
+    };
+    const items = ((data ?? []) as unknown as AppointmentRow[]).map((row) => ({
       id: row.id,
       appointment_id: row.appointment_id,
       departure_time: row.departure_time,
@@ -198,20 +212,16 @@ export const GET = withAuth(async (req: NextRequest) => {
       status: row.status,
       property_info: row.property_info,
       service_info: row.service_info,
-      staff: (row.staff ?? [])
-        .map((s: any) => s.staff_detail)
-        .filter(Boolean),
+      staff: (row.staff ?? []).map((s) => s.staff_detail).filter(Boolean),
     }));
 
     return NextResponse.json(
       { items, total: count ?? 0 },
       { status: 200 }
     );
-  } catch (err: any) {
-    return NextResponse.json(
-      { error: err?.message ?? "Unknown error" },
-      { status: 500 }
-    );
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 });
 

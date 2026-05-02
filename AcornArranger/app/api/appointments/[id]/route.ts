@@ -71,17 +71,17 @@ export const GET = withAuth<{ params: { id: string } }, NextRequest>(
         status: data.status,
         property_info: data.property_info,
         service_info: data.service_info,
-        staff: ((data as any).staff ?? [])
-          .map((s: any) => s.staff_detail)
+        staff: (
+          (data as { staff?: Array<{ staff_detail: unknown }> }).staff ?? []
+        )
+          .map((s) => s.staff_detail)
           .filter(Boolean),
       };
 
       return NextResponse.json(result, { status: 200 });
-    } catch (err: any) {
-      return NextResponse.json(
-        { error: err?.message ?? "Unknown error" },
-        { status: 500 }
-      );
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      return NextResponse.json({ error: message }, { status: 500 });
     }
   }
 );

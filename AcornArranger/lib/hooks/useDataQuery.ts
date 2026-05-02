@@ -62,12 +62,12 @@ function safeParseJson(input: string): unknown {
 
 function defaultSelect<TData>(raw: unknown): { data: TData; total: number } {
   if (raw && typeof raw === "object") {
-    const anyRaw = raw as any;
-    if (Array.isArray(anyRaw.data) && typeof anyRaw.total === "number") {
-      return { data: anyRaw.data as TData, total: anyRaw.total as number };
+    const obj = raw as { data?: unknown; items?: unknown; total?: unknown };
+    if (Array.isArray(obj.data) && typeof obj.total === "number") {
+      return { data: obj.data as TData, total: obj.total };
     }
-    if (Array.isArray(anyRaw.items) && typeof anyRaw.total === "number") {
-      return { data: anyRaw.items as TData, total: anyRaw.total as number };
+    if (Array.isArray(obj.items) && typeof obj.total === "number") {
+      return { data: obj.items as TData, total: obj.total };
     }
   }
   if (Array.isArray(raw)) {
@@ -105,7 +105,7 @@ export function useDataQuery<
       const stored = window.localStorage.getItem(`${storageKey}:pageSize`);
       const n = stored ? Number(stored) : undefined;
       if (Number.isFinite(n) && n! >= 1) {
-        return { ...(base as any), pageSize: Math.trunc(n!) } as TFilters;
+        return { ...(base as Record<string, unknown>), pageSize: Math.trunc(n!) } as TFilters;
       }
     }
     return base as TFilters;
@@ -116,15 +116,15 @@ export function useDataQuery<
       if (!storageKey || typeof window === "undefined") return {};
       const raw = window.localStorage.getItem(`${storageKey}:columnVisibility`);
       const parsed = safeParseJson(raw ?? "");
-      return (parsed && typeof parsed === "object" ? (parsed as any) : {}) as Record<string, boolean>;
+      return (parsed && typeof parsed === "object" ? parsed : {}) as Record<string, boolean>;
     }
   );
 
   // Persist pageSize and column visibility
   useEffect(() => {
     if (!storageKey || typeof window === "undefined") return;
-    const ps = (filters as any).pageSize;
-    if (Number.isFinite(ps) && ps >= 1) {
+    const ps = (filters as { pageSize?: unknown }).pageSize;
+    if (typeof ps === "number" && Number.isFinite(ps) && ps >= 1) {
       window.localStorage.setItem(`${storageKey}:pageSize`, String(Math.trunc(ps)));
     }
   }, [filters, storageKey]);
@@ -201,16 +201,16 @@ export function useDataQuery<
   }, [filtersSchema]);
 
   const setSort = useCallback((sort: string | undefined) => {
-    setFilters((prev) => ({ ...(prev as any), sort }) as TFilters);
+    setFilters((prev) => ({ ...(prev as Record<string, unknown>), sort }) as TFilters);
   }, [setFilters]);
 
   const setPage = useCallback((page: number) => {
-    setFilters((prev) => ({ ...(prev as any), page: Math.max(1, Math.trunc(page)) }) as TFilters);
+    setFilters((prev) => ({ ...(prev as Record<string, unknown>), page: Math.max(1, Math.trunc(page)) }) as TFilters);
   }, [setFilters]);
 
   const setPageSize = useCallback((pageSize: number) => {
     const n = Math.max(1, Math.trunc(pageSize));
-    setFilters((prev) => ({ ...(prev as any), pageSize: n }) as TFilters);
+    setFilters((prev) => ({ ...(prev as Record<string, unknown>), pageSize: n }) as TFilters);
   }, [setFilters]);
 
   const clearAll = useCallback(() => {

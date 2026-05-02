@@ -31,7 +31,6 @@ export function usePropertyOptions(params: PropertyOptionsParams = {}) {
         if (!res.ok) throw new Error("Failed to load property options");
         return res.json();
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.error("usePropertyOptions error:", err);
         throw err;
       }

@@ -8,7 +8,6 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -54,7 +53,7 @@ export function TableToolbar<TData>({ table, onSearch, creating, onCreate }: Tab
             {table.getAllLeafColumns().map((column) => {
               if (column.columnDef.enableHiding === false) return null;
               const header = column.columnDef.header as unknown;
-              const metaLabel = (column.columnDef as any)?.meta?.label as string | undefined;
+              const metaLabel = (column.columnDef as { meta?: { label?: string } })?.meta?.label;
               const label =
                 typeof header === "string"
                   ? header

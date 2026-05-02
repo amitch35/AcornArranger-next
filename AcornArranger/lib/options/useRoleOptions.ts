@@ -11,7 +11,6 @@ export function useRoleOptions() {
         if (!res.ok) throw new Error("Failed to load role options");
         return res.json();
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.error("useRoleOptions error:", err);
         throw err;
       }

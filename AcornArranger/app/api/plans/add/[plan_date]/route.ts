@@ -19,7 +19,7 @@ export const POST = withMinRole(
 
       const supabase = await createClient();
 
-      const { data, error, status } = await supabase.rpc("plan_create_new", {
+      const { data, error } = await supabase.rpc("plan_create_new", {
         target_plan_date: planDate,
       });
 

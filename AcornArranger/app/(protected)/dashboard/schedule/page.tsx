@@ -587,7 +587,7 @@ export default function SchedulePage() {
                       </p>
                       <p>
                         Higher = the solver is more likely to send a
-                        "specialist team" to their most commonly assigned properties even if
+                        &ldquo;specialist team&rdquo; to their most commonly assigned properties even if
                         travel is a bit longer.
                       </p>
                       <p>

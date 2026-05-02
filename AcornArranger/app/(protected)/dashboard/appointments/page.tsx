@@ -200,8 +200,8 @@ export default function AppointmentsListPage() {
     queryFn: async () => {
       const res = await fetch("/api/options/appointment-status");
       if (!res.ok) throw new Error("Failed to load appointment statuses");
-      const data = await res.json();
-      return data.options.map((opt: any) => ({
+      const data: { options: Array<{ id: string | number; label: string }> } = await res.json();
+      return data.options.map((opt) => ({
         value: String(opt.id),
         label: opt.label,
       }));
@@ -217,8 +217,8 @@ export default function AppointmentsListPage() {
     queryFn: async () => {
       const res = await fetch("/api/options/services");
       if (!res.ok) throw new Error("Failed to load services");
-      const data = await res.json();
-      return data.options.map((opt: any) => ({
+      const data: { options: Array<{ id: string | number; label: string }> } = await res.json();
+      return data.options.map((opt) => ({
         value: String(opt.id),
         label: opt.label,
       }));

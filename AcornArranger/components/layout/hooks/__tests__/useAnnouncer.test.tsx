@@ -3,8 +3,6 @@ import { renderHook, act } from "@testing-library/react";
 import { useAnnouncer } from "../useAnnouncer";
 
 describe("useAnnouncer", () => {
-  let announcer: HTMLDivElement | null;
-
   beforeEach(() => {
     // Clean up any existing announcers
     const existing = document.querySelector('[role="status"]');
@@ -22,7 +20,7 @@ describe("useAnnouncer", () => {
   });
 
   it("creates ARIA live region on mount", () => {
-    const { result } = renderHook(() => useAnnouncer());
+    renderHook(() => useAnnouncer());
 
     // Wait for effect to run
     act(() => {

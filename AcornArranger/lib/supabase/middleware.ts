@@ -89,7 +89,7 @@ export async function updateSession(request: NextRequest) {
     }
 
     // Extract role from JWT claims
-    const userRoleClaim = (user as any)?.user_role as string | undefined;
+    const userRoleClaim = (user as { user_role?: string } | null | undefined)?.user_role;
     const role: Role = 
       userRoleClaim && ROLE_ORDER.includes(userRoleClaim as Role)
         ? (userRoleClaim as Role)

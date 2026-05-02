@@ -26,7 +26,8 @@ function formatRange(value: DateRange | undefined): string {
 
 export function DateRangePicker({ label = "Date Range", value, onChange, disabled, id, className }: DateRangePickerProps) {
   const [open, setOpen] = React.useState(false);
-  const buttonId = id ?? React.useId();
+  const generatedId = React.useId();
+  const buttonId = id ?? generatedId;
 
   const setPreset = (preset: "today" | "yesterday" | "tomorrow" | "thisWeek" | "nextWeek" | "thisMonth" | "lastMonth") => {
     const now = new Date();

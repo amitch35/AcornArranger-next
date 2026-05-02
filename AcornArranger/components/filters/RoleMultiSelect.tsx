@@ -36,7 +36,8 @@ export function RoleMultiSelect({
   onClearNotice,
 }: RoleMultiSelectProps) {
   const [open, setOpen] = React.useState(false);
-  const buttonId = id ?? React.useId();
+  const generatedId = React.useId();
+  const buttonId = id ?? generatedId;
   const labelCacheRef = React.useRef<Map<string, string>>(new Map());
 
   const selectedSet = React.useMemo(() => new Set(value), [value]);

@@ -88,19 +88,17 @@ export function createMockSupabaseClient(options: {
   status?: number;
 } = {}) {
   const { error = null } = options;
-  // Default status: 500 if error present, otherwise 200
   const status = options.status ?? (error ? 500 : 200);
-  let data = options.data;
-  
+  const data = options.data;
+
   // Normalize data to always be an array for consistent handling, except for explicit null
-  const dataArray = 
-    data === null ? [] : 
-    Array.isArray(data) ? data : 
+  const dataArray =
+    data === null ? [] :
+    Array.isArray(data) ? data :
     data !== undefined ? [data] : [];
-  
-  const resolvedData = data === null ? null : dataArray;
+
   // Use nullish coalescing to allow explicit count: 0
-  // Don't use destructuring default to avoid overriding explicit 0
+  // (avoid destructuring default since that would override explicit 0)
   const count = options.count ?? dataArray.length;
 
   if (error) {

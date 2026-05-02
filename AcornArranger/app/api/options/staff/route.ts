@@ -87,8 +87,9 @@ export async function GET(req: NextRequest) {
     const rows = (data ?? []) as unknown as Array<{ user_id: number | string | null; name: string | null }>;
     const options = rows.map((row) => ({ id: row.user_id as number | string, label: row.name ?? String(row.user_id) }));
     return NextResponse.json({ options, total: count ?? 0 }, { status: 200 });
-  } catch (err: any) {
-    return NextResponse.json({ error: err?.message ?? "Unknown error" }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 

@@ -47,8 +47,6 @@ export type DataTableProps<TData, TValue> = {
 export function DataTable<TData, TValue>({
   columns,
   data,
-  total,
-  page = 1,
   pageSize = 25,
   loading,
   error,

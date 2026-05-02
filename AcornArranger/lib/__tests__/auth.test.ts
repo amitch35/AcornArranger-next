@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { hasAtLeastRole, type Role } from '../auth';
 
 describe('auth helpers', () => {

@@ -24,7 +24,7 @@ export const POST = withMinRole(
 
       const supabase = await createClient();
 
-      const { data, error, status } = await supabase.rpc("plan_add_staff", {
+      const { error } = await supabase.rpc("plan_add_staff", {
         staff_to_add: userId,
         target_plan: planId,
       });

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { NextRequest, NextResponse } from 'next/server';
-import { createMockRequest, mockClaims } from './test-utils';
+import { NextRequest } from 'next/server';
+import { mockClaims } from './test-utils';
 
 // Mock the Supabase SSR module
 vi.mock('@supabase/ssr', () => ({

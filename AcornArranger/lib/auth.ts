@@ -39,7 +39,7 @@ export async function getCurrentRole(): Promise<Role> {
   }
 
   const { data: claimsData } = await supabase.auth.getClaims();
-  const userRoleClaim = (claimsData?.claims as any)?.user_role as string | undefined;
+  const userRoleClaim = (claimsData?.claims as { user_role?: string } | undefined)?.user_role;
 
   // Validate the claim against our known roles
   if (userRoleClaim && ROLE_ORDER.includes(userRoleClaim as Role)) {

@@ -36,7 +36,6 @@ export function useStaffOptions(params: StaffOptionsParams = { statusIds: [1], c
         if (!res.ok) throw new Error("Failed to load staff options");
         return res.json();
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.error("useStaffOptions error:", err);
         throw err;
       }

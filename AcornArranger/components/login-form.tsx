@@ -42,7 +42,7 @@ export function LoginForm({
       
       // Get user role from JWT claims for role-based redirect
       const { data: claimsData } = await supabase.auth.getClaims();
-      const userRole = (claimsData?.claims as any)?.user_role;
+      const userRole = (claimsData?.claims as { user_role?: string } | undefined)?.user_role;
       const redirectParam = searchParams.get("redirect");
 
       // Basic safety: only allow same-origin, path-only redirects

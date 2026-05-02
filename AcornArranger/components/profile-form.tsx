@@ -25,7 +25,7 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 
 interface ProfileFormProps {
   user: User;
-  profile: any;
+  profile: { display_name?: string | null; email?: string | null } | null;
   userRole: Role;
 }
 
@@ -91,12 +91,13 @@ export function ProfileForm({ user, profile, userRole }: ProfileFormProps) {
       }
 
       router.refresh();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Profile update error:', error);
-      setMessage({
-        type: 'error',
-        text: error.message || 'Failed to update profile. Please try again.',
-      });
+      const text =
+        error instanceof Error
+          ? error.message
+          : 'Failed to update profile. Please try again.';
+      setMessage({ type: 'error', text });
     } finally {
       setIsSubmitting(false);
     }

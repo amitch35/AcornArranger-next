@@ -4,7 +4,6 @@ import {
   PropertyFiltersSchema,
   StaffFiltersSchema,
   BaseFilterSchema,
-  IdArraySchema,
 } from "./schemas";
 
 type CanonicalKeys =

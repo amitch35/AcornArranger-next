@@ -11,7 +11,6 @@ export function useServiceOptions() {
         if (!res.ok) throw new Error("Failed to load service options");
         return res.json();
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.error("useServiceOptions error:", err);
         throw err;
       }

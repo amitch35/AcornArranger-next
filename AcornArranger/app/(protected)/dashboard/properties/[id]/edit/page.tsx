@@ -234,7 +234,7 @@ export default function PropertyEditPage() {
                 Linked Double Units
               </label>
               <p className="text-xs text-muted-foreground mb-2">
-                Select up to 20 properties that are cleaned together with this one/affect scheduling this unit's cleaning.
+                Select up to 20 properties that are cleaned together with this one/affect scheduling this unit&apos;s cleaning.
                 {linkedUnitsStr.length > 0 && (
                   <span className="ml-2">
                     ({linkedUnitsStr.length} {linkedUnitsStr.length === 1 ? "unit" : "units"} selected)

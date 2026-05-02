@@ -95,8 +95,8 @@ export default function StaffListPage() {
     queryFn: async () => {
       const res = await fetch("/api/options/roles");
       if (!res.ok) throw new Error("Failed to load roles");
-      const data = await res.json();
-      return data.options.map((opt: any) => ({
+      const data: { options: Array<{ id: string | number; label: string }> } = await res.json();
+      return data.options.map((opt) => ({
         value: String(opt.id),
         label: opt.label,
       }));
@@ -110,8 +110,8 @@ export default function StaffListPage() {
     queryFn: async () => {
       const res = await fetch("/api/options/staff-status");
       if (!res.ok) throw new Error("Failed to load staff statuses");
-      const data = await res.json();
-      return data.options.map((opt: any) => ({
+      const data: { options: Array<{ id: string | number; label: string }> } = await res.json();
+      return data.options.map((opt) => ({
         value: String(opt.id),
         label: opt.label,
       }));

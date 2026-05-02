@@ -207,7 +207,9 @@ export const breadcrumbResolvers: BreadcrumbResolver[] = [
       key: (params) => ["staff", params.id],
       fn: async (params) => fetchStaffDetail(params.id),
       label: (data, params) => {
-        const name = getStaffDisplayName(data as any);
+        const name = getStaffDisplayName(
+          data as { name?: string | null; first_name?: string | null; last_name?: string | null }
+        );
         return name || `Staff ${params.id}`;
       },
     },

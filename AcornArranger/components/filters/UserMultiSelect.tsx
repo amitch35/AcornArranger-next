@@ -46,7 +46,8 @@ export function UserMultiSelect({
   loadOptions,
 }: UserMultiSelectProps) {
   const [open, setOpen] = React.useState(false);
-  const buttonId = id ?? React.useId();
+  const generatedId = React.useId();
+  const buttonId = id ?? generatedId;
   const [searchValue, setSearchValue] = React.useState("");
 
   const selectedSet = React.useMemo(() => new Set(value), [value]);

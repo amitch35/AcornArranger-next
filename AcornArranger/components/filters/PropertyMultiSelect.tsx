@@ -47,7 +47,8 @@ export function PropertyMultiSelect({
   onlyActive,
 }: PropertyMultiSelectProps) {
   const [open, setOpen] = React.useState(false);
-  const buttonId = id ?? React.useId();
+  const generatedId = React.useId();
+  const buttonId = id ?? generatedId;
   const [searchValue, setSearchValue] = React.useState("");
 
   // Maintain a cache of labels for selected items so they persist during search filtering

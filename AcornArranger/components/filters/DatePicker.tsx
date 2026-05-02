@@ -50,7 +50,8 @@ export function DatePicker({
   className,
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
-  const buttonId = id ?? React.useId();
+  const generatedId = React.useId();
+  const buttonId = id ?? generatedId;
 
   const currentDayOfWeek = today().getDay();
 

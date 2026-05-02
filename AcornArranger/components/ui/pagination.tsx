@@ -21,7 +21,8 @@ type PaginationLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
 };
 
 export function PaginationLink({ className, isActive, size = "icon", ...props }: PaginationLinkProps) {
-  const ariaDisabled = (props as any)["aria-disabled"] === true || (props as any)["aria-disabled"] === "true";
+  const rawAriaDisabled = (props as { "aria-disabled"?: boolean | "true" | "false" })["aria-disabled"];
+  const ariaDisabled = rawAriaDisabled === true || rawAriaDisabled === "true";
   return (
     <a
       aria-current={isActive ? "page" : undefined}

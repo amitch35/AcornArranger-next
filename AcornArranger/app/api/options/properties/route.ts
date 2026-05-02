@@ -49,8 +49,9 @@ export async function GET(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status });
     const options = (data ?? []).map((row) => ({ id: row.properties_id!, label: row.property_name ?? String(row.properties_id) }));
     return NextResponse.json({ options, total: count ?? options.length }, { status: 200 });
-  } catch (err: any) {
-    return NextResponse.json({ error: err?.message ?? "Unknown error" }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 

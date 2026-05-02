@@ -156,8 +156,8 @@ export default function PropertiesListPage() {
     queryFn: async () => {
       const res = await fetch("/api/options/property-status");
       if (!res.ok) throw new Error("Failed to load property statuses");
-      const data = await res.json();
-      return data.options.map((opt: any) => ({
+      const data: { options: Array<{ id: string | number; label: string }> } = await res.json();
+      return data.options.map((opt) => ({
         value: String(opt.id),
         label: opt.label,
       }));

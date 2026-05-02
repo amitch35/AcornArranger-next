@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { withAuth } from "@/lib/apiGuard";
-import { deriveCapabilities } from "@/src/features/staff/schemas";
+import { deriveCapabilities, type Role } from "@/src/features/staff/schemas";
 
 /**
  * Staff Detail API endpoint
@@ -53,23 +53,20 @@ export const GET = withAuth<{ params: { user_id: string } }, NextRequest>(async 
       return NextResponse.json({ error: "Staff not found" }, { status: 404 });
     }
 
-    // Compute capabilities from role flags
+    // Compute capabilities from role flags (Supabase joined row → Role type)
     const capabilities = deriveCapabilities(
-      data.role as any // Type assertion for joined data
+      (data.role ?? null) as Role | null
     );
 
-    // Return staff with capabilities
     const response = {
       ...data,
       capabilities,
     };
 
     return NextResponse.json(response, { status: 200 });
-  } catch (err: any) {
-    return NextResponse.json(
-      { error: err?.message ?? "Unknown error" },
-      { status: 500 }
-    );
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 });
 

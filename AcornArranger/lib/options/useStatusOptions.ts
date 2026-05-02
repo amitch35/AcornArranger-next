@@ -24,7 +24,6 @@ export function useStatusOptions(entity: Entity) {
         if (!res.ok) throw new Error("Failed to load status options");
         return res.json();
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.error("useStatusOptions error:", err);
         throw err;
       }

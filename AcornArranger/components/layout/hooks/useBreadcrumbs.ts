@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { useQueries } from "@tanstack/react-query";
 import { 
   BreadcrumbSegment, 
-  breadcrumbMap,
   findBreadcrumbResolver,
   extractParams,
   getSegmentLabel 
@@ -37,7 +36,7 @@ import {
  */
 export function useBreadcrumbs(
   pathname: string,
-  params?: Record<string, string | string[]>
+  _params?: Record<string, string | string[]>
 ): BreadcrumbSegment[] {
   // Identify all resolver-backed crumb paths and build query descriptors up front.
   const resolverCrumbs = useMemo(() => {
