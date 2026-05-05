@@ -5,8 +5,9 @@
 # Makefile lives at acornarranger-scheduler/Makefile and is re-used here; the
 # Next app is driven through its package.json scripts.
 #
-# VPS / systemd targets call systemctl on both acorn-web.service and
-# acorn-scheduler.service. They no-op locally where systemctl is unavailable.
+# VPS / PM2 targets drive both apps via the root ecosystem.config.js. PM2 is
+# expected to be installed globally on the host (`npm install -g pm2`); these
+# targets no-op locally where the `pm2` binary is unavailable.
 #
 # Usage:
 #   make                # show this help
@@ -17,18 +18,19 @@
 
 .DEFAULT_GOAL := help
 
-WEB_DIR       := AcornArranger
-SCHED_DIR     := acornarranger-scheduler
-WEB_PORT      ?= 3000
-SCHED_PORT    ?= 8001
-WEB_SERVICE   ?= acorn-web.service
-SCHED_SERVICE ?= acorn-scheduler.service
+WEB_DIR    := AcornArranger
+SCHED_DIR  := acornarranger-scheduler
+WEB_PORT   ?= 3000
+SCHED_PORT ?= 8001
+PM2_CONFIG ?= ecosystem.config.js
+PM2_WEB    ?= acornarranger-web
+PM2_SCHED  ?= acornarranger-scheduler
 
 .PHONY: help install dev stop build status health test \
-        systemd-status systemd-restart systemd-logs
+        pm2-start pm2-stop pm2-restart pm2-reload pm2-status pm2-logs pm2-save
 
 help: ## Show this help
-	@awk 'BEGIN {FS = ":.*?##"; printf "\nTargets:\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*?##"; printf "\nTargets:\n"} /^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 	@echo
 
 # ---- Local development -----------------------------------------------------
@@ -76,19 +78,31 @@ health: ## curl both /health endpoints
 test: ## Run lint + typecheck + tests for the Next app
 	cd $(WEB_DIR) && npm run lint && npm run typecheck && npm run test
 
-# ---- Linode VPS (systemd) --------------------------------------------------
-# Drive both units together. Each target runs the matching systemctl command
-# first on the web unit, then on the scheduler, so ordering mirrors production.
+# ---- Linode VPS (PM2) ------------------------------------------------------
+# Drive both apps together via the root ecosystem.config.js. PM2 must be
+# installed globally on the host (`npm install -g pm2`). First-time deploy:
+# run `make pm2-start` then `make pm2-save` once, and `pm2 startup` once
+# (interactive) to install the boot-time resurrection shim.
 
-systemd-status: ## sudo systemctl status on both units
-	sudo systemctl status $(WEB_SERVICE) --no-pager || true
-	sudo systemctl status $(SCHED_SERVICE) --no-pager || true
+pm2-start: ## pm2 start both apps from $(PM2_CONFIG)
+	pm2 start $(PM2_CONFIG)
 
-systemd-restart: ## sudo systemctl restart both units, then status
-	sudo systemctl restart $(WEB_SERVICE)
-	sudo systemctl restart $(SCHED_SERVICE)
+pm2-stop: ## pm2 stop both apps
+	pm2 stop $(PM2_CONFIG)
+
+pm2-restart: ## pm2 restart both apps, then status
+	pm2 restart $(PM2_CONFIG)
+
+pm2-reload: ## pm2 reload (zero-downtime) both apps, then status
+	pm2 reload $(PM2_CONFIG)
 	@sleep 1
-	$(MAKE) --no-print-directory systemd-status
+	$(MAKE) --no-print-directory pm2-status
 
-systemd-logs: ## journalctl -u on both units (follow)
-	sudo journalctl -u $(WEB_SERVICE) -u $(SCHED_SERVICE) -f
+pm2-status: ## pm2 status (all managed processes)
+	pm2 status
+
+pm2-logs: ## pm2 logs for both apps (follow)
+	pm2 logs $(PM2_WEB) $(PM2_SCHED)
+
+pm2-save: ## Persist the current PM2 process list (for boot resurrection)
+	pm2 save

@@ -1,8 +1,9 @@
 """FastAPI entrypoint for the Acorn Arranger scheduler sidecar.
 
-Binds to 127.0.0.1:8001 when run via the provided systemd unit. The Next.js
-API route is the only expected client; no auth is performed here because the
-process is local-only (firewall + binding address enforce that).
+Binds to 127.0.0.1:8001 when run via the repo-root PM2 ecosystem config.
+The Next.js API route is the only expected client; no auth is performed
+here because the process is local-only (firewall + binding address
+enforce that).
 """
 
 from __future__ import annotations

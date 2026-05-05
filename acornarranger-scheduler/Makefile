@@ -1,12 +1,12 @@
-# Acorn Arranger Scheduler sidecar - local + VPS management.
+# Acorn Arranger Scheduler sidecar - local management.
 #
 # Local targets manage a uvicorn process bound to $(HOST):$(PORT). Detached
 # starts (`make start`) write logs to $(LOG); foreground targets (`make dev`,
 # `make run`) print to the terminal.
 #
-# Linode targets shell out to systemd and are intended to be run on the VPS
-# from the deployed source dir. They no-op locally if systemctl isn't
-# present.
+# Production on the VPS is driven by PM2 from the repo root (see the root
+# README and ecosystem.config.js). There are no production-management targets
+# in this Makefile; use `make -C .. pm2-status` etc. from the repo root.
 #
 # Usage:
 #   make             # show this help
@@ -25,10 +25,8 @@ HOST       ?= 127.0.0.1
 PORT       ?= 8001
 APP        := src.main:app
 LOG        ?= /tmp/acorn-scheduler.log
-SERVICE    ?= acorn-scheduler.service
 
-.PHONY: help install dev run start stop restart status health logs clean \
-        systemd-status systemd-restart systemd-logs
+.PHONY: help install dev run start stop restart status health logs clean
 
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*?##"; printf "\nTargets:\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -47,7 +45,7 @@ dev: ## Foreground uvicorn with --reload (recommended while editing src/)
 	@if [ ! -x $(UVICORN) ]; then echo "venv missing; run 'make install' first"; exit 1; fi
 	$(UVICORN) $(APP) --reload --host $(HOST) --port $(PORT)
 
-run: ## Foreground uvicorn without reload (matches systemd unit behaviour)
+run: ## Foreground uvicorn without reload (matches the PM2 entry's behaviour)
 	@if [ ! -x $(UVICORN) ]; then echo "venv missing; run 'make install' first"; exit 1; fi
 	$(UVICORN) $(APP) --host $(HOST) --port $(PORT)
 
@@ -93,18 +91,3 @@ clean: ## Remove venv, build artifacts, __pycache__
 	rm -rf $(VENV)
 	find . -type d -name __pycache__ -prune -exec rm -rf {} +
 	find . -type d -name "*.egg-info" -prune -exec rm -rf {} +
-
-# ---- Linode VPS (systemd) --------------------------------------------------
-# These run on the VPS where the sidecar is installed under systemd. They
-# require sudo and the unit file from systemd/acorn-scheduler.service.
-
-systemd-status: ## sudo systemctl status $(SERVICE)
-	sudo systemctl status $(SERVICE) --no-pager
-
-systemd-restart: ## sudo systemctl restart $(SERVICE), then status
-	sudo systemctl restart $(SERVICE)
-	@sleep 1
-	sudo systemctl status $(SERVICE) --no-pager
-
-systemd-logs: ## journalctl -u $(SERVICE) -f
-	sudo journalctl -u $(SERVICE) -f

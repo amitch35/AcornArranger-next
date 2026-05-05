@@ -4,17 +4,17 @@ VRPTW routing + Tier 2 affinity biasing, exposed over HTTP at
 `127.0.0.1:8001`. Consumed by the Next.js app's
 `/api/plans/build/[plan_date]` route when the user picks the `VRPTW`
 engine from Build Options. Runs alongside the Next.js server on the
-same Linode VPS (both managed by systemd; see the [root README](../README.md)).
+same Linode VPS (both managed by PM2; see the [root README](../README.md)).
 
 The legacy `build_schedule_plan` Postgres RPC is never called from this
 service; it remains the fallback whenever the Build Options toggle is set
-to `Legacy RPC`. The Next web unit is deliberately not `Requires=`-coupled
-to this sidecar, so outages here do not take the web app down — operators
-switch back to `Legacy RPC` until the sidecar is restored.
+to `Legacy RPC`. The two PM2 apps are independent, so outages here do not
+take the web app down — operators switch back to `Legacy RPC` until the
+sidecar is restored.
 
-Configuration is driven from the [Makefile](Makefile) and the systemd unit
-(`HOST`, `PORT`, `LOG`); the Python code does not read environment
-variables directly.
+Configuration is driven from the [Makefile](Makefile) and the repo-root
+[`ecosystem.config.js`](../ecosystem.config.js) (`HOST`, `PORT`, `LOG`);
+the Python code does not read environment variables directly.
 
 ## Layout
 
@@ -28,8 +28,6 @@ acornarranger-scheduler/
     affinity.py        # property / pairing affinity lookups
     midnight.py        # scrub ResortCleaning 00:00 artifacts
     types.py           # pydantic Problem / Affinity / Solution
-  systemd/
-    acorn-scheduler.service
 ```
 
 ## HTTP contract
@@ -114,35 +112,28 @@ original fixtures were retired with the spike code;
 
 ## Linode deployment
 
-1. Create the service account and directory:
+The sidecar runs under PM2 alongside the Next.js web app. PM2 is
+installed globally on the host (not as a project dep) and is driven
+from the repo root via [`ecosystem.config.js`](../ecosystem.config.js).
+See the [root README](../README.md#production-deployment-linode-vps-pm2)
+for the end-to-end first-time deployment. The scheduler-specific steps
+within that flow are:
+
+1. Create the venv inside the checkout (run from the repo root):
   ```bash
-    sudo useradd --system --home /opt/acornarranger-scheduler --shell /usr/sbin/nologin acorn
-    sudo mkdir -p /opt/acornarranger-scheduler
-    sudo chown acorn:acorn /opt/acornarranger-scheduler
+    make -C acornarranger-scheduler install
   ```
-2. Copy the source and install the venv as the `acorn` user:
-  ```bash
-    sudo -u acorn -H bash -c '
-      cd /opt/acornarranger-scheduler &&
-      python3.11 -m venv .venv &&
-      .venv/bin/pip install --upgrade pip &&
-      .venv/bin/pip install -e .
-    '
-  ```
-3. Install the unit and start it:
-  ```bash
-    sudo cp systemd/acorn-scheduler.service /etc/systemd/system/
-    sudo systemctl daemon-reload
-    sudo systemctl enable --now acorn-scheduler.service
-    sudo systemctl status acorn-scheduler.service
-  ```
-4. Smoke test:
+   This produces `.venv/bin/uvicorn`, which is the binary referenced by
+   the PM2 entry for `acornarranger-scheduler`.
+2. The repo-root `make pm2-start` (or `pm2 start ecosystem.config.js`)
+   then boots both the web app and the sidecar together.
+3. Smoke test:
   ```bash
     curl -sS http://127.0.0.1:8001/health
   ```
 
-Once running, the Makefile's systemd targets are convenient on the VPS:
-`make systemd-status`, `make systemd-restart`, `make systemd-logs`.
+Once running, drive both apps from the repo-root Makefile:
+`make pm2-status`, `make pm2-restart`, `make pm2-logs`.
 
 The sidecar binds to `127.0.0.1` so it is unreachable from the public
 internet; the Next.js server is the only intended client.
@@ -178,6 +169,6 @@ visible.
 | `solver_status == NO_SOLUTION` | `max_hours` too low for the workload                   | widen `max_hours` or add more staff                     |
 | `solver_status == NO_TEAMS`    | zero leads (`can_lead_team`) in `available_staff`      | choose staff with at least one lead                     |
 | `dropped: [...]` non-empty     | feasible routing dropped stops to respect time windows | widen `cleaning_window`; the Build UI surfaces this too |
-| 502 from the Next.js route     | sidecar not running on 127.0.0.1:8001                  | `sudo systemctl status acorn-scheduler.service`         |
+| 502 from the Next.js route     | sidecar not running on 127.0.0.1:8001                  | `pm2 status` then `pm2 restart acornarranger-scheduler` |
 
 

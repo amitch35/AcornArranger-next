@@ -216,6 +216,7 @@ export default function SchedulePage() {
   } = useQuery({
     queryKey: ["plans", planDate],
     queryFn: () => fetchPlans(planDate),
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Backlog filter (service only)

@@ -39,7 +39,6 @@ AcornArranger/
 │   ├── features/           # Vertical feature folders: appointments, plans, properties, staff, roles, dashboard
 │   └── adapters/           # Client-side data adapters (Properties, Staff, Appointments, ...)
 ├── supabase/               # Linked Supabase project config + migrations
-├── systemd/                # acorn-web.service (deploy target on the VPS)
 └── middleware.ts           # Thin wrapper around lib/supabase/middleware.ts
 ```
 
