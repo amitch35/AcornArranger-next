@@ -39,7 +39,7 @@ install: ## Install JS + Python dependencies for both packages
 
 dev: ## Start scheduler detached, then run Next dev in foreground (Ctrl+C stops web; run `make stop` to kill scheduler)
 	$(MAKE) -C $(SCHED_DIR) start
-	cd $(WEB_DIR) && npm run dev
+	cd $(WEB_DIR) && npm run dev -- -p $(WEB_PORT)
 
 stop: ## Stop both local processes (scheduler + Next dev on $(WEB_PORT))
 	-$(MAKE) -C $(SCHED_DIR) stop
@@ -55,7 +55,7 @@ stop: ## Stop both local processes (scheduler + Next dev on $(WEB_PORT))
 	fi
 
 build: ## Production build of the Next app
-	cd $(WEB_DIR) && npm run build
+	cd $(WEB_DIR) && NODE_OPTIONS="--max-old-space-size=1024" npm run build
 
 status: ## Show listeners on the web and scheduler ports
 	@web=$$(lsof -ti tcp:$(WEB_PORT) 2>/dev/null || true); \

@@ -38,7 +38,7 @@ help: ## Show this help
 
 install: ## Create venv and install package + dev deps
 	@if [ ! -d $(VENV) ]; then \
-	  (python3.11 -m venv $(VENV) 2>/dev/null || python3 -m venv $(VENV)); \
+	  (python3.13 -m venv $(VENV) 2>/dev/null || python3 -m venv $(VENV)); \
 	fi
 	$(PIP) install --upgrade pip
 	$(PIP) install -e '.[dev]'
