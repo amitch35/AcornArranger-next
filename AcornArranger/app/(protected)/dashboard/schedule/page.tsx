@@ -584,12 +584,17 @@ export default function SchedulePage() {
                     <InfoTooltip label="Property Affinity Weight info">
                       <p>
                         How strongly staff ↔ property history discounts a
-                        teams route time, in synthetic minutes.
+                        team&rsquo;s route time, in synthetic minutes.
                       </p>
                       <p>
                         Higher = the solver is more likely to send a
                         &ldquo;specialist team&rdquo; to their most commonly assigned properties even if
                         travel is a bit longer.
+                      </p>
+                      <p>
+                        Negative values invert that: routing to properties
+                        where the team has been assigned less often,
+                        encouraging broader property exposure.
                       </p>
                       <p>
                         <strong>Set to 0 to disable</strong> property
@@ -654,6 +659,10 @@ export default function SchedulePage() {
                         Higher = prefers pairing staff who
                         worked together more within the lookback window; team composition stays close
                         to recent precedents.
+                      </p>
+                      <p>
+                        Negative values invert that: teams are formed with less recent pairing history for
+                        fresher combinations (within team-shape constraints).
                       </p>
                       <p>
                         <strong>Set to 0 to disable</strong> pair chemistry

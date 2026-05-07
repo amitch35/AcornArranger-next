@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  AFFINITY_WEIGHT_BOUNDS,
   PLAN_BUILD_DEFAULTS,
   ROUTING_TYPE_LABELS,
   isPlanSent,
@@ -72,6 +73,16 @@ describe("Plan Schemas", () => {
 
     it("has target_team_size undefined by default (auto-derive)", () => {
       expect(PLAN_BUILD_DEFAULTS.target_team_size).toBeUndefined();
+    });
+  });
+
+  describe("AFFINITY_WEIGHT_BOUNDS", () => {
+    it("allows inverted weights down to -5 and caps positive magnitudes at 15", () => {
+      expect(AFFINITY_WEIGHT_BOUNDS.property_minutes).toEqual({
+        min: -5,
+        max: 15,
+      });
+      expect(AFFINITY_WEIGHT_BOUNDS.chemistry).toEqual({ min: -5, max: 15 });
     });
   });
 

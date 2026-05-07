@@ -39,14 +39,17 @@ export type PlanBuildOptions = {
    * How strongly the staff<->property affinity score discounts a routing
    * arc into a stop. Expressed in minutes so the trade-off vs travel time
    * stays legible. Set to 0 to disable property affinity entirely without
-   * leaving the VRPTW engine.
+   * leaving the VRPTW engine. Negative values invert the signal (penalize
+   * routing specialist teams into their strongest properties for more
+   * diversity).
    */
   property_affinity_weight_minutes: number;
   /**
    * How strongly lead<->member chemistry biases team formation. Expressed
    * in synthetic minutes - the per-pair bonus (in seat-pair score) of
    * placing two staff who frequently teamed up together. Set to 0 to
-   * disable pair chemistry entirely.
+   * disable pair chemistry entirely. Negative values invert the signal
+   * (prefer fresher pairings within the lookback window).
    */
   chemistry_weight: number;
   /**
@@ -97,14 +100,14 @@ export const AFFINITY_LOOKBACK_BOUNDS = {
 } as const;
 
 /**
- * Bounds on the affinity weight knobs. Min = 0 so an operator can fully
- * disable a Tier 2 signal from the UI without dropping the lookback to a
- * no-op value. Upper bounds are a sanity ceiling; values above ~30 minutes
- * start dwarfing actual travel costs and rarely produce useful plans.
+ * Bounds on the affinity weight knobs. Min = -5 allows inverted Tier 2
+ * signals (more diversity in property routing / pairings). Zero disables
+ * the corresponding signal. Upper bounds are a sanity ceiling; values above
+ * ~30 minutes start dwarfing actual travel costs and rarely produce useful plans.
  */
 export const AFFINITY_WEIGHT_BOUNDS = {
-  property_minutes: { min: 0, max: 15 },
-  chemistry: { min: 0, max: 15 },
+  property_minutes: { min: -5, max: 15 },
+  chemistry: { min: -5, max: 15 },
 } as const;
 
 export const TEAM_SHAPE_BOUNDS = {
