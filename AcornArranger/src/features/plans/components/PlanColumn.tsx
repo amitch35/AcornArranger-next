@@ -61,6 +61,16 @@ export function PlanColumn({
     return count;
   }, [plans]);
 
+  const staffPlanCount = React.useMemo(() => {
+    const count = new Map<number, number>();
+    for (const p of plans) {
+      for (const s of p.staff) {
+        count.set(s.user_id, (count.get(s.user_id) ?? 0) + 1);
+      }
+    }
+    return count;
+  }, [plans]);
+
   const [removing, setRemoving] = React.useState<Set<number>>(new Set());
 
   const handleRemoveStaff = React.useCallback(
@@ -131,6 +141,7 @@ export function PlanColumn({
               name={s.staff_info?.name ?? String(s.user_id)}
               removing={removing.has(s.user_id)}
               onRemove={() => handleRemoveStaff(s.user_id)}
+              isDuplicate={(staffPlanCount.get(s.user_id) ?? 0) > 1}
             />
           ))}
           {plan.staff.length === 0 && (
@@ -471,12 +482,14 @@ function StaffChip({
   name,
   removing,
   onRemove,
+  isDuplicate,
 }: {
   planId: number;
   userId: number;
   name: string;
   removing: boolean;
   onRemove: () => void;
+  isDuplicate: boolean;
 }) {
   const id = `${STAFF_DRAGGABLE_PREFIX}${planId}-${userId}`;
   const {
@@ -503,7 +516,7 @@ function StaffChip({
       <span
         {...listeners}
         {...attributes}
-        className="flex-1 min-w-0 truncate cursor-grab active:cursor-grabbing rounded px-1 -mx-1 hover:bg-muted/50"
+        className={`flex-1 min-w-0 cursor-grab active:cursor-grabbing rounded px-1 -mx-1 hover:bg-muted/50 ${isDuplicate ? "text-sky-600 dark:text-sky-400" : ""}`}
         role="button"
         tabIndex={0}
         aria-label={`Drag ${name} to move to another team`}
@@ -511,7 +524,12 @@ function StaffChip({
           if (e.key === "Enter" || e.key === " ") e.preventDefault();
         }}
       >
-        {name}
+        <span className="truncate block">{name}</span>
+        {isDuplicate && (
+          <span className="text-xs font-medium text-sky-600 dark:text-sky-400 block">
+            In multiple plans
+          </span>
+        )}
       </span>
       <Button
         variant="ghost"
