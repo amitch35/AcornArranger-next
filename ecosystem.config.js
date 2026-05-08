@@ -34,10 +34,11 @@ module.exports = {
       name: "acornarranger-web",
       cwd: "./AcornArranger",
       script: "npm",
-      args: "start",
+      args: "start -- --hostname 127.0.0.1",
       env: {
         NODE_ENV: "production",
         PORT: 3000,
+        HOSTNAME: '127.0.0.1',
       },
     },
     {
