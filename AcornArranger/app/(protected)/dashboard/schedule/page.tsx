@@ -219,6 +219,25 @@ export default function SchedulePage() {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
+  // Auto-close Build Options on page load and whenever the date changes, as
+  // long as at least one plan already has both appointments and staff. This
+  // A ref records the last date we evaluated so that same-date plan
+  // refreshes (e.g. after a Build/Copy mutation) never re-trigger the close.
+  const autoCloseBuildOptionsEvaluatedRef = React.useRef<string | null>(null);
+
+  React.useEffect(() => {
+    if (plansLoading) return;
+    if (autoCloseBuildOptionsEvaluatedRef.current === planDate) return;
+    autoCloseBuildOptionsEvaluatedRef.current = planDate;
+
+    const hasQualifyingPlan = plans.some(
+      (p) => p.appointments.length > 0 && p.staff.length > 0
+    );
+    if (hasQualifyingPlan) {
+      setBuildOptionsOpen(false);
+    }
+  }, [planDate, plans, plansLoading]);
+
   // Backlog filter (service only)
   const [backlogServiceFilter, setBacklogServiceFilter] = React.useState<string[]>([]);
   const filterInitialized = React.useRef(false);

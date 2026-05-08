@@ -58,7 +58,25 @@ export function BacklogPanel({
   isLoading,
 }: BacklogPanelProps) {
   const isDesktop = useIsDesktop();
-  const [mobileOpen, setMobileOpen] = React.useState(false);
+
+  // Shared open/collapsed state for both desktop and mobile layouts.
+  // Starts collapsed (data is always fetched async so appointments begin empty).
+  const [open, setOpen] = React.useState(false);
+
+  // Auto-open when appointments become non-empty; auto-close when they become
+  // empty. Only reacts to the empty <-> non-empty *transition* so that manual
+  // user toggles between transitions are fully preserved — the user can open
+  // an empty panel to adjust filters, or close a panel that has items, without
+  // being immediately overridden.
+  const prevHasAppointmentsRef = React.useRef(false);
+  React.useEffect(() => {
+    if (isLoading) return;
+    const hasNow = appointments.length > 0;
+    if (hasNow !== prevHasAppointmentsRef.current) {
+      prevHasAppointmentsRef.current = hasNow;
+      setOpen(hasNow);
+    }
+  }, [appointments.length, isLoading]);
 
   return isDesktop ? (
     <BacklogDesktop
@@ -67,6 +85,8 @@ export function BacklogPanel({
       serviceFilter={serviceFilter}
       onServiceFilterChange={onServiceFilterChange}
       isLoading={isLoading}
+      open={open}
+      onOpenChange={setOpen}
     />
   ) : (
     <BacklogMobile
@@ -75,21 +95,22 @@ export function BacklogPanel({
       serviceFilter={serviceFilter}
       onServiceFilterChange={onServiceFilterChange}
       isLoading={isLoading}
-      open={mobileOpen}
-      onOpenChange={setMobileOpen}
+      open={open}
+      onOpenChange={setOpen}
     />
   );
 }
 
-/** Desktop: collapsible sidebar column, open by default. */
+/** Desktop: collapsible sidebar column. */
 function BacklogDesktop({
   appointments,
   serviceOptions,
   serviceFilter,
   onServiceFilterChange,
   isLoading,
-}: BacklogPanelProps) {
-  const [open, setOpen] = React.useState(true);
+  open,
+  onOpenChange,
+}: BacklogPanelProps & { open: boolean; onOpenChange: (v: boolean) => void }) {
   const { setNodeRef, isOver } = useDroppable({ id: BACKLOG_DROPPABLE });
 
   if (!open) {
@@ -102,7 +123,7 @@ function BacklogDesktop({
           variant="ghost"
           size="icon"
           className="h-8 w-8"
-          onClick={() => setOpen(true)}
+          onClick={() => onOpenChange(true)}
           aria-label="Expand unscheduled panel"
         >
           <PanelLeftOpen className="h-4 w-4" />
@@ -125,7 +146,7 @@ function BacklogDesktop({
           variant="ghost"
           size="icon"
           className="h-7 w-7 text-muted-foreground hover:text-foreground"
-          onClick={() => setOpen(false)}
+          onClick={() => onOpenChange(false)}
           aria-label="Collapse unscheduled panel"
         >
           <PanelLeftClose className="h-4 w-4" />
