@@ -2,6 +2,15 @@ import { describe, it, expect } from "vitest";
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { LifetimeMetricsCharts } from "../LifetimeMetricsCharts";
+
+vi.mock("recharts", async () => {
+  const actual = await vi.importActual<typeof import("recharts")>("recharts");
+  return {
+    ...actual,
+    ResponsiveContainer: ({ children }: { children: React.ReactNode }) =>
+      React.createElement("div", { style: { width: 800, height: 300 } }, children),
+  };
+});
 import type {
   AppointmentsPerDay,
   TeamSizeBucket,

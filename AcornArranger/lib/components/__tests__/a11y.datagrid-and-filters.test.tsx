@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import * as React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import { axe } from 'jest-axe';
 
 import { DataTable } from '@/components/datagrid/DataTable';
@@ -30,26 +30,30 @@ describe('a11y - datagrid and filters', () => {
     let results = await axe(container);
     expect(results.violations).toEqual([]);
 
-    rerender(
-      <DataTable<Item, unknown>
-        columns={columns}
-        data={[]}
-        pageSize={10}
-        loading={false}
-        error={null}
-      />
-    );
+    await act(async () => {
+      rerender(
+        <DataTable<Item, unknown>
+          columns={columns}
+          data={[]}
+          pageSize={10}
+          loading={false}
+          error={null}
+        />
+      );
+    });
     results = await axe(container);
     expect(results.violations).toEqual([]);
 
-    rerender(
-      <DataTable<Item, unknown>
-        columns={columns}
-        data={[{ id: 1, name: 'A' }]}
-        pageSize={10}
-        loading={false}
-      />
-    );
+    await act(async () => {
+      rerender(
+        <DataTable<Item, unknown>
+          columns={columns}
+          data={[{ id: 1, name: 'A' }]}
+          pageSize={10}
+          loading={false}
+        />
+      );
+    });
     results = await axe(container);
     expect(results.violations).toEqual([]);
   });

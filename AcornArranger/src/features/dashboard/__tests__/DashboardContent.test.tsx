@@ -4,6 +4,15 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { DashboardContent } from "../DashboardContent";
 
+vi.mock("recharts", async () => {
+  const actual = await vi.importActual<typeof import("recharts")>("recharts");
+  return {
+    ...actual,
+    ResponsiveContainer: ({ children }: { children: React.ReactNode }) =>
+      React.createElement("div", { style: { width: 800, height: 300 } }, children),
+  };
+});
+
 function renderWithQueryClient(ui: React.ReactElement) {
   const qc = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: 0 } },

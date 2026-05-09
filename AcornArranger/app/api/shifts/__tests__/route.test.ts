@@ -136,6 +136,7 @@ describe("GET /api/shifts", () => {
   });
 
   it("returns empty array with 200 when the RPC returns an error (Homebase unreachable)", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     vi.mocked(createClient).mockResolvedValue(
       makeRpcMock({ data: null, error: { message: "Homebase API timeout" } }) as any
     );
@@ -148,6 +149,8 @@ describe("GET /api/shifts", () => {
 
     expect(res.status).toBe(200);
     expect(body).toEqual([]);
+
+    consoleError.mockRestore();
   });
 
   it("returns empty array with 200 when the RPC returns null data", async () => {

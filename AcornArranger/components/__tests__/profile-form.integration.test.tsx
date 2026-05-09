@@ -174,6 +174,7 @@ describe('ProfileForm Integration Tests', () => {
     });
 
     it('should handle RLS permission denied gracefully', async () => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
       const mockSupabase = createMockSupabaseClient({ role: 'authenticated' });
       const mockUpdate = vi.fn().mockResolvedValue({
         data: null,
@@ -210,6 +211,8 @@ describe('ProfileForm Integration Tests', () => {
           screen.getByText(/failed to update profile|violates row-level security/i)
         ).toBeInTheDocument();
       });
+
+      consoleError.mockRestore();
     });
 
     it('should disable submit button when no changes made', () => {
