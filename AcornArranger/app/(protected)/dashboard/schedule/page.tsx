@@ -321,6 +321,22 @@ export default function SchedulePage() {
     [backlogData]
   );
 
+  const { data: arrivalsData } = useQuery({
+    queryKey: ["appointments-arrivals", planDate],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        arrivalDateFrom: planDate,
+        arrivalDateTo: planDate,
+        statusIds: "1,2",
+        pageSize: "200",
+      });
+      const res = await fetch(`/api/appointments?${params}`);
+      if (!res.ok) throw new Error("Failed to load arrivals");
+      return res.json() as Promise<{ items: AppointmentRow[]; total: number }>;
+    },
+  });
+  const arrivalAppointments = arrivalsData?.items ?? [];
+
   // Fetch Homebase shifts for the selected date (single-day range)
   const { data: shifts = [], isLoading: shiftsLoading } = useQuery({
     queryKey: ["shifts", planDate],
@@ -1002,6 +1018,7 @@ export default function SchedulePage() {
           planDate={planDate}
           plans={plans}
           allAppointments={allAppointments}
+          arrivalAppointments={arrivalAppointments}
           backlogAppointments={backlogAppointments}
           serviceOptions={serviceOptions}
           serviceFilter={backlogServiceFilter}

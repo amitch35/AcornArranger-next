@@ -33,7 +33,7 @@ import {
   formatAppointmentStaffName,
   getStatusBadgeVariant,
 } from "@/src/features/appointments/schemas";
-import { RotateCw, Eye, AlertTriangle } from "lucide-react";
+import { RotateCcw, Eye, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import { saveListUrl } from "@/lib/navigation/listReturnUrl";
@@ -133,7 +133,7 @@ function StaffListPopover({ staff }: { staff: AppointmentStaffMember[] }) {
 function TurnAroundIndicator({ value }: { value: boolean | null | undefined }) {
   if (!value) return <span className="text-muted-foreground text-sm">—</span>;
   return (
-    <RotateCw
+    <RotateCcw
       className="h-4 w-4 text-muted-foreground"
       aria-label="Turn-around"
     />

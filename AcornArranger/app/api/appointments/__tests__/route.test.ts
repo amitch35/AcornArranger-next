@@ -191,6 +191,32 @@ describe("/api/appointments", () => {
       expect(Array.isArray(data.items)).toBe(true);
     });
 
+    it("should filter by arrival date range (arrivalDateFrom/arrivalDateTo) on arrival_time", async () => {
+      // Used by the schedule page to find linked-unit check-ins on the plan
+      // date for the turn-around indicator. Independent of dateFrom/dateTo.
+      const mockSupabase = createMockSupabaseClient({
+        data: mockAppointments.slice(0, 5),
+        count: 5,
+      });
+      vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
+
+      const req = new NextRequest(
+        "http://localhost:3000/api/appointments?arrivalDateFrom=2026-05-09&arrivalDateTo=2026-05-09"
+      );
+      const response = await GET(req, { params: Promise.resolve({}) });
+
+      expect(response.status).toBe(200);
+      const latestQuery = (mockSupabase as any)._mocks.getLatestQuery();
+      expect(latestQuery.gte).toHaveBeenCalledWith(
+        "arrival_time",
+        "2026-05-09"
+      );
+      expect(latestQuery.lte).toHaveBeenCalledWith(
+        "arrival_time",
+        "2026-05-09 23:59:59+00"
+      );
+    });
+
     it("should filter by nextArrivalBefore/nextArrivalAfter", async () => {
       const mockSupabase = createMockSupabaseClient({
         data: mockAppointments.slice(0, 3),

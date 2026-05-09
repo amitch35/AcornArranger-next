@@ -19,7 +19,7 @@ import {
   CalendarDays,
   Building2,
   Users,
-  RotateCw,
+  RotateCcw,
   AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
@@ -239,7 +239,7 @@ export default function AppointmentDetailPage() {
                 <div className="mt-1 flex items-center gap-2">
                   {appointment.turn_around ? (
                     <>
-                      <RotateCw
+                      <RotateCcw
                         className="h-4 w-4 text-muted-foreground"
                         aria-label="Turn-around appointment"
                       />

@@ -17,7 +17,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Upload, X, Pencil, Loader2 } from "lucide-react";
+import { Upload, X, Pencil, Loader2, RotateCcw, RefreshCcwDot } from "lucide-react";
 import type { Plan, PlanAppointment } from "../schemas";
 import type { WithSentGuardFn } from "./ScheduleBoard";
 import {
@@ -35,6 +35,7 @@ type PlanColumnProps = {
   plan: Plan;
   plans: Plan[];
   allAppointments: AppointmentRow[];
+  linkedArrivalPropMap: Map<number, string>;
   onUpdate: () => void;
   isSent: boolean;
   withSentGuard: WithSentGuardFn;
@@ -44,6 +45,7 @@ export function PlanColumn({
   plan,
   plans,
   allAppointments,
+  linkedArrivalPropMap,
   onUpdate,
   isSent,
   withSentGuard,
@@ -167,6 +169,7 @@ export function PlanColumn({
               appointment={a}
               planId={plan.plan_id}
               isDuplicate={(appointmentPlanCount.get(a.appointment_id) ?? 0) > 1}
+              linkedArrivalPropMap={linkedArrivalPropMap}
             />
           ))}
           {activeAppointments.length === 0 && (
@@ -549,10 +552,12 @@ function PlanAppointmentItem({
   appointment,
   planId,
   isDuplicate,
+  linkedArrivalPropMap,
 }: {
   appointment: PlanAppointment;
   planId: number;
   isDuplicate: boolean;
+  linkedArrivalPropMap: Map<number, string>;
 }) {
   const id = `plan-${planId}-${appointment.appointment_id}`;
   const {
@@ -579,6 +584,22 @@ function PlanAppointmentItem({
     appointment.appointment_id;
   const serviceName = appointment.appointment_info?.service?.service_name ?? "";
 
+  // Effective turn-around. "Direct" = `turn_around=true` on this row.
+  // "Linked" = the property has a `double_unit` sibling whose stay starts on
+  // plan_date (the linked arrival map). Direct takes precedence when both
+  // are true.
+  const directTA = appointment.appointment_info?.turn_around === true;
+  const linkedNames = (
+    appointment.appointment_info?.property_info?.double_unit ?? []
+  )
+    .map((id) => linkedArrivalPropMap.get(id))
+    .filter((n): n is string => Boolean(n));
+  const turnAroundKind: "direct" | "linked" | null = directTA
+    ? "direct"
+    : linkedNames.length > 0
+      ? "linked"
+      : null;
+
   return (
     <div
       ref={setNodeRef}
@@ -600,7 +621,28 @@ function PlanAppointmentItem({
         }
       }}
     >
-      <div className="font-medium truncate">{propName}</div>
+      <div className="flex items-start justify-between gap-2">
+        <div className="font-medium truncate min-w-0">{propName}</div>
+        {turnAroundKind === "direct" && (
+          <span className="shrink-0" title="Turn-around">
+            <RotateCcw
+              className="h-4 w-4 text-muted-foreground"
+              aria-label="Turn-around"
+            />
+          </span>
+        )}
+        {turnAroundKind === "linked" && (
+          <span
+            className="shrink-0"
+            title={`Linked turn-around: ${linkedNames.join(", ")}`}
+          >
+            <RefreshCcwDot
+              className="h-4 w-4 text-sky-600 dark:text-sky-400"
+              aria-label={`Linked turn-around: ${linkedNames.join(", ")}`}
+            />
+          </span>
+        )}
+      </div>
       <div className="text-xs text-muted-foreground truncate">{serviceName}</div>
       {isDuplicate && (
         <div className="text-xs font-medium text-sky-800 dark:text-sky-300 mt-1">

@@ -95,7 +95,7 @@ describe("Plan Schemas", () => {
         next_arrival_time: null,
         turn_around: null,
         cancelled_date: null,
-        property_info: { properties_id: 100, property_name: "Test" },
+        property_info: { properties_id: 100, property_name: "Test", double_unit: null },
         service: { service_id: 21942, service_name: "Clean" },
         status: { status_id: 1, status: "Confirmed" },
       };

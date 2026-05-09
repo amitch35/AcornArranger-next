@@ -18,7 +18,8 @@ const selectPlans = `
       cancelled_date,
       property_info:rc_properties (
         properties_id,
-        property_name
+        property_name,
+        double_unit
       ),
       service:service_key (
         service_id,

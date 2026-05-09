@@ -138,7 +138,11 @@ export type PlanAppointment = {
     next_arrival_time: string | null;
     turn_around: boolean | null;
     cancelled_date: string | null;
-    property_info: { properties_id: number; property_name: string | null };
+    property_info: {
+      properties_id: number;
+      property_name: string | null;
+      double_unit: number[] | null;
+    };
     service: { service_id: number; service_name: string };
     status: { status_id: number; status: string };
   };

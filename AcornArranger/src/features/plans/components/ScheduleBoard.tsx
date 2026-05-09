@@ -36,6 +36,7 @@ type ScheduleBoardProps = {
   planDate: string;
   plans: Plan[];
   allAppointments: AppointmentRow[];
+  arrivalAppointments: AppointmentRow[];
   backlogAppointments: BacklogAppointment[];
   serviceOptions: { value: string; label: string }[];
   serviceFilter: string[];
@@ -49,6 +50,7 @@ export function ScheduleBoard({
   planDate,
   plans,
   allAppointments,
+  arrivalAppointments,
   backlogAppointments,
   serviceOptions,
   serviceFilter,
@@ -63,6 +65,21 @@ export function ScheduleBoard({
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor)
   );
+
+  // property_id -> property_name for any property whose stay BEGINS on
+  // plan_date. When an on-board appointment's property has a non-empty
+  // `double_unit`, we check whether any of those linked property IDs appear
+  // here; if so, that appointment is an "effective" turn-around.
+  const linkedArrivalPropMap = React.useMemo(() => {
+    const m = new Map<number, string>();
+    for (const a of arrivalAppointments) {
+      const pid = a.property_info?.properties_id;
+      if (pid != null) {
+        m.set(pid, a.property_info?.property_name ?? `#${pid}`);
+      }
+    }
+    return m;
+  }, [arrivalAppointments]);
 
   /**
    * Guard that auto-copies plans for the date when any involved plan is sent,
@@ -273,6 +290,7 @@ export function ScheduleBoard({
               plan={plan}
               plans={plans}
               allAppointments={allAppointments}
+              linkedArrivalPropMap={linkedArrivalPropMap}
               onUpdate={onPlansChange}
               isSent={isPlanSent(plan)}
               withSentGuard={withSentGuard}

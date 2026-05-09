@@ -45,6 +45,8 @@ export const GET = withAuth(async (req: NextRequest) => {
     const propertyIds = parseNumberArray(searchParams.get("propertyIds"));
     const dateFrom = searchParams.get("dateFrom");
     const dateTo = searchParams.get("dateTo");
+    const arrivalDateFrom = searchParams.get("arrivalDateFrom");
+    const arrivalDateTo = searchParams.get("arrivalDateTo");
     const taOnly = searchParams.get("taOnly") === "true";
     const nextArrivalBefore = searchParams.get("nextArrivalBefore");
     const nextArrivalAfter = searchParams.get("nextArrivalAfter");
@@ -104,6 +106,15 @@ export const GET = withAuth(async (req: NextRequest) => {
     if (dateTo) {
       // Append end-of-day time to include entire day (matches legacy behavior)
       query = query.lte("departure_time", `${dateTo} 23:59:59+00`);
+    }
+
+    // Arrival-date filters on arrival_time (the current guest's check-in
+    // timestamp). These are independent from the departure_time filters above.
+    if (arrivalDateFrom) {
+      query = query.gte("arrival_time", arrivalDateFrom);
+    }
+    if (arrivalDateTo) {
+      query = query.lte("arrival_time", `${arrivalDateTo} 23:59:59+00`);
     }
 
     // T/A filter
