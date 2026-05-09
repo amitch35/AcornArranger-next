@@ -18,6 +18,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { StaffPicker } from "@/src/features/staff/components/StaffPicker";
 import { ServiceMultiSelect } from "@/components/filters/ServiceMultiSelect";
 import { DatePicker } from "@/components/filters/DatePicker";
@@ -42,7 +47,7 @@ import {
   sendPlan,
   planApiToastProps,
 } from "@/src/features/plans/api";
-import { toastError } from "@/lib/toast";
+import { toastError, toastSuccess } from "@/lib/toast";
 import { ScheduleBoard } from "@/src/features/plans/components/ScheduleBoard";
 import { toBacklogAppointments } from "@/src/features/plans/components/BacklogPanel";
 import { ShiftStatusBar } from "@/src/features/plans/components/ShiftStatusBar";
@@ -104,6 +109,7 @@ export default function SchedulePage() {
   // mismatch). The effect below immediately syncs the persisted preference on
   // the client after first mount.
   const [buildOptionsOpen, setBuildOptionsOpen] = React.useState(false);
+  const [sendConfirmOpen, setSendConfirmOpen] = React.useState(false);
 
   React.useEffect(() => {
     setBuildOptionsOpen(
@@ -428,6 +434,11 @@ export default function SchedulePage() {
     mutationFn: () => sendPlan(planDate),
     onSuccess: () => {
       refetchPlans();
+      setSendConfirmOpen(false);
+      toastSuccess("Send queued", {
+        description:
+          "Allow up to 15 minutes for changes to apply.",
+      });
     },
     onError: (err) => {
       const { message, description } = planApiToastProps(err, "Send failed");
@@ -916,14 +927,52 @@ export default function SchedulePage() {
           <Plus className="h-4 w-4 mr-2" />
           Add Plan
         </Button>
-        <Button
-          variant="outline"
-          onClick={handleSend}
-          disabled={sendMutation.isPending}
-        >
-          <Upload className="h-4 w-4 mr-2" />
-          Send
-        </Button>
+        <Popover open={sendConfirmOpen} onOpenChange={setSendConfirmOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              disabled={sendMutation.isPending}
+            >
+              {sendMutation.isPending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Upload className="h-4 w-4 mr-2" />
+              )}
+              Send
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80" align="start">
+            <p className="text-sm font-medium">Are you sure?</p>
+            <p className="text-sm text-muted-foreground mt-1.5 mb-3">
+              This sends the plans for{" "}
+              {planDateAsDate.toLocaleDateString(undefined, {
+                dateStyle: "medium",
+              })}
+              .
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setSendConfirmOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleSend}
+                disabled={sendMutation.isPending}
+              >
+                {sendMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : null}
+                Send
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
 
       {/* 4. Schedule board with shift status */}
