@@ -1,5 +1,10 @@
+import type { Metadata } from "next";
 import { AuthBrandHomeLink } from "@/components/auth-brand-home-link";
 import { SignUpForm } from "@/components/sign-up-form";
+
+export const metadata: Metadata = {
+  title: "Sign up | AcornArranger",
+};
 
 export default function Page() {
   return (

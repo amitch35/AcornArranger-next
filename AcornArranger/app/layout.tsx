@@ -10,7 +10,8 @@ const defaultUrl = process.env.SITE_URL ?? "http://localhost:3000";
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
   title: "AcornArranger",
-  description: "Bootstrap",
+  description:
+    "Housekeeping scheduling for vacation rentals — daily plans, Homebase alignment, and ResortCleaning handoff.",
 };
 
 const fontSans = Inter({

@@ -1,6 +1,11 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AuthBrandHomeLink } from "@/components/auth-brand-home-link";
 import { LoginForm } from "@/components/login-form";
+
+export const metadata: Metadata = {
+  title: "Log in | AcornArranger",
+};
 
 export default function Page() {
   return (
