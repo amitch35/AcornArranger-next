@@ -168,6 +168,7 @@ export function PlanColumn({
               key={a.appointment_id}
               appointment={a}
               planId={plan.plan_id}
+              planDate={plan.plan_date}
               isDuplicate={(appointmentPlanCount.get(a.appointment_id) ?? 0) > 1}
               linkedArrivalPropMap={linkedArrivalPropMap}
             />
@@ -551,11 +552,13 @@ function StaffChip({
 function PlanAppointmentItem({
   appointment,
   planId,
+  planDate,
   isDuplicate,
   linkedArrivalPropMap,
 }: {
   appointment: PlanAppointment;
   planId: number;
+  planDate: string;
   isDuplicate: boolean;
   linkedArrivalPropMap: Map<number, string>;
 }) {
@@ -600,6 +603,20 @@ function PlanAppointmentItem({
       ? "linked"
       : null;
 
+  // Detect when the appointment's departure date no longer matches the plan date.
+  // service_time is aliased from rc_appointments.departure_time (UTC timestamptz).
+  const serviceTimeRaw = appointment.appointment_info?.service_time ?? null;
+  const apptDateStr = serviceTimeRaw ? serviceTimeRaw.slice(0, 10) : null;
+  const isDateMismatch = apptDateStr !== null && apptDateStr !== planDate;
+  const mismatchDisplayDate = isDateMismatch && apptDateStr
+    ? new Date(apptDateStr + "T00:00:00Z").toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        timeZone: "UTC",
+      })
+    : null;
+
   return (
     <div
       ref={setNodeRef}
@@ -609,7 +626,8 @@ function PlanAppointmentItem({
       className={`
         rounded border p-2 text-sm cursor-grab active:cursor-grabbing
         bg-background hover:bg-muted/50
-        ${isDuplicate ? "border-sky-400 bg-sky-50 dark:border-sky-500/40 dark:bg-sky-950/35" : ""}
+        ${isDuplicate && !isDateMismatch ? "border-sky-400 bg-sky-50 dark:border-sky-500/40 dark:bg-sky-950/35" : ""}
+        ${isDateMismatch ? "border-amber-400 bg-amber-50 dark:border-amber-500/40 dark:bg-amber-950/35" : ""}
         ${isDragging ? "opacity-50" : ""}
       `}
       role="button"
@@ -644,9 +662,14 @@ function PlanAppointmentItem({
         )}
       </div>
       <div className="text-xs text-muted-foreground truncate">{serviceName}</div>
-      {isDuplicate && (
+      {isDuplicate && !isDateMismatch && (
         <div className="text-xs font-medium text-sky-800 dark:text-sky-300 mt-1">
           In multiple plans
+        </div>
+      )}
+      {isDateMismatch && (
+        <div className="text-xs font-medium text-amber-800 dark:text-amber-300 mt-1">
+          Rescheduled to {mismatchDisplayDate}
         </div>
       )}
     </div>

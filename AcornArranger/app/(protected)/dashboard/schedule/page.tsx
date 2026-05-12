@@ -50,6 +50,7 @@ import {
 import { toastError, toastSuccess } from "@/lib/toast";
 import { ScheduleBoard } from "@/src/features/plans/components/ScheduleBoard";
 import { toBacklogAppointments } from "@/src/features/plans/components/BacklogPanel";
+import { resolveDefaultServiceIds } from "@/src/features/appointments/serviceDefaults";
 import { ShiftStatusBar } from "@/src/features/plans/components/ShiftStatusBar";
 import { HomebaseShiftSuggestions } from "@/src/features/plans/components/HomebaseShiftSuggestions";
 import { useShiftStatus } from "@/src/features/plans/hooks/useShiftStatus";
@@ -267,10 +268,7 @@ export default function SchedulePage() {
   React.useEffect(() => {
     if (filterInitialized.current || serviceOptions.length === 0) return;
     filterInitialized.current = true;
-    const defaults = ["Departure Clean", "Office Cleaning"];
-    const ids = serviceOptions
-      .filter((o: { value: string; label: string }) => defaults.some((d) => o.label.toLowerCase().includes(d.toLowerCase())))
-      .map((o: { value: string; label: string }) => o.value);
+    const ids = resolveDefaultServiceIds(serviceOptions);
     if (ids.length > 0) setBacklogServiceFilter(ids);
   }, [serviceOptions]);
 

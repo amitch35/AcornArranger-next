@@ -34,6 +34,8 @@ import {
 } from "@/lib/date/week";
 import type { AppointmentRow } from "@/src/features/appointments/schemas";
 import type { StaffShift } from "@/src/features/plans/schemas";
+import { resolveDefaultServiceIds } from "@/src/features/appointments/serviceDefaults";
+import { ServiceMultiSelect } from "@/components/filters/ServiceMultiSelect";
 
 const DASHBOARD_STALE_TIME = 30 * 60 * 1000; // 30 minutes
 const LIFETIME_STALE_TIME = 24 * 60 * 60 * 1000; // 24 hours
@@ -50,6 +52,16 @@ async function fetchAppointments(
   const res = await fetch(`/api/appointments?${search}`);
   if (!res.ok) throw new Error("Failed to load appointments");
   return res.json();
+}
+
+async function fetchAppointmentsCount(
+  params: Record<string, string>
+): Promise<number> {
+  const search = new URLSearchParams({ ...params, pageSize: "1" });
+  const res = await fetch(`/api/appointments?${search}`);
+  if (!res.ok) throw new Error("Failed to load appointments count");
+  const body = (await res.json()) as { total?: number };
+  return body.total ?? 0;
 }
 
 async function fetchCount(path: string): Promise<CountResponse> {
@@ -87,9 +99,26 @@ function shiftLocalDate(shift: StaffShift): string | null {
 }
 
 export function DashboardContent() {
-  // Anchor the dashboard on "today" at mount. Changes to the system clock
-  // during the session don't need to retrigger the full dashboard re-render.
-  const anchor = React.useMemo(() => today(), []);
+  // shows the correct date without a manual refresh.
+  const [anchor, setAnchor] = React.useState(() => today());
+  React.useEffect(() => {
+    function scheduleNextMidnight() {
+      const now = new Date();
+      const nextMidnight = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() + 1
+      );
+      const msUntilMidnight = nextMidnight.getTime() - now.getTime();
+      return setTimeout(() => {
+        setAnchor(today());
+        // Reschedule for the midnight after that.
+        timerRef.current = scheduleNextMidnight();
+      }, msUntilMidnight);
+    }
+    const timerRef = { current: scheduleNextMidnight() };
+    return () => clearTimeout(timerRef.current);
+  }, []);
   const todayIso = React.useMemo(() => formatLocalDate(anchor), [anchor]);
   const yesterdayIso = React.useMemo(() => {
     const d = new Date(anchor);
@@ -98,30 +127,93 @@ export function DashboardContent() {
   }, [anchor]);
   const week = React.useMemo(() => getWeekRangeContaining(anchor), [anchor]);
 
-  // ---- Week appointments (for chart + "today" / "yesterday" buckets) ----
+  // ---- Service filter (controls all appointment queries on this dashboard) ----
+  const [serviceFilter, setServiceFilter] = React.useState<string[]>([]);
+  const serviceFilterInitialized = React.useRef(false);
+
+  const { data: serviceOptions = [] } = useQuery({
+    queryKey: ["service-options"],
+    queryFn: async () => {
+      const res = await fetch("/api/options/services");
+      if (!res.ok) throw new Error("Failed to load services");
+      const body = await res.json();
+      return (body.options as { id: number; label: string }[]).map((opt) => ({
+        value: String(opt.id),
+        label: opt.label,
+      }));
+    },
+    staleTime: 24 * 60 * 60 * 1000,
+  });
+
+  // Pre-select the standard workload services
+  React.useEffect(() => {
+    if (serviceFilterInitialized.current || serviceOptions.length === 0) return;
+    serviceFilterInitialized.current = true;
+    const ids = resolveDefaultServiceIds(serviceOptions);
+    if (ids.length > 0) setServiceFilter(ids);
+  }, [serviceOptions]);
+
+  // Stable param string for query keys — avoids array reference churn.
+  const serviceIdsParam = serviceFilter.join(",");
+
+  // ---- Week appointments (drives the chart only) ----
   const weekAppointmentsQuery = useQuery({
-    queryKey: ["dashboard-week-appts", week.start, week.end],
-    queryFn: () =>
-      fetchAppointments({
+    queryKey: ["dashboard-week-appts", week.start, week.end, serviceIdsParam],
+    queryFn: () => {
+      const params: Record<string, string> = {
         dateFrom: week.start,
         dateTo: week.end,
         statusIds: ACTIVE_STATUSES,
-        pageSize: "200",
-      }),
+        pageSize: "500",
+      };
+      if (serviceIdsParam) params.serviceIds = serviceIdsParam;
+      return fetchAppointments(params);
+    },
+    staleTime: DASHBOARD_STALE_TIME,
+  });
+
+  const todayCountQuery = useQuery({
+    queryKey: ["dashboard-day-count", todayIso, serviceIdsParam],
+    queryFn: () => {
+      const params: Record<string, string> = {
+        dateFrom: todayIso,
+        dateTo: todayIso,
+        statusIds: ACTIVE_STATUSES,
+      };
+      if (serviceIdsParam) params.serviceIds = serviceIdsParam;
+      return fetchAppointmentsCount(params);
+    },
+    staleTime: DASHBOARD_STALE_TIME,
+  });
+
+  const yesterdayCountQuery = useQuery({
+    queryKey: ["dashboard-day-count", yesterdayIso, serviceIdsParam],
+    queryFn: () => {
+      const params: Record<string, string> = {
+        dateFrom: yesterdayIso,
+        dateTo: yesterdayIso,
+        statusIds: ACTIVE_STATUSES,
+      };
+      if (serviceIdsParam) params.serviceIds = serviceIdsParam;
+      return fetchAppointmentsCount(params);
+    },
     staleTime: DASHBOARD_STALE_TIME,
   });
 
   // ---- Unscheduled (excludePlanned) appointments for the whole week ----
   const unscheduledQuery = useQuery({
-    queryKey: ["dashboard-unscheduled", week.start, week.end],
-    queryFn: () =>
-      fetchAppointments({
+    queryKey: ["dashboard-unscheduled", week.start, week.end, serviceIdsParam],
+    queryFn: () => {
+      const params: Record<string, string> = {
         dateFrom: week.start,
         dateTo: week.end,
         statusIds: ACTIVE_STATUSES,
         excludePlanned: "true",
-        pageSize: "200",
-      }),
+        pageSize: "500",
+      };
+      if (serviceIdsParam) params.serviceIds = serviceIdsParam;
+      return fetchAppointments(params);
+    },
     staleTime: DASHBOARD_STALE_TIME,
   });
 
@@ -192,23 +284,12 @@ export function DashboardContent() {
     }));
   }, [week.mondayDate, week.start, weekAppointments, shifts]);
 
-  // ---- KPI values derived from the same queries ----
-  const todayAppointments = React.useMemo(
-    () =>
-      weekAppointments.filter((a) => a.departure_time?.slice(0, 10) === todayIso)
-        .length,
-    [weekAppointments, todayIso]
-  );
-
-  const yesterdayAppointments = React.useMemo(
-    () =>
-      weekAppointments.filter(
-        (a) => a.departure_time?.slice(0, 10) === yesterdayIso
-      ).length,
-    [weekAppointments, yesterdayIso]
-  );
-
+  // ---- KPI values from dedicated count queries (immune to pagination) ----
+  const todayAppointments = todayCountQuery.data ?? 0;
+  const yesterdayAppointments = yesterdayCountQuery.data ?? 0;
   const appointmentsDelta = todayAppointments - yesterdayAppointments;
+  const todayCardLoading =
+    todayCountQuery.isLoading || yesterdayCountQuery.isLoading;
 
   const staffOnShiftToday = React.useMemo(
     () =>
@@ -218,11 +299,26 @@ export function DashboardContent() {
 
   return (
     <div className="container py-8 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground mt-2">
-          Snapshot for the week of {week.start} – {week.end} (Mon–Sun).
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground mt-2">
+            Snapshot for the week of {week.start} – {week.end} (Mon–Sun).
+          </p>
+        </div>
+        <div className="flex flex-col gap-1">
+          <span className="text-xs font-medium text-muted-foreground">
+            Services
+          </span>
+          <ServiceMultiSelect
+            options={serviceOptions}
+            value={serviceFilter}
+            onChange={setServiceFilter}
+            showBadges={false}
+            placeholder="Search services…"
+            label="Services"
+          />
+        </div>
       </div>
 
       {/* Row 1: KPIs */}
@@ -231,11 +327,8 @@ export function DashboardContent() {
           title="Today's appointments"
           icon={<Calendar className="h-4 w-4 text-muted-foreground" />}
           value={todayAppointments}
-          loading={weekAppointmentsQuery.isLoading}
-          description={describeDelta(
-            appointmentsDelta,
-            weekAppointmentsQuery.isLoading
-          )}
+          loading={todayCountQuery.isLoading}
+          description={describeDelta(appointmentsDelta, todayCardLoading)}
         />
         <KpiCard
           title="Staff on shift"
@@ -271,6 +364,7 @@ export function DashboardContent() {
         </div>
         <UnscheduledList
           appointments={unscheduledAppointments}
+          total={unscheduledQuery.data?.total ?? unscheduledAppointments.length}
           loading={unscheduledQuery.isLoading}
         />
       </div>
@@ -409,10 +503,13 @@ function KpiCard({ title, icon, value, loading, description }: KpiCardProps) {
 
 type UnscheduledListProps = {
   appointments: AppointmentRow[];
+  total: number;
   loading: boolean;
 };
 
-function UnscheduledList({ appointments, loading }: UnscheduledListProps) {
+function UnscheduledList({ appointments, total, loading }: UnscheduledListProps) {
+  const visible = appointments.slice(0, 8);
+  const hiddenCount = Math.max(0, total - visible.length);
   return (
     <Card className="h-full">
       <CardHeader>
@@ -434,7 +531,7 @@ function UnscheduledList({ appointments, loading }: UnscheduledListProps) {
           </p>
         ) : (
           <ul className="space-y-2">
-            {appointments.slice(0, 8).map((appt) => {
+            {visible.map((appt) => {
               const date = appt.departure_time?.slice(0, 10);
               const propertyName =
                 appt.property_info?.property_name ??
@@ -462,9 +559,9 @@ function UnscheduledList({ appointments, loading }: UnscheduledListProps) {
                 </li>
               );
             })}
-            {appointments.length > 8 ? (
+            {hiddenCount > 0 ? (
               <li className="pt-1 text-center text-xs text-muted-foreground">
-                +{appointments.length - 8} more
+                +{hiddenCount} more
               </li>
             ) : null}
           </ul>

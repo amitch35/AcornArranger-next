@@ -34,7 +34,7 @@ export const GET = withAuth(async (req: NextRequest) => {
     const sort = searchParams.get("sort");
     const pageSize = Math.min(
       Math.max(1, Number(searchParams.get("pageSize") || 25)),
-      100
+      500
     );
     const page = Math.max(1, Number(searchParams.get("page") || 1));
     const offset = (page - 1) * pageSize;
