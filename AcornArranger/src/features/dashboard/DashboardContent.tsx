@@ -41,6 +41,8 @@ const DASHBOARD_STALE_TIME = 30 * 60 * 1000; // 30 minutes
 const LIFETIME_STALE_TIME = 24 * 60 * 60 * 1000; // 24 hours
 /** Statuses we treat as "live" workload on the dashboard — excludes Cancelled (5). */
 const ACTIVE_STATUSES = "1,2,3,4";
+/** Unscheduled backlog only: Unconfirmed (1) and Confirmed (2). */
+const UNSCHEDULED_STATUSES = "1,2";
 
 type AppointmentsResponse = { items: AppointmentRow[]; total: number };
 type CountResponse = { total: number };
@@ -207,7 +209,7 @@ export function DashboardContent() {
       const params: Record<string, string> = {
         dateFrom: week.start,
         dateTo: week.end,
-        statusIds: ACTIVE_STATUSES,
+        statusIds: UNSCHEDULED_STATUSES,
         excludePlanned: "true",
         pageSize: "500",
       };
