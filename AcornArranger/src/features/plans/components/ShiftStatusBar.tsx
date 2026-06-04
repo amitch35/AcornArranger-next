@@ -156,9 +156,10 @@ export function ShiftStatusBar({
             />
             {unmatchedShifts.length > 0 && (
               <p className="text-xs text-muted-foreground">
-                Unmatched shifts have a Homebase name that doesn&apos;t
-                correspond to any staff record in AcornArranger. Update the
-                staff record&apos;s Homebase link to resolve this.
+                Unmatched shifts have no active AcornArranger staff record
+                linked to their Homebase account. To resolve, either update
+                the active staff record&apos;s Homebase link, or reactivate
+                the staff member if they have been marked inactive.
               </p>
             )}
           </div>
