@@ -27,6 +27,18 @@ function hasAtLeastRole(current: Role | null, required: Role): boolean {
   return ROLE_ORDER.indexOf(current) >= ROLE_ORDER.indexOf(required);
 }
 
+function resolveOrigin(request: NextRequest): string {
+  if (process.env.SITE_URL) {
+    return process.env.SITE_URL.replace(/\/$/, "");
+  }
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  if (forwardedHost) {
+    const proto = request.headers.get("x-forwarded-proto") ?? "https";
+    return `${proto}://${forwardedHost}`;
+  }
+  return request.nextUrl.origin;
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -72,8 +84,8 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
 
-  const url = request.nextUrl;
-  const pathname = url.pathname;
+  const { pathname } = request.nextUrl;
+  const origin = resolveOrigin(request);
 
   // Find matching route rule for this path
   const routeRule = ROUTE_RULES.find(rule => pathname.startsWith(rule.prefix));
@@ -82,8 +94,7 @@ export async function updateSession(request: NextRequest) {
   if (routeRule) {
     // No user at all - redirect to login
     if (!user) {
-      const loginUrl = url.clone();
-      loginUrl.pathname = "/auth/login";
+      const loginUrl = new URL("/auth/login", origin);
       loginUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(loginUrl);
     }
@@ -97,9 +108,7 @@ export async function updateSession(request: NextRequest) {
 
     // Check if role meets minimum requirement (UX routing only)
     if (!hasAtLeastRole(role, routeRule.minRole)) {
-      const welcomeUrl = url.clone();
-      welcomeUrl.pathname = "/welcome";
-      return NextResponse.redirect(welcomeUrl);
+      return NextResponse.redirect(new URL("/welcome", origin));
     }
   }
 
@@ -112,9 +121,7 @@ export async function updateSession(request: NextRequest) {
     !pathname.startsWith("/welcome")
   ) {
     // no user, potentially respond by redirecting the user to the login page
-    const loginUrl = url.clone();
-    loginUrl.pathname = "/auth/login";
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(new URL("/auth/login", origin));
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.
